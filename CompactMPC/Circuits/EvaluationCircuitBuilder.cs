@@ -1,0 +1,120 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+using CompactMPC.Circuits.Internal;
+
+namespace CompactMPC.Circuits
+{
+    public class EvaluationCircuitBuilder : CircuitBuilder, IBooleanEvaluable
+    {
+        private List<int> _outputWireIds;
+        private List<int> _inputWireIds;
+        private Dictionary<int, Gate> _wireToGateMapping;
+
+        public EvaluationCircuitBuilder()
+        {
+            _outputWireIds = new List<int>();
+            _inputWireIds = new List<int>();
+            _wireToGateMapping = new Dictionary<int, Gate>();
+        }
+
+        public static EvaluationCircuitBuilder FromRecorder(ICircuitRecorder recorder)
+        {
+            EvaluationCircuitBuilder builder = new EvaluationCircuitBuilder();
+            recorder.Record(builder);
+            return builder;
+        }
+
+        protected override void AddAndGate(Wire leftInput, Wire rightInput, Wire output, GateContext context)
+        {
+            _wireToGateMapping.Add(output.Id, new AndGate(context, leftInput.Id, rightInput.Id));
+        }
+
+        protected override void AddXorGate(Wire leftInput, Wire rightInput, Wire output, GateContext context)
+        {
+            _wireToGateMapping.Add(output.Id, new XorGate(context, leftInput.Id, rightInput.Id));
+        }
+
+        protected override void AddNotGate(Wire input, Wire output, GateContext context)
+        {
+            _wireToGateMapping.Add(output.Id, new NotGate(context, input.Id));
+        }
+        
+        protected override void MakeInputWire(Wire bit)
+        {
+            _inputWireIds.Add(bit.Id);
+        }
+
+        protected override void MakeOutputWire(Wire bit)
+        {
+            _outputWireIds.Add(bit.Id);
+        }
+
+        public BitArray Evaluate(BitArray inputValues)
+        {
+            return new BitArray(Evaluate(new SimpleBooleanCircuitEvaluator(), inputValues.Cast<bool>().ToArray()));
+        }
+
+        public T[] EvaluateParallel<T>(IBooleanCircuitEvaluator<Task<T>> evaluator, T[] inputValues)
+        {
+            Task<T>[] inputTasks = inputValues.Select(inputValue => Task.FromResult(inputValue)).ToArray();
+            return Task.WhenAll(Evaluate(evaluator, inputTasks)).Result;
+        }
+        
+        public T[] Evaluate<T>(IBooleanCircuitEvaluator<T> evaluator, T[] inputValues)
+        {
+            if (inputValues.Length != _inputWireIds.Count)
+                throw new ArgumentException("Number of input values must match the number of input wires.", nameof(inputValues));
+
+            IdMapping<WireState<T>> wireStates = new IdMapping<WireState<T>>(WireState<T>.Empty, _outputWireIds.Max() + 1);
+            for (int i = 0; i < _inputWireIds.Count; ++i)
+                wireStates[i] = new WireState<T>(inputValues[i]);
+
+            T[] outputValues = new T[_outputWireIds.Count];
+            for (int i = 0; i < _outputWireIds.Count; ++i)
+                outputValues[i] = Evaluate(_outputWireIds[i], evaluator, wireStates);
+
+            return outputValues;
+        }
+
+        private T Evaluate<T>(int wireId, IBooleanCircuitEvaluator<T> evaluator, IdMapping<WireState<T>> wireStates)
+        {
+            if (!wireStates[wireId].IsEvaluated)
+            {
+                wireStates[wireId] = new WireState<T>(default(T));
+
+                Gate gate;
+                if (!_wireToGateMapping.TryGetValue(wireId, out gate))
+                    throw new ArgumentException("There exists no gate to evaluate for this wire.", nameof(wireId));
+
+                foreach (int inputWireId in gate.InputWireIds)
+                    Evaluate(inputWireId, evaluator, wireStates);
+
+                wireStates[wireId] = new WireState<T>(gate.Evaluate(evaluator, wireStates, CircuitContext));
+            }
+
+            return wireStates[wireId].Value;
+        }
+
+        public int NumberOfInputs
+        {
+            get
+            {
+                return _inputWireIds.Count;
+            }
+        }
+
+        public int NumberOfOutputs
+        {
+            get
+            {
+                return _outputWireIds.Count;
+            }
+        }
+    }
+}

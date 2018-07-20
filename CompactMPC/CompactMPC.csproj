@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{15AD1BA0-82F9-4BBD-9FD2-D2458CD173A5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CompactMPC</RootNamespace>
+    <AssemblyName>CompactMPC</AssemblyName>
+    <DefaultLanguage>de-DE</DefaultLanguage>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Circuits\IBooleanEvaluable.cs" />
+    <Compile Include="ThreadsafeRandomNumberGenerator.cs" />
+    <Compile Include="CryptoContext.cs" />
+    <Compile Include="Expressions\OutputPrimitiveDeclaration.cs" />
+    <Compile Include="Expressions\InputPrimitiveDeclaration.cs" />
+    <Compile Include="Expressions\Internal\WordPrimitiveConverter.cs" />
+    <Compile Include="Expressions\Internal\IntegerPrimitiveConverter.cs" />
+    <Compile Include="Expressions\Internal\BooleanPrimitiveConverter.cs" />
+    <Compile Include="Expressions\PrimitiveConverter.cs" />
+    <Compile Include="Expressions\ExpressionHelper.cs" />
+    <Compile Include="Expressions\SecureBoolean.cs" />
+    <Compile Include="Expressions\SecureInteger.cs" />
+    <Compile Include="Expressions\SecureMultiPartyProgram.cs" />
+    <Compile Include="Expressions\SecurePrimitive.cs" />
+    <Compile Include="IdSet.cs" />
+    <Compile Include="Protocol\OutputPartyMapping.cs" />
+    <Compile Include="ObliviousTransfer\ObliviousTransferPreprocessor.cs" />
+    <Compile Include="ObliviousTransfer\IObliviousTransferStream.cs" />
+    <Compile Include="ObliviousTransfer\PreprocessedObliviousTransferStream.cs" />
+    <Compile Include="ObliviousTransfer\PreprocessedReceiverBatch.cs" />
+    <Compile Include="ObliviousTransfer\PreprocessedSenderBatch.cs" />
+    <Compile Include="ObliviousTransfer\RandomOracle.cs" />
+    <Compile Include="ObliviousTransfer\HashRandomOracle.cs" />
+    <Compile Include="ObliviousTransfer\NonBatchedObliviousTransfer.cs" />
+    <Compile Include="Quadruple.cs" />
+    <Compile Include="BitQuadruple.cs" />
+    <Compile Include="ObliviousTransfer\ObliviousTransferStream.cs" />
+    <Compile Include="Networking\MultiStream.cs" />
+    <Compile Include="Networking\SequentialSubstream.cs" />
+    <Compile Include="Networking\SequentialMultiStream.cs" />
+    <Compile Include="ObliviousTransfer\IBatchObliviousTransfer.cs" />
+    <Compile Include="ObliviousTransfer\NaorPinkasObliviousTransfer.cs" />
+    <Compile Include="ObliviousTransfer\SecurityParameters.cs" />
+    <Compile Include="StreamHelper.cs" />
+    <Compile Include="ObliviousTransfer\UnsafeObliviousTransfer.cs" />
+    <Compile Include="Networking\MultiPartyNetworkSession.cs" />
+    <Compile Include="RandomNumberGeneratorHelper.cs" />
+    <Compile Include="BitArrayHelper.cs" />
+    <Compile Include="BinaryFormatHelper.cs" />
+    <Compile Include="Circuits\CircuitContext.cs" />
+    <Compile Include="Circuits\GateContext.cs" />
+    <Compile Include="Circuits\ParallelBooleanCircuitEvaluator.cs" />
+    <Compile Include="Circuits\Internal\IdMapping.cs" />
+    <Compile Include="Circuits\Internal\NotGate.cs" />
+    <Compile Include="Circuits\Internal\WireState.cs" />
+    <Compile Include="Circuits\Internal\XorGate.cs" />
+    <Compile Include="Circuits\Internal\AndGate.cs" />
+    <Compile Include="Circuits\CircuitBuilder.cs" />
+    <Compile Include="Circuits\SimpleBooleanCircuitEvaluator.cs" />
+    <Compile Include="Circuits\EvaluationCircuitBuilder.cs" />
+    <Compile Include="Circuits\Internal\Gate.cs" />
+    <Compile Include="Circuits\IBooleanCircuitEvaluator.cs" />
+    <Compile Include="Circuits\ICircuitRecorder.cs" />
+    <Compile Include="Circuits\Wire.cs" />
+    <Compile Include="Expressions\SecureWord.cs" />
+    <Compile Include="Protocol\InputPartyMapping.cs" />
+    <Compile Include="Protocol\SecureComputation.cs" />
+    <Compile Include="ObliviousTransfer\IObliviousTransfer.cs" />
+    <Compile Include="Protocol\ProtocolException.cs" />
+    <Compile Include="Protocol\Internal\GMWBooleanCircuitEvaluator.cs" />
+    <Compile Include="Protocol\GMWSecureComputation.cs" />
+    <Compile Include="Bit.cs" />
+    <Compile Include="Networking\INetworkSession.cs" />
+    <Compile Include="Networking\Party.cs" />
+    <Compile Include="Networking\PeerToPeerNetwork.cs" />
+    <Compile Include="Networking\BufferedMultiStream.cs" />
+    <Compile Include="Networking\BufferedSubstream.cs" />
+    <Compile Include="Networking\TwoPartyNetworkSession.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
