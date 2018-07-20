@@ -7,12 +7,11 @@ using System.Text;
 using System.Reflection;
 using System.Diagnostics;
 
-using CompactMPC;
 using CompactMPC.Networking;
 using CompactMPC.Protocol;
 using CompactMPC.ObliviousTransfer;
 
-namespace CompactMPCDemo
+namespace CompactMPC.Samples
 {
     public class Program
     {
@@ -36,14 +35,14 @@ namespace CompactMPCDemo
                 for (int i = 1; i < NumberOfParties; ++i)
                     Process.Start(executablePath, i.ToString());
 
-                RunCompactMPCParty(0, inputs[0]);
+                RunSecureComputationParty(0, inputs[0]);
             }
             else if (args.Length == 1)
             {
                 Console.WriteLine("Starting client...");
 
                 int localPartyId = Int32.Parse(args[0]);
-                RunCompactMPCParty(localPartyId, inputs[localPartyId]);
+                RunSecureComputationParty(localPartyId, inputs[localPartyId]);
             }
             else
             {
@@ -56,7 +55,7 @@ namespace CompactMPCDemo
             Console.ReadKey(true);
         }
 
-        private static void RunCompactMPCParty(int localPartyId, BitArray localInput)
+        private static void RunSecureComputationParty(int localPartyId, BitArray localInput)
         {
             using (MultiPartyNetworkSession session = new MultiPartyNetworkSession(StartPort, NumberOfParties, localPartyId))
             {

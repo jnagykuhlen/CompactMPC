@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using CompactMPC;
 using CompactMPC.Circuits;
 using CompactMPC.Expressions;
 
-namespace CompactMPCDemo
+namespace CompactMPC.Samples
 {
     public class SetIntersectionSecureProgram : SecureMultiPartyProgram
     {
