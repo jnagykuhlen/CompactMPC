@@ -8,6 +8,11 @@ using CompactMPC.Expressions;
 
 namespace CompactMPC.Circuits
 {
+    /// <summary>
+    /// Represents an abstract builder for constructing boolean circuits ad hoc from
+    /// AND, XOR and NOT gates. Derived classes need to translate these gates into
+    /// an appropriate internal circuit representation.
+    /// </summary>
     public abstract class CircuitBuilder
     {
         private int _nextWireId;
@@ -17,7 +22,10 @@ namespace CompactMPC.Circuits
         private int _nextNotGateId;
         private CircuitContext _cachedContext;
 
-        public CircuitBuilder()
+        /// <summary>
+        /// Creates a new empty circuit builder.
+        /// </summary>
+        protected CircuitBuilder()
         {
             _nextWireId = 0;
             _nextGateId = 0;
@@ -27,6 +35,12 @@ namespace CompactMPC.Circuits
             _cachedContext = null;
         }
 
+        /// <summary>
+        /// Adds a binary AND gate to the circuit.
+        /// </summary>
+        /// <param name="leftInput">Left input wire.</param>
+        /// <param name="rightInput">Right input wire.</param>
+        /// <returns>A wire representing the logical AND of both inputs.</returns>
         public Wire And(Wire leftInput, Wire rightInput)
         {
             if (!IsValid(leftInput) || !IsValid(rightInput))
@@ -46,6 +60,12 @@ namespace CompactMPC.Circuits
             return output;
         }
 
+        /// <summary>
+        /// Adds a binary XOR gate to the circuit.
+        /// </summary>
+        /// <param name="leftInput">Left input wire.</param>
+        /// <param name="rightInput">Right input wire.</param>
+        /// <returns>A wire representing the logical XOR of both inputs.</returns>
         public Wire Xor(Wire leftInput, Wire rightInput)
         {
             if (!IsValid(leftInput) || !IsValid(rightInput))
@@ -68,11 +88,23 @@ namespace CompactMPC.Circuits
             return output;
         }
 
+        /// <summary>
+        /// Constructs the equivalent of an OR gate from an AND gate and negated input and
+        /// output wires.
+        /// </summary>
+        /// <param name="leftInput">Left input wire.</param>
+        /// <param name="rightInput">Right input wire.</param>
+        /// <returns>A wire representing the logical OR of both inputs.</returns>
         public Wire Or(Wire leftInput, Wire rightInput)
         {
             return Not(And(Not(leftInput), Not(rightInput)));
         }
 
+        /// <summary>
+        /// Adds a unary NOT gate to the circuit.
+        /// </summary>
+        /// <param name="input">Input wire to negate.</param>
+        /// <returns>A wire representing the logical negation of the input.</returns>
         public Wire Not(Wire input)
         {
             if (!IsValid(input))
@@ -89,6 +121,10 @@ namespace CompactMPC.Circuits
             return result;
         }
 
+        /// <summary>
+        /// Adds a new input wire to the circuit.
+        /// </summary>
+        /// <returns>Input wire.</returns>
         public Wire Input()
         {
             Wire wire = RequestWire();
@@ -96,6 +132,10 @@ namespace CompactMPC.Circuits
             return wire;
         }
 
+        /// <summary>
+        /// Marks an existing wire as output of the circuit.
+        /// </summary>
+        /// <param name="wire">Wire to output.</param>
         public void Output(Wire wire)
         {
             if (wire.IsConstant)
@@ -129,38 +169,9 @@ namespace CompactMPC.Circuits
         protected abstract void MakeInputWire(Wire bit);
         protected abstract void MakeOutputWire(Wire bit);
         
-        public int NumberOfGates
-        {
-            get
-            {
-                return _nextGateId;
-            }
-        }
-
-        public int NumberOfAndGates
-        {
-            get
-            {
-                return _nextAndGateId;
-            }
-        }
-
-        public int NumberOfXorGates
-        {
-            get
-            {
-                return _nextXorGateId;
-            }
-        }
-
-        public int NumberOfNotGates
-        {
-            get
-            {
-                return _nextNotGateId;
-            }
-        }
-
+        /// <summary>
+        /// Gets information on the number of gates in the circuit.
+        /// </summary>
         public CircuitContext CircuitContext
         {
             get

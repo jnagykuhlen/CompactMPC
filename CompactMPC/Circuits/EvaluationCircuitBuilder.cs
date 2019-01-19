@@ -10,12 +10,18 @@ using CompactMPC.Circuits.Internal;
 
 namespace CompactMPC.Circuits
 {
+    /// <summary>
+    /// Represents a circuit builder that provides means to evaluate the internal circuit after construction.
+    /// </summary>
     public class EvaluationCircuitBuilder : CircuitBuilder, IBooleanEvaluable
     {
         private List<int> _outputWireIds;
         private List<int> _inputWireIds;
         private Dictionary<int, Gate> _wireToGateMapping;
 
+        /// <summary>
+        /// Creates a new empty circuit builder.
+        /// </summary>
         public EvaluationCircuitBuilder()
         {
             _outputWireIds = new List<int>();
@@ -23,6 +29,12 @@ namespace CompactMPC.Circuits
             _wireToGateMapping = new Dictionary<int, Gate>();
         }
 
+        /// <summary>
+        /// Records an algorithm given in boolean logic into a new circuit builder and
+        /// returns the result for subsequent evaluation.
+        /// </summary>
+        /// <param name="recorder">Circuit recorder representing an algorithm in boolean logic.</param>
+        /// <returns>Circuit builder for evaluation.</returns>
         public static EvaluationCircuitBuilder FromRecorder(ICircuitRecorder recorder)
         {
             EvaluationCircuitBuilder builder = new EvaluationCircuitBuilder();
@@ -55,17 +67,36 @@ namespace CompactMPC.Circuits
             _outputWireIds.Add(bit.Id);
         }
 
+        /// <summary>
+        /// Evaluates the internal circuit of this builder locally with specified input bits.
+        /// </summary>
+        /// <param name="inputValues">Input bits corresponding to each declared input wire.</param>
+        /// <returns>Output bits corresponding to each declared output wire.</returns>
         public BitArray Evaluate(BitArray inputValues)
         {
             return new BitArray(Evaluate(new SimpleBooleanCircuitEvaluator(), inputValues.Cast<bool>().ToArray()));
         }
 
+        /// <summary>
+        /// Evaluates the internal circuit of this builder using a specified evaluator, where each gate is handled asynchronously.
+        /// </summary>
+        /// <typeparam name="T">The data type that represents actual wire values.</typeparam>
+        /// <param name="evaluator">An abstract evaluator that is called for each gate in the circuit.</param>
+        /// <param name="inputValues">Input values corresponding to each declared input wire.</param>
+        /// <returns>Output bits corresponding to each declared output wire.</returns>
         public T[] EvaluateParallel<T>(IBooleanCircuitEvaluator<Task<T>> evaluator, T[] inputValues)
         {
             Task<T>[] inputTasks = inputValues.Select(inputValue => Task.FromResult(inputValue)).ToArray();
             return Task.WhenAll(Evaluate(evaluator, inputTasks)).Result;
         }
-        
+
+        /// <summary>
+        /// Evaluates the internal circuit of this builder using a specified evaluator, where the gates are processed sequentially.
+        /// </summary>
+        /// <typeparam name="T">The data type that represents actual wire values.</typeparam>
+        /// <param name="evaluator">An abstract evaluator that is called for each gate in the circuit.</param>
+        /// <param name="inputValues">Input values corresponding to each declared input wire.</param>
+        /// <returns>Output bits corresponding to each declared output wire.</returns>
         public T[] Evaluate<T>(IBooleanCircuitEvaluator<T> evaluator, T[] inputValues)
         {
             if (inputValues.Length != _inputWireIds.Count)
@@ -101,6 +132,9 @@ namespace CompactMPC.Circuits
             return wireStates[wireId].Value;
         }
 
+        /// <summary>
+        /// Gets the number of input wires in the circuit.
+        /// </summary>
         public int NumberOfInputs
         {
             get
@@ -109,6 +143,9 @@ namespace CompactMPC.Circuits
             }
         }
 
+        /// <summary>
+        /// Gets the number of output wires in the circuit.
+        /// </summary>
         public int NumberOfOutputs
         {
             get

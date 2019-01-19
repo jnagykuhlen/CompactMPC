@@ -6,12 +6,21 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits
 {
+    /// <summary>
+    /// Combines information on the number of gates in a boolean circuit.
+    /// </summary>
     public class CircuitContext
     {
         private int _numberOfAndGates;
         private int _numberOfXorGates;
         private int _numberOfNotGates;
 
+        /// <summary>
+        /// Creates a new set of information on a boolean circuit.
+        /// </summary>
+        /// <param name="numberOfAndGates">Number of AND gates in the circuit.</param>
+        /// <param name="numberOfXorGates">Number of XOR gates in the circuit.</param>
+        /// <param name="numberOfNotGates">Number of NOT gates in the circuit.</param>
         public CircuitContext(int numberOfAndGates, int numberOfXorGates, int numberOfNotGates)
         {
             _numberOfAndGates = numberOfAndGates;
@@ -19,6 +28,9 @@ namespace CompactMPC.Circuits
             _numberOfNotGates = numberOfNotGates;
         }
 
+        /// <summary>
+        /// Gets the number of AND gates in the circuit.
+        /// </summary>
         public int NumberOfAndGates
         {
             get
@@ -27,6 +39,9 @@ namespace CompactMPC.Circuits
             }
         }
 
+        /// <summary>
+        /// Gets the number of XOR gates in the circuit.
+        /// </summary>
         public int NumberOfXorGates
         {
             get
@@ -35,6 +50,9 @@ namespace CompactMPC.Circuits
             }
         }
 
+        /// <summary>
+        /// Gets the number of NOT gates in the circuit.
+        /// </summary>
         public int NumberOfNotGates
         {
             get
@@ -43,6 +61,10 @@ namespace CompactMPC.Circuits
             }
         }
 
+        /// <summary>
+        /// Gets the total number of gates in the circuit, including
+        /// AND, XOR and NOT gates.
+        /// </summary>
         public int NumberOfGates
         {
             get
