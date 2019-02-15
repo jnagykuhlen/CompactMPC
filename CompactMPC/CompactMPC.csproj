@@ -35,7 +35,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Circuits\Circuit.cs" />
+    <Compile Include="Circuits\CircuitEvaluationState.cs" />
+    <Compile Include="Circuits\GateEqualityComparer.cs" />
+    <Compile Include="Circuits\Gates\InputGate.cs" />
+    <Compile Include="Circuits\Gates\OutputGate.cs" />
     <Compile Include="Circuits\IBooleanEvaluable.cs" />
+    <Compile Include="Circuits\ILayeredCircuitEvaluator.cs" />
+    <Compile Include="Circuits\LocalCircuitEvaluator.cs" />
     <Compile Include="ThreadsafeRandomNumberGenerator.cs" />
     <Compile Include="CryptoContext.cs" />
     <Compile Include="Expressions\OutputPrimitiveDeclaration.cs" />
@@ -77,16 +84,14 @@
     <Compile Include="Circuits\CircuitContext.cs" />
     <Compile Include="Circuits\GateContext.cs" />
     <Compile Include="Circuits\ParallelBooleanCircuitEvaluator.cs" />
-    <Compile Include="Circuits\Internal\IdMapping.cs" />
-    <Compile Include="Circuits\Internal\NotGate.cs" />
-    <Compile Include="Circuits\Internal\WireState.cs" />
-    <Compile Include="Circuits\Internal\XorGate.cs" />
-    <Compile Include="Circuits\Internal\AndGate.cs" />
+    <Compile Include="IdMapping.cs" />
+    <Compile Include="Circuits\Gates\NotGate.cs" />
+    <Compile Include="Circuits\Gates\XorGate.cs" />
+    <Compile Include="Circuits\Gates\AndGate.cs" />
     <Compile Include="Circuits\CircuitBuilder.cs" />
     <Compile Include="Circuits\SimpleBooleanCircuitEvaluator.cs" />
-    <Compile Include="Circuits\EvaluationCircuitBuilder.cs" />
-    <Compile Include="Circuits\Internal\Gate.cs" />
-    <Compile Include="Circuits\IBooleanCircuitEvaluator.cs" />
+    <Compile Include="Circuits\Gate.cs" />
+    <Compile Include="Circuits\ICircuitEvaluator.cs" />
     <Compile Include="Circuits\ICircuitRecorder.cs" />
     <Compile Include="Circuits\Wire.cs" />
     <Compile Include="Expressions\SecureWord.cs" />
@@ -104,6 +109,13 @@
     <Compile Include="Networking\BufferedSubstream.cs" />
     <Compile Include="Networking\TwoPartyNetworkSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Virtualization\CircuitEvaluator.cs" />
+    <Compile Include="Virtualization\GateContext.cs" />
+    <Compile Include="Virtualization\GMWLogicProcessor.cs" />
+    <Compile Include="Networking\IMessageChannel.cs" />
+    <Compile Include="Virtualization\LocalLogicProcessor.cs" />
+    <Compile Include="Virtualization\VirtualLogicProcessor.cs" />
+    <Compile Include="Virtualization\VirtualBit.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

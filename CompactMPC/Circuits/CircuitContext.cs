@@ -14,6 +14,8 @@ namespace CompactMPC.Circuits
         private int _numberOfAndGates;
         private int _numberOfXorGates;
         private int _numberOfNotGates;
+        private int _numberOfInputGates;
+        private int _numberOfOutputGates;
 
         /// <summary>
         /// Creates a new set of information on a boolean circuit.
@@ -21,11 +23,13 @@ namespace CompactMPC.Circuits
         /// <param name="numberOfAndGates">Number of AND gates in the circuit.</param>
         /// <param name="numberOfXorGates">Number of XOR gates in the circuit.</param>
         /// <param name="numberOfNotGates">Number of NOT gates in the circuit.</param>
-        public CircuitContext(int numberOfAndGates, int numberOfXorGates, int numberOfNotGates)
+        public CircuitContext(int numberOfAndGates, int numberOfXorGates, int numberOfNotGates, int numberOfInputGates, int numberOfOutputGates)
         {
             _numberOfAndGates = numberOfAndGates;
             _numberOfXorGates = numberOfXorGates;
             _numberOfNotGates = numberOfNotGates;
+            _numberOfInputGates = numberOfInputGates;
+            _numberOfOutputGates = numberOfOutputGates;
         }
 
         /// <summary>
@@ -61,6 +65,22 @@ namespace CompactMPC.Circuits
             }
         }
 
+        public int NumberOfInputGates
+        {
+            get
+            {
+                return _numberOfInputGates;
+            }
+        }
+
+        public int NumberOfOutputGates
+        {
+            get
+            {
+                return _numberOfOutputGates;
+            }
+        }
+
         /// <summary>
         /// Gets the total number of gates in the circuit, including
         /// AND, XOR and NOT gates.
@@ -69,7 +89,7 @@ namespace CompactMPC.Circuits
         {
             get
             {
-                return _numberOfAndGates + _numberOfXorGates + _numberOfNotGates;
+                return _numberOfAndGates + _numberOfXorGates + _numberOfNotGates + _numberOfInputGates + _numberOfInputGates;
             }
         }
     }

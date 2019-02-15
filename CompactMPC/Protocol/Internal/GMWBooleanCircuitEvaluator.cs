@@ -13,7 +13,7 @@ using CompactMPC.ObliviousTransfer;
 
 namespace CompactMPC.Protocol.Internal
 {
-    public class GMWBooleanCircuitEvaluator : IBooleanCircuitEvaluator<Task<Bit>>
+    public class GMWBooleanCircuitEvaluator : ICircuitEvaluator<Task<Bit>>
     {
         private INetworkSession _session;
         private CryptoContext _cryptoContext;

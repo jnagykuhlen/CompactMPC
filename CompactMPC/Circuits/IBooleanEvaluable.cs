@@ -18,7 +18,7 @@ namespace CompactMPC.Circuits
         /// <param name="evaluator">An abstract evaluator that is called for each gate in the circuit.</param>
         /// <param name="inputValues">Input values corresponding to each declared input wire.</param>
         /// <returns>Output bits corresponding to each declared output wire.</returns>
-        T[] Evaluate<T>(IBooleanCircuitEvaluator<T> evaluator, T[] inputValues);
+        T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] inputValues);
 
         /// <summary>
         /// Gets the number of input wires in the circuit.

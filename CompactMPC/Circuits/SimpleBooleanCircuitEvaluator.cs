@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits
 {
-    public class SimpleBooleanCircuitEvaluator : IBooleanCircuitEvaluator<bool>
+    public class SimpleBooleanCircuitEvaluator : ICircuitEvaluator<bool>
     {
         public bool EvaluateAndGate(bool leftValue, bool rightValue, GateContext gateContext, CircuitContext circuitContext)
         {
