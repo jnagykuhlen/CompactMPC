@@ -36,6 +36,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Circuits\IBooleanEvaluable.cs" />
+    <Compile Include="Networking\IMessageChannel.cs" />
+    <Compile Include="Networking\INetworkSession.cs" />
     <Compile Include="ThreadsafeRandomNumberGenerator.cs" />
     <Compile Include="CryptoContext.cs" />
     <Compile Include="Expressions\OutputPrimitiveDeclaration.cs" />
@@ -97,7 +99,6 @@
     <Compile Include="Protocol\Internal\GMWBooleanCircuitEvaluator.cs" />
     <Compile Include="Protocol\GMWSecureComputation.cs" />
     <Compile Include="Bit.cs" />
-    <Compile Include="Networking\INetworkSession.cs" />
     <Compile Include="Networking\Party.cs" />
     <Compile Include="Networking\PeerToPeerNetwork.cs" />
     <Compile Include="Networking\BufferedMultiStream.cs" />
