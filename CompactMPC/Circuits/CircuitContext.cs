@@ -23,6 +23,8 @@ namespace CompactMPC.Circuits
         /// <param name="numberOfAndGates">Number of AND gates in the circuit.</param>
         /// <param name="numberOfXorGates">Number of XOR gates in the circuit.</param>
         /// <param name="numberOfNotGates">Number of NOT gates in the circuit.</param>
+        /// <param name="numberOfInputGates">Number of input gates in the circuit.</param>
+        /// /// <param name="numberOfOutputGates">Number of output gates in the circuit.</param>
         public CircuitContext(int numberOfAndGates, int numberOfXorGates, int numberOfNotGates, int numberOfInputGates, int numberOfOutputGates)
         {
             _numberOfAndGates = numberOfAndGates;
@@ -65,6 +67,9 @@ namespace CompactMPC.Circuits
             }
         }
 
+        /// <summary>
+        /// Gets the number of input gates in the circuit.
+        /// </summary>
         public int NumberOfInputGates
         {
             get
@@ -73,6 +78,9 @@ namespace CompactMPC.Circuits
             }
         }
 
+        /// <summary>
+        /// Gets the number of output gates in the circuit.
+        /// </summary>
         public int NumberOfOutputGates
         {
             get
@@ -83,7 +91,7 @@ namespace CompactMPC.Circuits
 
         /// <summary>
         /// Gets the total number of gates in the circuit, including
-        /// AND, XOR and NOT gates.
+        /// AND, XOR and NOT gates as well as input and output gates.
         /// </summary>
         public int NumberOfGates
         {
