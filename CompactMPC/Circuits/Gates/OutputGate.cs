@@ -16,18 +16,12 @@ namespace CompactMPC.Circuits.Gates
             _inputGate = inputGate;
         }
 
-        public override void Evaluate<TIn, TProcess, TOut>(
-            ICircuitEvaluator<TIn, TProcess, TOut> evaluator,
-            CircuitEvaluationState<TIn, TProcess, TOut> evaluationState,
+        public override void Evaluate<T>(
+            ICircuitEvaluator<T> evaluator,
+            CircuitEvaluationState<T> evaluationState,
             CircuitContext circuitContext)
         {
-            TOut outputValue = evaluator.EvaluateOutputGate(
-                evaluationState.GetGateEvaluationValue(_inputGate),
-                Context,
-                circuitContext
-            );
-
-            evaluationState.SetOutput(Context.TypeUniqueId, outputValue);
+            evaluationState.SetOutput(Context.TypeUniqueId, evaluationState.GetGateEvaluationValue(_inputGate));
         }
 
         public override IEnumerable<Gate> InputGates

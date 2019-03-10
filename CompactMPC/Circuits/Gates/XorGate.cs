@@ -18,12 +18,12 @@ namespace CompactMPC.Circuits.Gates
             _rightInputGate = rightInputGate;
         }
 
-        public override void Evaluate<TIn, TProcess, TOut>(
-            ICircuitEvaluator<TIn, TProcess, TOut> evaluator,
-            CircuitEvaluationState<TIn, TProcess, TOut> evaluationState,
+        public override void Evaluate<T>(
+            ICircuitEvaluator<T> evaluator,
+            CircuitEvaluationState<T> evaluationState,
             CircuitContext circuitContext)
         {
-            TProcess value = evaluator.EvaluateXorGate(
+            T value = evaluator.EvaluateXorGate(
                 evaluationState.GetGateEvaluationValue(_leftInputGate),
                 evaluationState.GetGateEvaluationValue(_rightInputGate),
                 Context,

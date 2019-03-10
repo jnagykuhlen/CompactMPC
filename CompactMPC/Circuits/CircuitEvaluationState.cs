@@ -6,42 +6,42 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits
 {
-    public class CircuitEvaluationState<TIn, TProcess, TOut>
+    public class CircuitEvaluationState<T>
     {
         private struct GateEvaluationState
         {
-            public TProcess Value;
+            public T Value;
             public bool IsEvaluated;
 
-            public GateEvaluationState(TProcess value, bool isEvaluated)
+            public GateEvaluationState(T value, bool isEvaluated)
             {
                 Value = value;
                 IsEvaluated = isEvaluated;
             }
         }
 
-        private TIn[] _input;
-        private TOut[] _output;
+        private T[] _input;
+        private T[] _output;
         private IdMapping<GateEvaluationState> _gateEvaluationStates;
 
-        public CircuitEvaluationState(TIn[] input, CircuitContext context)
+        public CircuitEvaluationState(T[] input, CircuitContext context)
         {
             _input = input;
-            _output = new TOut[context.NumberOfOutputGates];
-            _gateEvaluationStates = new IdMapping<GateEvaluationState>(new GateEvaluationState(default(TProcess), false), context.NumberOfGates);
+            _output = new T[context.NumberOfOutputGates];
+            _gateEvaluationStates = new IdMapping<GateEvaluationState>(new GateEvaluationState(default(T), false), context.NumberOfGates);
         }
 
-        public TIn GetInput(int index)
+        public T GetInput(int index)
         {
             return _input[index];
         }
 
-        public void SetOutput(int index, TOut value)
+        public void SetOutput(int index, T value)
         {
             _output[index] = value;
         }
 
-        public TProcess GetGateEvaluationValue(Gate gate)
+        public T GetGateEvaluationValue(Gate gate)
         {
             GateEvaluationState gateEvaluationState = _gateEvaluationStates[gate.Context.CircuitUniqueId];
             if (!gateEvaluationState.IsEvaluated)
@@ -50,7 +50,7 @@ namespace CompactMPC.Circuits
             return gateEvaluationState.Value;
         }
 
-        public void SetGateEvaluationValue(Gate gate, TProcess value)
+        public void SetGateEvaluationValue(Gate gate, T value)
         {
             _gateEvaluationStates[gate.Context.CircuitUniqueId] = new GateEvaluationState(value, true);
         }
@@ -60,7 +60,7 @@ namespace CompactMPC.Circuits
             return _gateEvaluationStates[gate.Context.CircuitUniqueId].IsEvaluated;
         }
 
-        public TOut[] Output
+        public T[] Output
         {
             get
             {

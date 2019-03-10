@@ -11,18 +11,12 @@ namespace CompactMPC.Circuits.Gates
         public InputGate(GateContext context)
              : base(context) { }
 
-        public override void Evaluate<TIn, TProcess, TOut>(
-            ICircuitEvaluator<TIn, TProcess, TOut> evaluator,
-            CircuitEvaluationState<TIn, TProcess, TOut> evaluationState,
+        public override void Evaluate<T>(
+            ICircuitEvaluator<T> evaluator,
+            CircuitEvaluationState<T> evaluationState,
             CircuitContext circuitContext)
         {
-            TProcess value = evaluator.EvaluateInputGate(
-                evaluationState.GetInput(Context.TypeUniqueId),
-                Context,
-                circuitContext
-            );
-
-            evaluationState.SetGateEvaluationValue(this, value);
+            evaluationState.SetGateEvaluationValue(this, evaluationState.GetInput(Context.TypeUniqueId));
         }
 
         public override IEnumerable<Gate> InputGates

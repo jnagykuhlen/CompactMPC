@@ -19,9 +19,9 @@ namespace CompactMPC.Circuits
             _context = context;
         }
 
-        public TOut[] Evaluate<TIn, TProcess, TOut>(ICircuitEvaluator<TIn, TProcess, TOut> evaluator, TIn[] input)
+        public T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] input)
         {
-            CircuitEvaluationState<TIn, TProcess, TOut> evaluationState = new CircuitEvaluationState<TIn, TProcess, TOut>(input, _context);
+            CircuitEvaluationState<T> evaluationState = new CircuitEvaluationState<T>(input, _context);
 
             foreach (OutputGate outputGate in _outputGates)
                 EvaluateSubtree(outputGate, evaluator, evaluationState);
@@ -29,10 +29,10 @@ namespace CompactMPC.Circuits
             return evaluationState.Output;
         }
         
-        private void EvaluateSubtree<TIn, TProcess, TOut>(
+        private void EvaluateSubtree<T>(
             Gate gate,
-            ICircuitEvaluator<TIn, TProcess, TOut> evaluator,
-            CircuitEvaluationState<TIn, TProcess, TOut> evaluationState)
+            ICircuitEvaluator<T> evaluator,
+            CircuitEvaluationState<T> evaluationState)
         {
             foreach (Gate inputGate in gate.InputGates)
             {

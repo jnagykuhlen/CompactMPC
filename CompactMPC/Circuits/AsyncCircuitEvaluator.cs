@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits
 {
-    public class ParallelBooleanCircuitEvaluator<T> : ICircuitEvaluator<Task<T>>
+    public class AsyncCircuitEvaluator<T> : ICircuitEvaluator<Task<T>>
     {
         private ICircuitEvaluator<T> _innerEvaluator;
         
-        public ParallelBooleanCircuitEvaluator(ICircuitEvaluator<T> innerEvaluator)
+        public AsyncCircuitEvaluator(ICircuitEvaluator<T> innerEvaluator)
         {
             _innerEvaluator = innerEvaluator;
         }

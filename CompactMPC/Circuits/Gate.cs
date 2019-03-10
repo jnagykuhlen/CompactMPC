@@ -15,9 +15,9 @@ namespace CompactMPC.Circuits
             _context = context;
         }
         
-        public abstract void Evaluate<TIn, TProcess, TOut>(
-            ICircuitEvaluator<TIn, TProcess, TOut> evaluator,
-            CircuitEvaluationState<TIn, TProcess, TOut> evaluationState,
+        public abstract void Evaluate<T>(
+            ICircuitEvaluator<T> evaluator,
+            CircuitEvaluationState<T> evaluationState,
             CircuitContext circuitContext
         );
 

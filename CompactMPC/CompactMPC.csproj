@@ -83,13 +83,12 @@
     <Compile Include="BinaryFormatHelper.cs" />
     <Compile Include="Circuits\CircuitContext.cs" />
     <Compile Include="Circuits\GateContext.cs" />
-    <Compile Include="Circuits\ParallelBooleanCircuitEvaluator.cs" />
+    <Compile Include="Circuits\AsyncCircuitEvaluator.cs" />
     <Compile Include="IdMapping.cs" />
     <Compile Include="Circuits\Gates\NotGate.cs" />
     <Compile Include="Circuits\Gates\XorGate.cs" />
     <Compile Include="Circuits\Gates\AndGate.cs" />
     <Compile Include="Circuits\CircuitBuilder.cs" />
-    <Compile Include="Circuits\SimpleBooleanCircuitEvaluator.cs" />
     <Compile Include="Circuits\Gate.cs" />
     <Compile Include="Circuits\ICircuitEvaluator.cs" />
     <Compile Include="Circuits\ICircuitRecorder.cs" />
