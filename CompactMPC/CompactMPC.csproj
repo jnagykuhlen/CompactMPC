@@ -35,10 +35,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Circuits\Batching\Internal\BatchElement.cs" />
+    <Compile Include="Circuits\Batching\Internal\GateEvaluation.cs" />
+    <Compile Include="Circuits\Batching\Internal\BinaryForwardGate.cs" />
     <Compile Include="Circuits\Batching\Internal\ForwardEvaluationState.cs" />
     <Compile Include="Circuits\Batching\ForwardCircuit.cs" />
-    <Compile Include="Circuits\Batching\IBatchedCircuitEvaluator.cs" />
+    <Compile Include="Circuits\Batching\IBatchCircuitEvaluator.cs" />
     <Compile Include="Circuits\Batching\GateEvaluationInput.cs" />
     <Compile Include="Circuits\Batching\Internal\ForwardAndGate.cs" />
     <Compile Include="Circuits\Batching\Internal\ForwardCircuitBuilder.cs" />
@@ -48,6 +49,7 @@
     <Compile Include="Circuits\Batching\Internal\ForwardNotGate.cs" />
     <Compile Include="Circuits\Batching\Internal\ForwardXorGate.cs" />
     <Compile Include="Circuits\Batching\Internal\BatchedCircuitEvaluator.cs" />
+    <Compile Include="Optional.cs" />
     <Compile Include="Circuits\Circuit.cs" />
     <Compile Include="Circuits\EvaluationState.cs" />
     <Compile Include="Circuits\Gate.cs" />

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits.Batching.Internal
 {
-    public class ForwardXorGate : ForwardGate
+    public class ForwardXorGate : BinaryForwardGate
     {
         private GateContext _context;
 
@@ -15,25 +15,10 @@ namespace CompactMPC.Circuits.Batching.Internal
             _context = context;
         }
 
-        public override void Evaluate<T>(IBatchedCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext)
+        protected override void ReceiveInputValues<T>(T leftValue, T rightValue, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext)
         {
-            IReadOnlyList<T> inputValues = evaluationState.PullInputValues(this);
-            T outputValue = evaluator.EvaluateXorGate(inputValues[0], inputValues[1], _context, circuitContext);
-
-            foreach (ForwardGate successor in Successors)
-            {
-                evaluationState.PushInputValue(successor, outputValue);
-                if (evaluationState.GetNumberOfInputValues(successor) >= successor.NumberOfInputs)
-                    successor.Evaluate(evaluator, evaluationState, circuitContext);
-            }
-        }
-        
-        public override int NumberOfInputs
-        {
-            get
-            {
-                return 2;
-            }
+            T outputValue = evaluator.EvaluateXorGate(leftValue, rightValue, _context, circuitContext);
+            SendOutputValue(outputValue, evaluator, evaluationState, circuitContext);
         }
     }
 }

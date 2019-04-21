@@ -14,19 +14,10 @@ namespace CompactMPC.Circuits.Batching.Internal
         {
             _outputIndex = outputIndex;
         }
-
-        public override void Evaluate<T>(IBatchedCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext)
+        
+        public override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext)
         {
-            IReadOnlyList<T> inputValues = evaluationState.PullInputValues(this);
-            evaluationState.SetOutput(_outputIndex, inputValues[0]);
-        }
-
-        public override int NumberOfInputs
-        {
-            get
-            {
-                return 1;
-            }
+            evaluationState.SetOutput(_outputIndex, value);
         }
     }
 }

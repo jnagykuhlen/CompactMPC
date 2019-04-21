@@ -15,25 +15,10 @@ namespace CompactMPC.Circuits.Batching.Internal
             _context = context;
         }
 
-        public override void Evaluate<T>(IBatchedCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext)
+        public override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext)
         {
-            IReadOnlyList<T> inputValues = evaluationState.PullInputValues(this);
-            T outputValue = evaluator.EvaluateNotGate(inputValues[0], _context, circuitContext);
-
-            foreach (ForwardGate successor in Successors)
-            {
-                evaluationState.PushInputValue(successor, outputValue);
-                if (evaluationState.GetNumberOfInputValues(successor) >= successor.NumberOfInputs)
-                    successor.Evaluate(evaluator, evaluationState, circuitContext);
-            }
-        }
-        
-        public override int NumberOfInputs
-        {
-            get
-            {
-                return 1;
-            }
+            T outputValue = evaluator.EvaluateNotGate(value, _context, circuitContext);
+            SendOutputValue(outputValue, evaluator, evaluationState, circuitContext);
         }
     }
 }

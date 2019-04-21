@@ -8,7 +8,7 @@ namespace CompactMPC.Circuits.Batching.Internal
 {
     public class ForwardCircuitBuilder : ICircuitEvaluator<ForwardGate>
     {
-        public static IReadOnlyList<ForwardGate> Build(IEvaluableCircuit circuit)
+        public static ForwardGate[] Build(IEvaluableCircuit circuit)
         {
             ForwardGate[] inputGates = new ForwardGate[circuit.Context.NumberOfInputGates];
             for (int i = 0; i < inputGates.Length; ++i)
@@ -18,7 +18,7 @@ namespace CompactMPC.Circuits.Batching.Internal
             for (int i = 0; i < outputGates.Length; ++i)
                 outputGates[i].AddSuccessor(new ForwardOutputGate(i));
 
-            return inputGates.Where(gate => gate.Successors.Any()).ToArray();
+            return inputGates;
         }
 
         public ForwardGate EvaluateAndGate(ForwardGate leftInputGate, ForwardGate rightInputGate, GateContext gateContext, CircuitContext circuitContext)

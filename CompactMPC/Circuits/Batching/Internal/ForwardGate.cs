@@ -15,21 +15,17 @@ namespace CompactMPC.Circuits.Batching.Internal
             _successors = new List<ForwardGate>();
         }
 
-        public abstract void Evaluate<T>(IBatchedCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext);
-        public abstract int NumberOfInputs { get; }
-        
+        public abstract void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext);
+
+        public void SendOutputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext)
+        {
+            foreach (ForwardGate successor in _successors)
+                successor.ReceiveInputValue(value, evaluator, evaluationState, circuitContext);
+        }
+
         public void AddSuccessor(ForwardGate sucessor)
         {
             _successors.Add(sucessor);
-        }
-        
-        
-        public IReadOnlyList<ForwardGate> Successors
-        {
-            get
-            {
-                return _successors;
-            }
         }
     }
 }

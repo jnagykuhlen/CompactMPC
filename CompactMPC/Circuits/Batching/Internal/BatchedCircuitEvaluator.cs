@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits.Batching.Internal
 {
-    public class BatchedCircuitEvaluator<T> : IBatchedCircuitEvaluator<T>
+    public class BatchedCircuitEvaluator<T> : IBatchCircuitEvaluator<T>
     {
         private ICircuitEvaluator<T> _innerEvaluator;
 

@@ -8,72 +8,56 @@ namespace CompactMPC.Circuits.Batching.Internal
 {
     public class ForwardEvaluationState<T>
     {
-        private T[] _input;
         private T[] _output;
-        private Dictionary<ForwardGate, List<T>> _inputValuesByGate;
-        private Queue<BatchElement<T>> _delayedAndGateEvaluations;
+        private Dictionary<ForwardGate, T> _firstInputValueByGate;
+        private Queue<GateEvaluation<T>> _delayedAndGateEvaluations;
 
-        public ForwardEvaluationState(T[] input, int numberOfOutputGates)
+        public ForwardEvaluationState(int numberOfOutputGates)
         {
-            _input = input;
             _output = new T[numberOfOutputGates];
-            _inputValuesByGate = new Dictionary<ForwardGate, List<T>>();
-            _delayedAndGateEvaluations = new Queue<BatchElement<T>>();
+            _firstInputValueByGate = new Dictionary<ForwardGate, T>();
+            _delayedAndGateEvaluations = new Queue<GateEvaluation<T>>();
         }
         
-        public T GetInput(int index)
-        {
-            return _input[index];
-        }
-
         public void SetOutput(int index, T value)
         {
             _output[index] = value;
         }
 
-        public void PushInputValue(ForwardGate gate, T value)
+        public void WriteInputValueToCache(ForwardGate gate, T value)
         {
-            List<T> inputValues;
-            if (!_inputValuesByGate.TryGetValue(gate, out inputValues))
+            try
             {
-                inputValues = new List<T>(2);
-                _inputValuesByGate.Add(gate, inputValues);
+                _firstInputValueByGate.Add(gate, value);
+            }
+            catch (ArgumentException exception)
+            {
+                throw new InvalidOperationException("Another input value is already present.", exception);
+            }
+        }
+
+        public Optional<T> ReadInputValueFromCache(ForwardGate gate)
+        {
+            T value;
+            if (_firstInputValueByGate.TryGetValue(gate, out value))
+            {
+                _firstInputValueByGate.Remove(gate);
+                return Optional<T>.FromValue(value);
             }
 
-            inputValues.Add(value);
+            return Optional<T>.Empty;
+        }
+        
+        public void DelayAndGateEvaluation(GateEvaluation<T> evaluation)
+        {
+            _delayedAndGateEvaluations.Enqueue(evaluation);
         }
 
-        public IReadOnlyList<T> PullInputValues(ForwardGate gate)
+        public GateEvaluation<T>[] GetDelayedAndGateEvaluations()
         {
-            List<T> inputValues;
-            if (_inputValuesByGate.TryGetValue(gate, out inputValues))
-            {
-                _inputValuesByGate.Remove(gate);
-                return inputValues;
-            }
-
-            return Array.Empty<T>();
-        }
-
-        public int GetNumberOfInputValues(ForwardGate gate)
-        {
-            List<T> inputValues;
-            if (_inputValuesByGate.TryGetValue(gate, out inputValues))
-                return inputValues.Count;
-
-            return 0;
-        }
-
-        public void DelayAndGateEvaluation(BatchElement<T> batchElement)
-        {
-            _delayedAndGateEvaluations.Enqueue(batchElement);
-        }
-
-        public BatchElement<T>[] GetNextAndGateBatch()
-        {
-            BatchElement<T>[] nextAndGateBatch = _delayedAndGateEvaluations.ToArray();
+            GateEvaluation<T>[] nextDelayedAndGateEvaluations = _delayedAndGateEvaluations.ToArray();
             _delayedAndGateEvaluations.Clear();
-            return nextAndGateBatch;
+            return nextDelayedAndGateEvaluations;
         }
         
         public T[] Output
