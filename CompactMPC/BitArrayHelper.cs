@@ -69,6 +69,16 @@ namespace CompactMPC
             */
         }
 
+        public static IEnumerable<Bit> ToBits(BitArray bitArray)
+        {
+            return bitArray.Cast<bool>().Select(value => (Bit)value);
+        }
+
+        public static BitArray FromBits(IEnumerable<Bit> bits)
+        {
+            return new BitArray(bits.Select(bit => bit.Value).ToArray());
+        }
+
         public static int RequiredBytes(int numberOfBits)
         {
             return (numberOfBits - 1) / 8 + 1;

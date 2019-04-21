@@ -47,6 +47,16 @@ namespace CompactMPC
 
             return -1;
         }
+        
+        public static void Write(this Stream stream, byte[] buffer)
+        {
+            stream.Write(buffer, 0, buffer.Length);
+        }
+
+        public static Task WriteAsync(this Stream stream, byte[] buffer)
+        {
+            return stream.WriteAsync(buffer, 0, buffer.Length);
+        }
 
         public static Task WriteByteAsync(this Stream stream, byte value)
         {

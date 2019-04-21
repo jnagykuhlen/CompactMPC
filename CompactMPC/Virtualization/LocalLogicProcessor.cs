@@ -33,14 +33,14 @@ namespace CompactMPC.Virtualization
             return !(await input);
         }
 
-        protected override Task<bool> CreateZero()
+        protected override bool CreateZero()
         {
-            return Task.FromResult(false);
+            return false;
         }
 
-        protected override Task<bool> CreateOne()
+        protected override bool CreateOne()
         {
-            return Task.FromResult(true);
+            return true;
         }
     }
 }

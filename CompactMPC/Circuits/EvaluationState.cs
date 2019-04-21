@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits
 {
-    public class CircuitEvaluationState<T>
+    public class EvaluationState<T>
     {
         private struct GateEvaluationState
         {
@@ -24,7 +24,7 @@ namespace CompactMPC.Circuits
         private T[] _output;
         private IdMapping<GateEvaluationState> _gateEvaluationStates;
 
-        public CircuitEvaluationState(T[] input, CircuitContext context)
+        public EvaluationState(T[] input, CircuitContext context)
         {
             _input = input;
             _output = new T[context.NumberOfOutputGates];

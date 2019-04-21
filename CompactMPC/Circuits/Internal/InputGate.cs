@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CompactMPC.Circuits.Gates
+namespace CompactMPC.Circuits.Internal
 {
     public class InputGate : Gate
     {
@@ -13,7 +13,7 @@ namespace CompactMPC.Circuits.Gates
 
         public override void Evaluate<T>(
             ICircuitEvaluator<T> evaluator,
-            CircuitEvaluationState<T> evaluationState,
+            EvaluationState<T> evaluationState,
             CircuitContext circuitContext)
         {
             evaluationState.SetGateEvaluationValue(this, evaluationState.GetInput(Context.TypeUniqueId));

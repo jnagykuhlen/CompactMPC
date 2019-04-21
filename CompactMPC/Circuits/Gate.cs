@@ -17,7 +17,7 @@ namespace CompactMPC.Circuits
         
         public abstract void Evaluate<T>(
             ICircuitEvaluator<T> evaluator,
-            CircuitEvaluationState<T> evaluationState,
+            EvaluationState<T> evaluationState,
             CircuitContext circuitContext
         );
 

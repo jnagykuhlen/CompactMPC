@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using CompactMPC.Circuits.Gates;
+using CompactMPC.Circuits.Internal;
 
 namespace CompactMPC.Circuits
 {
-    public class Circuit
+    public class Circuit : IEvaluableCircuit
     {
         private IReadOnlyList<OutputGate> _outputGates;
         private CircuitContext _context;
@@ -21,7 +21,7 @@ namespace CompactMPC.Circuits
 
         public T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] input)
         {
-            CircuitEvaluationState<T> evaluationState = new CircuitEvaluationState<T>(input, _context);
+            EvaluationState<T> evaluationState = new EvaluationState<T>(input, _context);
 
             foreach (OutputGate outputGate in _outputGates)
                 EvaluateSubtree(outputGate, evaluator, evaluationState);
@@ -32,7 +32,7 @@ namespace CompactMPC.Circuits
         private void EvaluateSubtree<T>(
             Gate gate,
             ICircuitEvaluator<T> evaluator,
-            CircuitEvaluationState<T> evaluationState)
+            EvaluationState<T> evaluationState)
         {
             foreach (Gate inputGate in gate.InputGates)
             {

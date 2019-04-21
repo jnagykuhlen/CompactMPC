@@ -19,7 +19,7 @@ namespace CompactMPC.Protocol
             _session = session;
         }
 
-        public abstract Task<BitArray> EvaluateAsync(IBooleanEvaluable evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputs);
+        public abstract Task<BitArray> EvaluateAsync(IEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputs);
 
         public INetworkSession Session
         {

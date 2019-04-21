@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits
 {
-    public class Wire
+    public sealed class Wire
     {
         public static readonly Wire Zero = new Wire(null);
         public static readonly Wire One = new Wire(null);
@@ -33,15 +33,5 @@ namespace CompactMPC.Circuits
                 return _gate;
             }
         }
-
-        /*
-        public bool IsConstant
-        {
-            get
-            {
-                return _id < 0;
-            }
-        }
-        */
     }
 }

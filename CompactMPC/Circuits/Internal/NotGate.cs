@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CompactMPC.Circuits.Gates
+namespace CompactMPC.Circuits.Internal
 {
-    public class OutputGate : Gate
+    public class NotGate : Gate
     {
         private Gate _inputGate;
 
-        public OutputGate(GateContext context, Gate inputGate)
+        public NotGate(GateContext context, Gate inputGate)
              : base(context)
         {
             _inputGate = inputGate;
@@ -18,10 +18,16 @@ namespace CompactMPC.Circuits.Gates
 
         public override void Evaluate<T>(
             ICircuitEvaluator<T> evaluator,
-            CircuitEvaluationState<T> evaluationState,
+            EvaluationState<T> evaluationState,
             CircuitContext circuitContext)
         {
-            evaluationState.SetOutput(Context.TypeUniqueId, evaluationState.GetGateEvaluationValue(_inputGate));
+            T value = evaluator.EvaluateNotGate(
+                evaluationState.GetGateEvaluationValue(_inputGate),
+                Context,
+                circuitContext
+            );
+
+            evaluationState.SetGateEvaluationValue(this, value);
         }
 
         public override IEnumerable<Gate> InputGates
@@ -32,7 +38,7 @@ namespace CompactMPC.Circuits.Gates
             }
         }
 
-        public Gate Input
+        public Gate InputGate
         {
             get
             {

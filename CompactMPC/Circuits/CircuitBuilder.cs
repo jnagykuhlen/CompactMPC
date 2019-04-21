@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using CompactMPC.Circuits.Gates;
+using CompactMPC.Circuits.Internal;
 
 namespace CompactMPC.Circuits
 {
@@ -15,7 +15,6 @@ namespace CompactMPC.Circuits
     /// </summary>
     public class CircuitBuilder
     {
-        private int _nextWireId;
         private int _nextGateId;
         private int _nextAndGateId;
         private int _nextXorGateId;
@@ -27,9 +26,8 @@ namespace CompactMPC.Circuits
         /// <summary>
         /// Creates a new empty circuit builder.
         /// </summary>
-        protected CircuitBuilder()
+        public CircuitBuilder()
         {
-            _nextWireId = 0;
             _nextGateId = 0;
             _nextAndGateId = 0;
             _nextXorGateId = 0;
@@ -124,7 +122,7 @@ namespace CompactMPC.Circuits
         public void Output(Wire wire)
         {
             if (wire == Wire.Zero || wire == Wire.One)
-                throw new ArgumentException("Constant wires are not allow as output.");
+                throw new ArgumentException("Constant wires are not allowed as output.");
 
             _outputGates.Add(new OutputGate(RequestGateContext(ref _nextOutputGateId), wire.Gate));
         }

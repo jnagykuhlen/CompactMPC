@@ -24,9 +24,9 @@ namespace CompactMPC.Protocol
             _cryptoContext = cryptoContext;
         }
 
-        public override async Task<BitArray> EvaluateAsync(IBooleanEvaluable evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
+        public override async Task<BitArray> EvaluateAsync(IEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
         {
-            if (inputMapping.NumberOfInputs != evaluable.NumberOfInputs)
+            if (inputMapping.NumberOfInputs != evaluable.Context.NumberOfInputGates)
             {
                 throw new ArgumentException(
                     "The number of inputs in input mapping does not match the number of declared inputs in the circuit.",
@@ -34,7 +34,7 @@ namespace CompactMPC.Protocol
                 );
             }
 
-            if (outputMapping.NumberOfOutputs != evaluable.NumberOfOutputs)
+            if (outputMapping.NumberOfOutputs != evaluable.Context.NumberOfOutputGates)
             {
                 throw new ArgumentException(
                     "The number of outputs in output mapping does not match the number of declared outputs in the circuit.",
@@ -42,13 +42,13 @@ namespace CompactMPC.Protocol
                 );
             }
             
-            GMWBooleanCircuitEvaluator evaluator = new GMWBooleanCircuitEvaluator(Session, _batchObliviousTransfer, _cryptoContext, evaluable.CircuitContext);
+            GMWBooleanCircuitEvaluator evaluator = new GMWBooleanCircuitEvaluator(Session, _batchObliviousTransfer, _cryptoContext, evaluable.Context);
 
             BitArray maskedInputs = await MaskInputs(inputMapping, localInputValues);
 
-            Task<Bit>[] inputTasks = maskedInputs.Cast<bool>().Select(value => Task.FromResult((Bit)value)).ToArray();
+            Task<Bit>[] inputTasks = BitArrayHelper.ToBits(maskedInputs).Select(bit => Task.FromResult(bit)).ToArray();
             Task<Bit>[] outputTasks = evaluable.Evaluate(evaluator, inputTasks);
-            BitArray maskedOutputs = new BitArray((await Task.WhenAll(outputTasks)).Select(bit => bit.Value).ToArray());
+            BitArray maskedOutputs = BitArrayHelper.FromBits(await Task.WhenAll(outputTasks));
 
             return await UnmaskOutputs(outputMapping, maskedOutputs);
         }

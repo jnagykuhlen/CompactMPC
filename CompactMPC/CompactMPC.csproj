@@ -35,14 +35,31 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Circuits\Batching\Internal\BatchElement.cs" />
+    <Compile Include="Circuits\Batching\Internal\ForwardEvaluationState.cs" />
+    <Compile Include="Circuits\Batching\ForwardCircuit.cs" />
+    <Compile Include="Circuits\Batching\IBatchedCircuitEvaluator.cs" />
+    <Compile Include="Circuits\Batching\GateEvaluationInput.cs" />
+    <Compile Include="Circuits\Batching\Internal\ForwardAndGate.cs" />
+    <Compile Include="Circuits\Batching\Internal\ForwardCircuitBuilder.cs" />
+    <Compile Include="Circuits\Batching\Internal\ForwardGate.cs" />
+    <Compile Include="Circuits\Batching\Internal\ForwardOutputGate.cs" />
+    <Compile Include="Circuits\Batching\Internal\ForwardInputGate.cs" />
+    <Compile Include="Circuits\Batching\Internal\ForwardNotGate.cs" />
+    <Compile Include="Circuits\Batching\Internal\ForwardXorGate.cs" />
+    <Compile Include="Circuits\Batching\Internal\BatchedCircuitEvaluator.cs" />
     <Compile Include="Circuits\Circuit.cs" />
-    <Compile Include="Circuits\CircuitEvaluationState.cs" />
-    <Compile Include="Circuits\GateEqualityComparer.cs" />
-    <Compile Include="Circuits\Gates\InputGate.cs" />
-    <Compile Include="Circuits\Gates\OutputGate.cs" />
-    <Compile Include="Circuits\IBooleanEvaluable.cs" />
-    <Compile Include="Circuits\ILayeredCircuitEvaluator.cs" />
+    <Compile Include="Circuits\EvaluationState.cs" />
+    <Compile Include="Circuits\Gate.cs" />
+    <Compile Include="Circuits\Internal\InputGate.cs" />
+    <Compile Include="Circuits\Internal\OutputGate.cs" />
+    <Compile Include="Circuits\IEvaluableCircuit.cs" />
     <Compile Include="Circuits\LocalCircuitEvaluator.cs" />
+    <Compile Include="Circuits\Statistics\CircuitLayerStatistics.cs" />
+    <Compile Include="Circuits\Statistics\CircuitStatistics.cs" />
+    <Compile Include="Circuits\Statistics\Internal\CircuitLayerStatisticsBuilder.cs" />
+    <Compile Include="Circuits\Statistics\Internal\StatisticsCircuitEvaluator.cs" />
+    <Compile Include="Networking\StreamMessageChannel.cs" />
     <Compile Include="ThreadsafeRandomNumberGenerator.cs" />
     <Compile Include="CryptoContext.cs" />
     <Compile Include="Expressions\OutputPrimitiveDeclaration.cs" />
@@ -85,11 +102,10 @@
     <Compile Include="Circuits\GateContext.cs" />
     <Compile Include="Circuits\AsyncCircuitEvaluator.cs" />
     <Compile Include="IdMapping.cs" />
-    <Compile Include="Circuits\Gates\NotGate.cs" />
-    <Compile Include="Circuits\Gates\XorGate.cs" />
-    <Compile Include="Circuits\Gates\AndGate.cs" />
+    <Compile Include="Circuits\Internal\NotGate.cs" />
+    <Compile Include="Circuits\Internal\XorGate.cs" />
+    <Compile Include="Circuits\Internal\AndGate.cs" />
     <Compile Include="Circuits\CircuitBuilder.cs" />
-    <Compile Include="Circuits\Gate.cs" />
     <Compile Include="Circuits\ICircuitEvaluator.cs" />
     <Compile Include="Circuits\ICircuitRecorder.cs" />
     <Compile Include="Circuits\Wire.cs" />
@@ -110,7 +126,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Virtualization\CircuitEvaluator.cs" />
     <Compile Include="Virtualization\GateContext.cs" />
-    <Compile Include="Virtualization\GMWLogicProcessor.cs" />
     <Compile Include="Networking\IMessageChannel.cs" />
     <Compile Include="Virtualization\LocalLogicProcessor.cs" />
     <Compile Include="Virtualization\VirtualLogicProcessor.cs" />

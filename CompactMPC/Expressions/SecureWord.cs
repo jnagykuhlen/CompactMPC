@@ -16,7 +16,7 @@ namespace CompactMPC.Expressions
 
         public SecureWord(CircuitBuilder builder, IEnumerable<Wire> wires)
             : base(builder, wires.ToArray()) { }
-        
+
         public static SecureWord FromConstant(CircuitBuilder builder, BitArray bits)
         {
             return new SecureWord(builder, bits.Cast<bool>().Select(bit => bit ? Wire.One : Wire.Zero));
@@ -99,7 +99,7 @@ namespace CompactMPC.Expressions
         {
             return Xor((IEnumerable<SecureWord>)values);
         }
-
+        
         public static SecureWord Multiplex(SecureWord left, SecureWord right, SecureBoolean condition)
         {
             if (left.Builder != right.Builder || condition.Builder != right.Builder)

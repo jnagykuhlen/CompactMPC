@@ -4,26 +4,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CompactMPC.Circuits.Gates
+namespace CompactMPC.Circuits.Internal
 {
-    public class XorGate : Gate
+    public class AndGate : Gate
     {
         private Gate _leftInputGate;
         private Gate _rightInputGate;
 
-        public XorGate(GateContext context, Gate leftInputGate, Gate rightInputGate)
+        public AndGate(GateContext context, Gate leftInputGate, Gate rightInputGate)
              : base(context)
         {
             _leftInputGate = leftInputGate;
             _rightInputGate = rightInputGate;
         }
-
+        
         public override void Evaluate<T>(
             ICircuitEvaluator<T> evaluator,
-            CircuitEvaluationState<T> evaluationState,
+            EvaluationState<T> evaluationState,
             CircuitContext circuitContext)
         {
-            T value = evaluator.EvaluateXorGate(
+            T value = evaluator.EvaluateAndGate(
                 evaluationState.GetGateEvaluationValue(_leftInputGate),
                 evaluationState.GetGateEvaluationValue(_rightInputGate),
                 Context,

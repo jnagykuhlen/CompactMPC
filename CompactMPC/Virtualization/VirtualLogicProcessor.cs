@@ -68,12 +68,12 @@ namespace CompactMPC.Virtualization
             return Not(input, RequestGateContext());
         }
 
-        public Task<T> Virtualize(Task<Bit> value)
+        public Task<T> Virtualize(Task<bool> value)
         {
             return Virtualize(value, RequestGateContext());
         }
 
-        public Task<Bit> Unvirtualize(Task<T> input)
+        public Task<bool> Unvirtualize(Task<T> input)
         {
             return Unvirtualize(input, RequestGateContext());
         }

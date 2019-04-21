@@ -61,10 +61,10 @@ namespace CompactMPC.UnitTests
                     GMWSecureComputation computation = new GMWSecureComputation(session, obliviousTransfer, cryptoContext);
                     
                     SetIntersectionCircuitRecorder circuitRecorder = new SetIntersectionCircuitRecorder(numberOfParties, numberOfElements);
-                    EvaluationCircuitBuilder circuitBuilder = new EvaluationCircuitBuilder();
+                    CircuitBuilder circuitBuilder = new CircuitBuilder();
                     circuitRecorder.Record(circuitBuilder);
 
-                    BitArray output = computation.Evaluate(circuitBuilder, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput);
+                    BitArray output = computation.EvaluateAsync(circuitBuilder.CreateCircuit(), circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput).Result;
 
                     Assert.AreEqual(
                         expectedOutput.Length,

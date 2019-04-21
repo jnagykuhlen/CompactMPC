@@ -9,7 +9,7 @@ namespace CompactMPC.Circuits
     /// <summary>
     /// Represents an abstract boolean circuit that can be traversed and evaluated.
     /// </summary>
-    public interface IBooleanEvaluable
+    public interface IEvaluableCircuit
     {
         /// <summary>
         /// Evaluates the circuit using a specified evaluator.
@@ -19,20 +19,10 @@ namespace CompactMPC.Circuits
         /// <param name="inputValues">Input values corresponding to each declared input wire.</param>
         /// <returns>Output bits corresponding to each declared output wire.</returns>
         T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] inputValues);
-
-        /// <summary>
-        /// Gets the number of input wires in the circuit.
-        /// </summary>
-        int NumberOfInputs { get; }
-
-        /// <summary>
-        /// Gets the number of output wires in the circuit.
-        /// </summary>
-        int NumberOfOutputs { get; }
-
+        
         /// <summary>
         /// Gets information on the number of gates in the circuit.
         /// </summary>
-        CircuitContext CircuitContext { get; }
+        CircuitContext Context { get; }
     }
 }
