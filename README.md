@@ -8,7 +8,7 @@ MPC is a cryptographic technique for collaboratively computing a function with a
 
 ## Features
 
-This library features a fully functional protocol for secure multi-party computation with an arbitrary number of participants. The main goal of this project is to provides a clean and extensible API that easily allows to tweak security parameters and exchange individual components, such as the oblivious transfer protocol, the underlying network layer, or even the MPC protocol itself. Securely evaluated functions can be specified directly in C# code using a rich toolset of secure data types including booleans, integers and bit arrays.
+This library features a fully functional protocol for secure multi-party computation with an arbitrary number of participants. The main goal of this project is to provide a clean and extensible API that easily allows to tweak security parameters and exchange individual components, such as the oblivious transfer protocol, the underlying network layer, or even the MPC protocol itself. Securely evaluated functions can be specified directly in C# code using a rich toolset of secure data types including booleans, integers and bit arrays.
 
 In contrast to large, extensive MPC frameworks such as [SCAPI](https://github.com/cryptobiu/libscapi) and [SPDZ](https://github.com/bristolcrypto/SPDZ-2), this library focuses on being a lightweight alternative due to the following decisions made:
 - No separate language or proprietary file format for specifying circuits. Instead, boolean circuits are automatically constructed from logic expressed directly in C# code. As a result, it is incredibly easy to get started and to make applications ready for the use of MPC.
