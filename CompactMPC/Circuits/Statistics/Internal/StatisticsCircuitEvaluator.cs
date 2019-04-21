@@ -10,7 +10,6 @@ namespace CompactMPC.Circuits.Statistics.Internal
     {
         private List<CircuitLayerStatisticsBuilder> _layerStatistics;
         private CircuitContext _context;
-        private List<int> _andGateIds = new List<int>();
 
         private StatisticsCircuitEvaluator()
         {
@@ -33,8 +32,6 @@ namespace CompactMPC.Circuits.Statistics.Internal
 
         public int EvaluateAndGate(int leftValue, int rightValue, GateContext gateContext, CircuitContext circuitContext)
         {
-            _andGateIds.Add(gateContext.TypeUniqueId);
-
             int layerIndex = Math.Max(leftValue, rightValue);
             GetLayerStatisticsBuilder(layerIndex).AddNonlinearGate();
             UpdateContext(circuitContext);
@@ -81,10 +78,7 @@ namespace CompactMPC.Circuits.Statistics.Internal
                 numberOfInputs = _context.NumberOfInputGates;
                 numberOfOutputs = _context.NumberOfOutputGates;
             }
-
-            _andGateIds.Sort();
-            Console.WriteLine("AND ids: {0}", String.Join(", ", _andGateIds));
-
+            
             return new CircuitStatistics(_layerStatistics.Select(builder => builder.Create()).ToList(), numberOfInputs, numberOfOutputs);
         }
     }
