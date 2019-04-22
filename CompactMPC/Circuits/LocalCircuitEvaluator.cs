@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits
 {
-    public class LocalCircuitEvaluator : ICircuitEvaluator<bool>
+    public class LocalCircuitEvaluator : ICircuitEvaluator<Bit>
     {
-        public bool EvaluateAndGate(bool leftValue, bool rightValue, GateContext gateContext, CircuitContext circuitContext)
+        public Bit EvaluateAndGate(Bit leftValue, Bit rightValue, GateContext gateContext, CircuitContext circuitContext)
         {
             return leftValue && rightValue;
         }
 
-        public bool EvaluateXorGate(bool leftValue, bool rightValue, GateContext gateContext, CircuitContext circuitContext)
+        public Bit EvaluateXorGate(Bit leftValue, Bit rightValue, GateContext gateContext, CircuitContext circuitContext)
         {
             return leftValue ^ rightValue;
         }
 
-        public bool EvaluateNotGate(bool value, GateContext gateContext, CircuitContext circuitContext)
+        public Bit EvaluateNotGate(Bit value, GateContext gateContext, CircuitContext circuitContext)
         {
-            return !value;
+            return ~value;
         }
     }
 }

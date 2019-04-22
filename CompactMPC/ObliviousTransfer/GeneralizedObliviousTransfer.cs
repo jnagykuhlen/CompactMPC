@@ -40,7 +40,7 @@ namespace CompactMPC.ObliviousTransfer
         {
             BitArray result = new BitArray(resultMessages.Length);
             for (int i = 0; i < result.Length; ++i)
-                result[i] = ((Bit)resultMessages[i][0]).Value;
+                result[i] = (Bit)resultMessages[i][0];
 
             return result;
         }

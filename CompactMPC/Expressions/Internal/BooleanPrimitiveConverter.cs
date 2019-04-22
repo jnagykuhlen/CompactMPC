@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +19,7 @@ namespace CompactMPC.Expressions.Internal
         {
             if (input is bool)
             {
-                buffer[startIndex] = (bool)input;
+                buffer[startIndex] = new Bit((bool)input);
             }
             else
             {

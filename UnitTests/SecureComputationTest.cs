@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using System.Linq;
-using System.Collections;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -27,13 +26,13 @@ namespace CompactMPC.UnitTests
                 "010111",
                 "110011",
                 "110111"
-            }.Select(input => BitArrayHelper.FromBinaryString(input)).ToArray();
+            }.Select(input => BitArray.FromBinaryString(input)).ToArray();
 
             int startPort = 12348;
             int numberOfParties = inputs.Length;
             int numberOfElements = inputs[0].Length;
 
-            BitArray expectedOutput = inputs.Aggregate(new BitArray(numberOfElements, true), (x, y) => x.And(y));
+            BitArray expectedOutput = inputs.Aggregate((left, right) => left & right);
             
             Task[] tasks = new Task[numberOfParties];
             for (int i = 0; i < numberOfParties; ++i)
@@ -78,7 +77,7 @@ namespace CompactMPC.UnitTests
                     );
 
                     Assert.IsTrue(
-                        Enumerable.SequenceEqual(expectedOutput.Cast<bool>(), output.Cast<bool>()),
+                        Enumerable.SequenceEqual(expectedOutput, output),
                         "Incorrect output {0} (should be {1}).",
                         output.ToBinaryString(),
                         expectedOutput.ToBinaryString()

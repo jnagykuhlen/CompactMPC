@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -78,7 +77,7 @@ namespace CompactMPC.ObliviousTransfer
             for (int i = 0; i < numberOfInvocations; ++i)
             {
                 BitQuadruple maskedOptions = BitQuadruple.FromPackedValue(packedMaskedOptions[i]);
-                selectedBits[i] = (maskedOptions[selectionIndices[i]] ^ _receiverBatch.GetSelectedOption(_nextReceiverInstanceId + i)).Value;
+                selectedBits[i] = maskedOptions[selectionIndices[i]] ^ _receiverBatch.GetSelectedOption(_nextReceiverInstanceId + i);
             }
 
             _nextReceiverInstanceId += numberOfInvocations;

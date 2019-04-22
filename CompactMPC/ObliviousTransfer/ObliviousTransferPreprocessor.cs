@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,10 +31,10 @@ namespace CompactMPC.ObliviousTransfer
             {
                 randomOptions[j] = new BitQuadruple
                 (
-                    new Bit(randomBits[4 * j + 0]),
-                    new Bit(randomBits[4 * j + 1]),
-                    new Bit(randomBits[4 * j + 2]),
-                    new Bit(randomBits[4 * j + 3])
+                    randomBits[4 * j + 0],
+                    randomBits[4 * j + 1],
+                    randomBits[4 * j + 2],
+                    randomBits[4 * j + 3]
                 );
             }
             

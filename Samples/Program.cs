@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Linq;
@@ -24,9 +23,9 @@ namespace CompactMPC.Samples
         {
             BitArray[] inputs = new BitArray[]
             {
-                BitArrayHelper.FromBinaryString("0111010011"),
-                BitArrayHelper.FromBinaryString("1101100010"),
-                BitArrayHelper.FromBinaryString("0111110011")
+                BitArray.FromBinaryString("0111010011"),
+                BitArray.FromBinaryString("1101100010"),
+                BitArray.FromBinaryString("0111110011")
             };
 
             CircuitBuilder builder = new CircuitBuilder();
@@ -58,12 +57,12 @@ namespace CompactMPC.Samples
             Console.WriteLine("Number of nonlinear gates in layers: {0}", totalNonlinearGates);
             Console.WriteLine("Number of linear gates in layers: {0}", totalLinearGates);
             
-            bool[] result;
-
-            result = circuit.Evaluate(new LocalCircuitEvaluator(), inputs.SelectMany(input => input.Cast<bool>()).ToArray());
+            Bit[] result;
+            
+            result = circuit.Evaluate(new LocalCircuitEvaluator(), inputs.SelectMany(input => input).ToArray());
             Console.WriteLine("Result (normal): {0}", new BitArray(result).ToBinaryString());
 
-            result = new Circuits.Batching.ForwardCircuit(circuit).Evaluate(new LocalCircuitEvaluator(), inputs.SelectMany(input => input.Cast<bool>()).ToArray());
+            result = new Circuits.Batching.ForwardCircuit(circuit).Evaluate(new LocalCircuitEvaluator(), inputs.SelectMany(input => input).ToArray());
             Console.WriteLine("Result (forward): {0}", new BitArray(result).ToBinaryString());
 
             if (args.Length == 0)

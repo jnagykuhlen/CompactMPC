@@ -19,9 +19,9 @@ namespace CompactMPC
 
         public static BitArray GetBits(this RandomNumberGenerator randomNumberGenerator, int numberOfBits)
         {
-            byte[] randomSource = new byte[(numberOfBits - 1) / 8 + 1];
+            byte[] randomSource = new byte[BitArray.RequiredBytes(numberOfBits)];
             randomNumberGenerator.GetBytes(randomSource);
-            return new BitArray(randomSource) { Length = numberOfBits };
+            return BitArray.FromBytes(randomSource, numberOfBits);
         }
 
         public static BigInteger GetBigInteger(this RandomNumberGenerator randomNumberGenerator, int sizeInBytes)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,7 +18,7 @@ namespace CompactMPC.Expressions
 
         public static SecureWord FromConstant(CircuitBuilder builder, BitArray bits)
         {
-            return new SecureWord(builder, bits.Cast<bool>().Select(bit => bit ? Wire.One : Wire.Zero));
+            return new SecureWord(builder, bits.Select(bit => bit.Value ? Wire.One : Wire.Zero));
         }
 
         public override bool Equals(object obj)

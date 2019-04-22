@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +19,7 @@ namespace CompactMPC.ObliviousTransfer
             for (int j = 0; j < _numberOfInstances; ++j)
             {
                 for (int i = 0; i < 4; ++i)
-                    _packedOptions[4 * j + i] = options[j][i].Value;
+                    _packedOptions[4 * j + i] = options[j][i];
             }
         }
 

@@ -35,6 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="BitArray.cs" />
     <Compile Include="BufferHelper.cs" />
     <Compile Include="Circuits\Batching\IBatchEvaluableCircuit.cs" />
     <Compile Include="Circuits\Batching\Internal\GateEvaluation.cs" />
@@ -65,6 +66,7 @@
     <Compile Include="Circuits\Statistics\Internal\CircuitLayerStatisticsBuilder.cs" />
     <Compile Include="Circuits\Statistics\Internal\StatisticsCircuitEvaluator.cs" />
     <Compile Include="Networking\StreamMessageChannel.cs" />
+    <Compile Include="TaskHelper.cs" />
     <Compile Include="ThreadsafeRandomNumberGenerator.cs" />
     <Compile Include="CryptoContext.cs" />
     <Compile Include="Expressions\OutputPrimitiveDeclaration.cs" />
@@ -95,8 +97,6 @@
     <Compile Include="ObliviousTransfer\UnsafeObliviousTransfer.cs" />
     <Compile Include="Networking\MultiPartyNetworkSession.cs" />
     <Compile Include="RandomNumberGeneratorHelper.cs" />
-    <Compile Include="BitArrayHelper.cs" />
-    <Compile Include="BinaryFormatHelper.cs" />
     <Compile Include="Circuits\CircuitContext.cs" />
     <Compile Include="Circuits\GateContext.cs" />
     <Compile Include="Circuits\AsyncCircuitEvaluator.cs" />

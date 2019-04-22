@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,7 +49,7 @@ namespace CompactMPC.ObliviousTransfer
             if (instanceId < 0 || instanceId >= _numberOfInstances)
                 throw new ArgumentOutOfRangeException(nameof(instanceId));
 
-            return new Bit(_packedSelectedOptions[instanceId]);
+            return _packedSelectedOptions[instanceId];
         }
 
         public int NumberOfInstances

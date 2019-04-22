@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -69,20 +68,10 @@ namespace CompactMPC.Protocol.Internal
 
         public Task<Bit>[] EvaluateAndGateBatch(GateEvaluationInput<Task<Bit>>[] evaluationInputs, CircuitContext circuitContext)
         {
-            // TODO: Rework
-            Task<BitArray> batchTask = EvaluateAndGateBatch2(evaluationInputs, circuitContext);
-
-            Task<Bit>[] result = new Task<Bit>[evaluationInputs.Length];
-            for (int i = 0; i < evaluationInputs.Length; ++i)
-            {
-                int index = i;
-                result[i] = batchTask.ContinueWith(task => new Bit(task.Result[index]));
-            }
-
-            return result;
+            return EvaluateAndGateBatchAsync(evaluationInputs, circuitContext).ToSubTasks(bits => bits.ToArray(), evaluationInputs.Length);
         }
 
-        private async Task<BitArray> EvaluateAndGateBatch2(GateEvaluationInput<Task<Bit>>[] evaluationInputs, CircuitContext circuitContext)
+        private async Task<BitArray> EvaluateAndGateBatchAsync(GateEvaluationInput<Task<Bit>>[] evaluationInputs, CircuitContext circuitContext)
         {
             int numberOfInvocations = evaluationInputs.Length;
 
@@ -91,8 +80,8 @@ namespace CompactMPC.Protocol.Internal
             BitArray localShares = new BitArray(numberOfInvocations);
             for (int i = 0; i < numberOfInvocations; ++i)
             {
-                leftShares[i] = (await evaluationInputs[i].LeftValue.ConfigureAwait(false)).Value;
-                rightShares[i] = (await evaluationInputs[i].RightValue.ConfigureAwait(false)).Value;
+                leftShares[i] = await evaluationInputs[i].LeftValue.ConfigureAwait(false);
+                rightShares[i] = await evaluationInputs[i].RightValue.ConfigureAwait(false);
                 localShares[i] = leftShares[i] & rightShares[i];
             }
 
@@ -100,9 +89,8 @@ namespace CompactMPC.Protocol.Internal
 
             Task<BitArray>[] shareTasks = new Task<BitArray>[_session.NumberOfParties];
             shareTasks[_session.LocalParty.Id] = Task.FromResult(localShares);
-
-            // Use Parallel.ForEach instead?
-            foreach (Party remoteParty in _session.RemoteParties)
+            
+            Parallel.ForEach(_session.RemoteParties, remoteParty =>
             {
                 Stream stream = _session.GetConnection(remoteParty.Id);
 
@@ -115,10 +103,10 @@ namespace CompactMPC.Protocol.Internal
                     {
                         randomShares[i] = randomBits[numberOfInvocations * remoteParty.Id + i];
                         options[i] = new BitQuadruple(
-                            new Bit(randomShares[i]),                                     // 00
-                            new Bit(randomShares[i] ^ leftShares[i]),                     // 01
-                            new Bit(randomShares[i] ^ rightShares[i]),                    // 10
-                            new Bit(randomShares[i] ^ leftShares[i] ^ rightShares[i])     // 11
+                            randomShares[i],                                     // 00
+                            randomShares[i] ^ leftShares[i],                     // 01
+                            randomShares[i] ^ rightShares[i],                    // 10
+                            randomShares[i] ^ leftShares[i] ^ rightShares[i]     // 11
                         );
                     }
 
@@ -129,16 +117,14 @@ namespace CompactMPC.Protocol.Internal
                 {
                     int[] selectionIndices = new int[numberOfInvocations];
                     for (int i = 0; i < numberOfInvocations; ++i)
-                        selectionIndices[i] = 2 * (byte)new Bit(leftShares[i]) + (byte)new Bit(rightShares[i]);
+                        selectionIndices[i] = 2 * (byte)leftShares[i] + (byte)rightShares[i];
 
                     shareTasks[remoteParty.Id] = _obliviousTransfers[remoteParty.Id].ReceiveAsync(stream, selectionIndices, numberOfInvocations);
                 }
-            }
+            });
 
             BitArray[] shares = await Task.WhenAll(shareTasks).ConfigureAwait(false);
-            BitArray result = new BitArray(numberOfInvocations); // TODO: Refactor with aggregate: Aggregate((left, right) => left ^ right);
-            foreach (BitArray share in shares)
-                result = result.Xor(share);
+            BitArray result = shares.Aggregate((left, right) => left ^ right);
 #if DEBUG
             Console.WriteLine(
                 "Evaluated AND gates {0} of {1} total.",
@@ -148,55 +134,7 @@ namespace CompactMPC.Protocol.Internal
 #endif
             return result;
         }
-
-        [Obsolete("Do not use.", true)]
-        private async Task<Bit> EvaluateAndGate(Task<Bit> leftValue, Task<Bit> rightValue, GateContext gateContext, CircuitContext circuitContext)
-        {
-            Bit leftShare = await leftValue.ConfigureAwait(false);
-            Bit rightShare = await rightValue.ConfigureAwait(false);
-
-            BitArray randomBits = _cryptoContext.RandomNumberGenerator.GetBits(_session.LocalParty.Id);
-            
-            Task<Bit>[] shareTasks = new Task<Bit>[_session.NumberOfParties];
-            shareTasks[_session.LocalParty.Id] = Task.FromResult(leftShare & rightShare);
-            
-            foreach (Party remoteParty in _session.RemoteParties)
-            {
-                Stream baseStream = _session.GetConnection(remoteParty.Id);
-                Console.WriteLine("EVALUATE GATE {0}", gateContext.TypeUniqueId);
-
-                if (remoteParty.Id < _session.LocalParty.Id)
-                {
-                    Bit randomShare = new Bit(randomBits[remoteParty.Id]);
-                    shareTasks[remoteParty.Id] = _obliviousTransfers[remoteParty.Id].SendAsync(
-                        baseStream,
-                        new[] {
-                            new BitQuadruple(
-                                randomShare,                             // 00
-                                randomShare ^ leftShare,                 // 01
-                                randomShare ^ rightShare,                // 10
-                                randomShare ^ leftShare ^ rightShare     // 11
-                            )
-                        }, 1
-                    ).ContinueWith(task => randomShare);
-                }
-                else
-                {
-                    int selectedIndex = 2 * (byte)leftShare + (byte)rightShare;
-                    shareTasks[remoteParty.Id] = _obliviousTransfers[remoteParty.Id].ReceiveAsync(
-                        baseStream,
-                        new[] { selectedIndex }, 1
-                    ).ContinueWith(task => new Bit(task.Result[0]));
-                }
-            }
-            
-            Bit result = (await Task.WhenAll(shareTasks).ConfigureAwait(false)).Aggregate((left, right) => left ^ right);
-#if DEBUG
-            Console.WriteLine("Evaluated AND gate {0} / {1}.", gateContext.TypeUniqueId + 1, circuitContext.NumberOfAndGates);
-#endif
-            return result;
-        }
-
+        
         public async Task<Bit> EvaluateXorGate(Task<Bit> leftValue, Task<Bit> rightValue, GateContext gateContext, CircuitContext circuitContext)
         {
             Bit leftShare = await leftValue.ConfigureAwait(false);
