@@ -8,27 +8,15 @@ namespace CompactMPC.Circuits
 {
     public class EvaluationState<T>
     {
-        private struct GateEvaluationState
-        {
-            public T Value;
-            public bool IsEvaluated;
-
-            public GateEvaluationState(T value, bool isEvaluated)
-            {
-                Value = value;
-                IsEvaluated = isEvaluated;
-            }
-        }
-
         private T[] _input;
         private T[] _output;
-        private IdMapping<GateEvaluationState> _gateEvaluationStates;
+        private IdMapping<Optional<T>> _gateEvaluationValues;
 
         public EvaluationState(T[] input, CircuitContext context)
         {
             _input = input;
             _output = new T[context.NumberOfOutputGates];
-            _gateEvaluationStates = new IdMapping<GateEvaluationState>(new GateEvaluationState(default(T), false), context.NumberOfGates);
+            _gateEvaluationValues = new IdMapping<Optional<T>>(Optional<T>.Empty, context.NumberOfGates);
         }
 
         public T GetInput(int index)
@@ -43,21 +31,21 @@ namespace CompactMPC.Circuits
 
         public T GetGateEvaluationValue(Gate gate)
         {
-            GateEvaluationState gateEvaluationState = _gateEvaluationStates[gate.Context.CircuitUniqueId];
-            if (!gateEvaluationState.IsEvaluated)
+            Optional<T> gateEvaluationValue = _gateEvaluationValues[gate.Context.CircuitUniqueId];
+            if (!gateEvaluationValue.IsPresent)
                 throw new InvalidOperationException(String.Format("Gate with id {0} was not evaluated yet.", gate.Context.CircuitUniqueId));
 
-            return gateEvaluationState.Value;
+            return gateEvaluationValue.Value;
         }
 
         public void SetGateEvaluationValue(Gate gate, T value)
         {
-            _gateEvaluationStates[gate.Context.CircuitUniqueId] = new GateEvaluationState(value, true);
+            _gateEvaluationValues[gate.Context.CircuitUniqueId] = Optional<T>.FromValue(value);
         }
 
         public bool IsGateEvaluated(Gate gate)
         {
-            return _gateEvaluationStates[gate.Context.CircuitUniqueId].IsEvaluated;
+            return _gateEvaluationValues[gate.Context.CircuitUniqueId].IsPresent;
         }
 
         public T[] Output
