@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using CompactMPC.Circuits;
+using CompactMPC.Circuits.Batching;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol.Internal;
@@ -14,17 +14,17 @@ namespace CompactMPC.Protocol
 {
     public class GMWSecureComputation : SecureComputation
     {
-        private IBatchObliviousTransfer _batchObliviousTransfer;
+        private IObliviousTransfer _obliviousTransfer;
         private CryptoContext _cryptoContext;
         
-        public GMWSecureComputation(INetworkSession session, IBatchObliviousTransfer batchObliviousTransfer, CryptoContext cryptoContext)
+        public GMWSecureComputation(INetworkSession session, IObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
             : base(session)
         {
-            _batchObliviousTransfer = batchObliviousTransfer;
+            _obliviousTransfer = obliviousTransfer;
             _cryptoContext = cryptoContext;
         }
 
-        public override async Task<BitArray> EvaluateAsync(IEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
+        public override async Task<BitArray> EvaluateAsync(IBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
         {
             if (inputMapping.NumberOfInputs != evaluable.Context.NumberOfInputGates)
             {
@@ -42,7 +42,7 @@ namespace CompactMPC.Protocol
                 );
             }
             
-            GMWBooleanCircuitEvaluator evaluator = new GMWBooleanCircuitEvaluator(Session, _batchObliviousTransfer, _cryptoContext, evaluable.Context);
+            GMWBooleanCircuitEvaluator evaluator = new GMWBooleanCircuitEvaluator(Session, _obliviousTransfer, _cryptoContext, evaluable.Context);
 
             BitArray maskedInputs = await MaskInputs(inputMapping, localInputValues);
 

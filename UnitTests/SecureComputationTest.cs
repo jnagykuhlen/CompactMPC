@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using CompactMPC.Circuits;
+using CompactMPC.Circuits.Batching;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
@@ -53,7 +54,7 @@ namespace CompactMPC.UnitTests
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
-                    IBatchObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                    IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                         new SecurityParameters(47, 23, 4, 1, 1),
                         cryptoContext
                     );
@@ -64,7 +65,9 @@ namespace CompactMPC.UnitTests
                     CircuitBuilder circuitBuilder = new CircuitBuilder();
                     circuitRecorder.Record(circuitBuilder);
 
-                    BitArray output = computation.EvaluateAsync(circuitBuilder.CreateCircuit(), circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput).Result;
+                    ForwardCircuit circuit = new ForwardCircuit(circuitBuilder.CreateCircuit());
+
+                    BitArray output = computation.EvaluateAsync(circuit, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput).Result;
 
                     Assert.AreEqual(
                         expectedOutput.Length,

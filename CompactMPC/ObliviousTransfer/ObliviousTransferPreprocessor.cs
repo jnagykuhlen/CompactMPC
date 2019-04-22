@@ -11,15 +11,15 @@ namespace CompactMPC.ObliviousTransfer
 {
     public class ObliviousTransferPreprocessor
     {
-        private IBatchObliviousTransfer _batchObliviousTransfer;
+        private IObliviousTransfer _obliviousTransfer;
         private RandomNumberGenerator _randomNumberGenerator;
 
-        public ObliviousTransferPreprocessor(IBatchObliviousTransfer batchObliviousTransfer, CryptoContext cryptoContext)
+        public ObliviousTransferPreprocessor(IObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
         {
-            if (batchObliviousTransfer == null)
-                throw new ArgumentNullException(nameof(batchObliviousTransfer));
+            if (obliviousTransfer == null)
+                throw new ArgumentNullException(nameof(obliviousTransfer));
 
-            _batchObliviousTransfer = batchObliviousTransfer;
+            _obliviousTransfer = obliviousTransfer;
             _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
         }
 
@@ -27,19 +27,19 @@ namespace CompactMPC.ObliviousTransfer
         {
             BitArray randomBits = _randomNumberGenerator.GetBits(4 * numberOfInvocations);
             
-            Quadruple<byte[]>[] randomOptions = new Quadruple<byte[]>[numberOfInvocations];
+            BitQuadruple[] randomOptions = new BitQuadruple[numberOfInvocations];
             for(int j = 0; j < numberOfInvocations; ++j)
             {
-                randomOptions[j] = new Quadruple<byte[]>
+                randomOptions[j] = new BitQuadruple
                 (
-                    new[] { (byte)new Bit(randomBits[4 * j + 0]) },
-                    new[] { (byte)new Bit(randomBits[4 * j + 1]) },
-                    new[] { (byte)new Bit(randomBits[4 * j + 2]) },
-                    new[] { (byte)new Bit(randomBits[4 * j + 3]) }
+                    new Bit(randomBits[4 * j + 0]),
+                    new Bit(randomBits[4 * j + 1]),
+                    new Bit(randomBits[4 * j + 2]),
+                    new Bit(randomBits[4 * j + 3])
                 );
             }
             
-            return _batchObliviousTransfer.SendAsync(stream, randomOptions, 1, numberOfInvocations)
+            return _obliviousTransfer.SendAsync(stream, randomOptions, numberOfInvocations)
                 .ContinueWith(task => new PreprocessedSenderBatch(randomOptions));
         }
 
@@ -56,7 +56,7 @@ namespace CompactMPC.ObliviousTransfer
                 randomSelectionIndices[j] = (randomBytes[byteIndex] >> 2 * slotIndex) & 3;
             }
 
-            return _batchObliviousTransfer.ReceiveAsync(stream, randomSelectionIndices, 1, numberOfInvocations)
+            return _obliviousTransfer.ReceiveAsync(stream, randomSelectionIndices, numberOfInvocations)
                 .ContinueWith(task => new PreprocessedReceiverBatch(randomSelectionIndices, task.Result));
         }
     }

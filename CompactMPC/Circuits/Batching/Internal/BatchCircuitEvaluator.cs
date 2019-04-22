@@ -6,17 +6,19 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits.Batching.Internal
 {
-    public class BatchedCircuitEvaluator<T> : IBatchCircuitEvaluator<T>
+    public class BatchCircuitEvaluator<T> : IBatchCircuitEvaluator<T>
     {
         private ICircuitEvaluator<T> _innerEvaluator;
 
-        public BatchedCircuitEvaluator(ICircuitEvaluator<T> innerEvaluator)
+        public BatchCircuitEvaluator(ICircuitEvaluator<T> innerEvaluator)
         {
             _innerEvaluator = innerEvaluator;
         }
         
         public T[] EvaluateAndGateBatch(GateEvaluationInput<T>[] evaluationInputs, CircuitContext circuitContext)
         {
+            Console.WriteLine("Received batch of {0} gates.", evaluationInputs.Length);
+
             T[] outputValues = new T[evaluationInputs.Length];
             for (int i = 0; i < evaluationInputs.Length; ++i)
             {

@@ -35,6 +35,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="BufferHelper.cs" />
+    <Compile Include="Circuits\Batching\IBatchEvaluableCircuit.cs" />
     <Compile Include="Circuits\Batching\Internal\GateEvaluation.cs" />
     <Compile Include="Circuits\Batching\Internal\BinaryForwardGate.cs" />
     <Compile Include="Circuits\Batching\Internal\ForwardEvaluationState.cs" />
@@ -48,7 +50,8 @@
     <Compile Include="Circuits\Batching\Internal\ForwardInputGate.cs" />
     <Compile Include="Circuits\Batching\Internal\ForwardNotGate.cs" />
     <Compile Include="Circuits\Batching\Internal\ForwardXorGate.cs" />
-    <Compile Include="Circuits\Batching\Internal\BatchedCircuitEvaluator.cs" />
+    <Compile Include="Circuits\Batching\Internal\BatchCircuitEvaluator.cs" />
+    <Compile Include="ObliviousTransfer\GeneralizedObliviousTransfer.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="Circuits\Circuit.cs" />
     <Compile Include="Circuits\EvaluationState.cs" />
@@ -78,20 +81,14 @@
     <Compile Include="IdSet.cs" />
     <Compile Include="Protocol\OutputPartyMapping.cs" />
     <Compile Include="ObliviousTransfer\ObliviousTransferPreprocessor.cs" />
-    <Compile Include="ObliviousTransfer\IObliviousTransferStream.cs" />
-    <Compile Include="ObliviousTransfer\PreprocessedObliviousTransferStream.cs" />
+    <Compile Include="ObliviousTransfer\PreprocessedObliviousTransfer.cs" />
     <Compile Include="ObliviousTransfer\PreprocessedReceiverBatch.cs" />
     <Compile Include="ObliviousTransfer\PreprocessedSenderBatch.cs" />
     <Compile Include="ObliviousTransfer\RandomOracle.cs" />
     <Compile Include="ObliviousTransfer\HashRandomOracle.cs" />
-    <Compile Include="ObliviousTransfer\NonBatchedObliviousTransfer.cs" />
     <Compile Include="Quadruple.cs" />
     <Compile Include="BitQuadruple.cs" />
-    <Compile Include="ObliviousTransfer\ObliviousTransferStream.cs" />
-    <Compile Include="Networking\MultiStream.cs" />
-    <Compile Include="Networking\SequentialSubstream.cs" />
-    <Compile Include="Networking\SequentialMultiStream.cs" />
-    <Compile Include="ObliviousTransfer\IBatchObliviousTransfer.cs" />
+    <Compile Include="ObliviousTransfer\IGeneralizedObliviousTransfer.cs" />
     <Compile Include="ObliviousTransfer\NaorPinkasObliviousTransfer.cs" />
     <Compile Include="ObliviousTransfer\SecurityParameters.cs" />
     <Compile Include="StreamHelper.cs" />
@@ -122,8 +119,6 @@
     <Compile Include="Networking\INetworkSession.cs" />
     <Compile Include="Networking\Party.cs" />
     <Compile Include="Networking\PeerToPeerNetwork.cs" />
-    <Compile Include="Networking\BufferedMultiStream.cs" />
-    <Compile Include="Networking\BufferedSubstream.cs" />
     <Compile Include="Networking\TwoPartyNetworkSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Virtualization\CircuitEvaluator.cs" />

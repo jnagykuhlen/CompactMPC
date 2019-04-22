@@ -100,7 +100,7 @@ namespace CompactMPC.Samples
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
-                    IBatchObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                    IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                         SecurityParameters.CreateDefault768Bit(),
                         cryptoContext
                     );

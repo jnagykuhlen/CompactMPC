@@ -13,13 +13,13 @@ namespace CompactMPC.ObliviousTransfer
         private BitArray _packedSelectedOptions;
         private int _numberOfInstances;
 
-        public PreprocessedReceiverBatch(int[] selectionIndices, byte[][] selectedOptions)
+        public PreprocessedReceiverBatch(int[] selectionIndices, BitArray selectedOptions)
         {
             if (selectionIndices.Length != selectedOptions.Length)
                 throw new ArgumentException("Number of selection indices and selected options does not match.");
             
-            _packedSelectionIndices = new byte[(selectionIndices.Length - 1) / 4 + 1];
-            _packedSelectedOptions = new BitArray(selectedOptions.Length);
+            _packedSelectionIndices = new byte[(selectionIndices.Length - 1)  / 4 + 1];
+            _packedSelectedOptions = selectedOptions;
             _numberOfInstances = selectionIndices.Length;
             
             for (int j = 0; j < _numberOfInstances; ++j)
@@ -31,13 +31,6 @@ namespace CompactMPC.ObliviousTransfer
                     throw new ArgumentOutOfRangeException("Selection indices must be in the range from 0 to 3.", nameof(selectionIndices));
 
                 _packedSelectionIndices[byteIndex] |= (byte)(selectionIndices[j] << 2 * slotIndex);
-
-                byte[] selectedOption = selectedOptions[j];
-
-                if (selectedOption.Length != 1 || (selectedOption[0] & ~1) != 0)
-                    throw new ArgumentException("Selected options must contain exactly one bit of data.", nameof(selectedOptions));
-
-                _packedSelectedOptions[j] = new Bit(selectedOption[0]).Value;
             }
         }
 

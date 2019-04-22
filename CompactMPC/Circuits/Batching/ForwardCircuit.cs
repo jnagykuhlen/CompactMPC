@@ -8,7 +8,7 @@ using CompactMPC.Circuits.Batching.Internal;
 
 namespace CompactMPC.Circuits.Batching
 {
-    public class ForwardCircuit : IEvaluableCircuit
+    public class ForwardCircuit : IEvaluableCircuit, IBatchEvaluableCircuit
     {
         private ForwardGate[] _inputGates;
         private CircuitContext _context;
@@ -21,7 +21,7 @@ namespace CompactMPC.Circuits.Batching
         
         public T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] input)
         {
-            return Evaluate(new BatchedCircuitEvaluator<T>(evaluator), input);
+            return Evaluate(new BatchCircuitEvaluator<T>(evaluator), input);
         }
 
         public T[] Evaluate<T>(IBatchCircuitEvaluator<T> evaluator, T[] input)

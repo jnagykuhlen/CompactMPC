@@ -12,7 +12,7 @@ namespace CompactMPC.ObliviousTransfer
         private BitArray _packedOptions;
         private int _numberOfInstances;
 
-        public PreprocessedSenderBatch(Quadruple<byte[]>[] options)
+        public PreprocessedSenderBatch(BitQuadruple[] options)
         {
             _packedOptions = new BitArray(4 * options.Length);
             _numberOfInstances = options.Length;
@@ -20,13 +20,7 @@ namespace CompactMPC.ObliviousTransfer
             for (int j = 0; j < _numberOfInstances; ++j)
             {
                 for (int i = 0; i < 4; ++i)
-                {
-                    byte[] option = options[j][i];
-                    if (option.Length != 1 || (option[0] & ~1) != 0)
-                        throw new ArgumentException("Options must contain exactly one bit of data.", nameof(options));
-
-                    _packedOptions[4 * j + i] = new Bit(option[0]).Value;
-                }
+                    _packedOptions[4 * j + i] = options[j][i].Value;
             }
         }
 

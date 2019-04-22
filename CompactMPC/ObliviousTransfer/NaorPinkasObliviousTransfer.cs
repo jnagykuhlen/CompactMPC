@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    public class NaorPinkasObliviousTransfer : IBatchObliviousTransfer
+    public class NaorPinkasObliviousTransfer : GeneralizedObliviousTransfer
     {
         private SecurityParameters _parameters;
         private RandomOracle _randomOracle;
@@ -32,14 +32,14 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        public Task SendAsync(Stream stream, Quadruple<byte[]>[] options, int numberOfMessageBytes, int numberOfInvocations)
+        public override Task SendAsync(Stream stream, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (options.Length != numberOfInvocations)
                 throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
             
-            for (int i = 0; i < options.Length; ++i)
+            for (int j = 0; j < options.Length; ++j)
             {
-                foreach (byte[] message in options[i])
+                foreach (byte[] message in options[j])
                 {
                     if (message.Length != numberOfMessageBytes)
                         throw new ArgumentException("Length of provided options does not match the specified message length.", nameof(options));
@@ -112,10 +112,10 @@ namespace CompactMPC.ObliviousTransfer
                         baseD = listOfCs[i] * Invert(baseD);
 
                     BigInteger e = BigInteger.ModPow(baseD, alpha, _parameters.P);
-                    
+
                     maskedOptions[j][i] = _randomOracle.Mask(
                         options[j][i],
-                        CombineBuffers(e.ToByteArray(), BitConverter.GetBytes(j), BitConverter.GetBytes(i))
+                        BufferHelper.Combine(e.ToByteArray(), j, i)
                     );
                 });
             });
@@ -142,14 +142,14 @@ namespace CompactMPC.ObliviousTransfer
             return Task.CompletedTask;
         }
 
-        public Task<byte[][]> ReceiveAsync(Stream stream, int[] selectionIndices, int numberOfMessageBytes, int numberOfInvocations)
+        public override Task<byte[][]> ReceiveAsync(Stream stream, int[] selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (selectionIndices.Length != numberOfInvocations)
                 throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
 
-            for (int i = 0; i < selectionIndices.Length; ++i)
+            for (int j = 0; j < selectionIndices.Length; ++j)
             {
-                if (selectionIndices[i] < 0 || selectionIndices[i] >= 4)
+                if (selectionIndices[j] < 0 || selectionIndices[j] >= 4)
                     throw new ArgumentOutOfRangeException(nameof(selectionIndices), "Invalid selection index for 1-out-of-4 oblivious transfer.");
             }
 
@@ -224,7 +224,7 @@ namespace CompactMPC.ObliviousTransfer
                 
                 selectedOptions[j] = _randomOracle.Mask(
                     maskedOptions[j][i],
-                    CombineBuffers(e.ToByteArray(), BitConverter.GetBytes(j), BitConverter.GetBytes(i))
+                    BufferHelper.Combine(e.ToByteArray(), j, i)
                 );
             });
 
@@ -250,21 +250,6 @@ namespace CompactMPC.ObliviousTransfer
         private BigInteger Invert(BigInteger groupElement)
         {
             return BigInteger.ModPow(groupElement, _parameters.Q - 1, _parameters.P);
-        }
-
-        private byte[] CombineBuffers(params byte[][] buffers)
-        {
-            byte[] result = new byte[buffers.Sum(buffer => buffer.Length)];
-
-            int offset = 0;
-            for (int i = 0; i < buffers.Length; ++i)
-            {
-                byte[] buffer = buffers[i];
-                Buffer.BlockCopy(buffer, 0, result, offset, buffer.Length);
-                offset += buffer.Length;
-            }
-
-            return result;
         }
     }
 }

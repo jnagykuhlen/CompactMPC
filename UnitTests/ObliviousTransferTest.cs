@@ -37,7 +37,7 @@ namespace CompactMPC.UnitTests
 
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IBatchObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                IGeneralizedObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                     SecurityParameters.CreateDefault768Bit(),
                     cryptoContext
                 );
@@ -47,12 +47,12 @@ namespace CompactMPC.UnitTests
                     Stream stream = session.GetConnection(session.RemoteParties.First().Id);
                     if (session.LocalParty.Id == 0)
                     {
-                        obliviousTransfer.SendAsync(stream, options, 6, 3).Wait();
+                        obliviousTransfer.SendAsync(stream, options, 3, 6).Wait();
                     }
                     else
                     {
                         int[] indices = { 0, 3, 2 };
-                        byte[][] results = obliviousTransfer.ReceiveAsync(stream, indices, 6, 3).Result;
+                        byte[][] results = obliviousTransfer.ReceiveAsync(stream, indices, 3, 6).Result;
 
                         Assert.IsNotNull(results, "Result is null.");
                         Assert.AreEqual(3, results.Length, "Result does not match the correct number of invocations.");
