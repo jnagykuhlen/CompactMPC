@@ -17,8 +17,6 @@ namespace CompactMPC.Circuits.Batching.Internal
         
         public T[] EvaluateAndGateBatch(GateEvaluationInput<T>[] evaluationInputs, CircuitContext circuitContext)
         {
-            Console.WriteLine("Received batch of {0} gates.", evaluationInputs.Length);
-
             T[] outputValues = new T[evaluationInputs.Length];
             for (int i = 0; i < evaluationInputs.Length; ++i)
             {
