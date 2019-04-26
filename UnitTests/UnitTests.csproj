@@ -62,6 +62,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="BitQuadrupleArrayTest.cs" />
     <Compile Include="BufferHelperTest.cs" />
     <Compile Include="NetworkTest.cs" />
     <Compile Include="ObliviousTransferTest.cs" />

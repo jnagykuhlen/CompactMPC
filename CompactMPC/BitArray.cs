@@ -11,6 +11,8 @@ namespace CompactMPC
 {
     public class BitArray : IReadOnlyList<Bit>
     {
+        private const int ElementsPerByte = 8;
+
         private InternalBitArray _bits;
         
         public BitArray(InternalBitArray bits)
@@ -23,9 +25,11 @@ namespace CompactMPC
             _bits = new InternalBitArray(numberOfBits);
         }
 
-        public BitArray(IEnumerable<Bit> bits)
+        public BitArray(Bit[] bits)
         {
-            _bits = new InternalBitArray(bits.Select(bit => bit.Value).ToArray());
+            _bits = new InternalBitArray(bits.Length);
+            for (int i = 0; i < _bits.Length; ++i)
+                _bits[i] = bits[i].Value;
         }
         
         public void Or(BitArray other)
@@ -70,7 +74,7 @@ namespace CompactMPC
 
             return new string(characters);
         }
-        
+
         public byte[] ToBytes()
         {
             byte[] result = new byte[RequiredBytes(_bits.Length)];
@@ -78,8 +82,8 @@ namespace CompactMPC
             {
                 if (_bits[bitIndex])
                 {
-                    int byteIndex = bitIndex / 8;
-                    result[byteIndex] |= (byte)(1 << (bitIndex % 8));
+                    int byteIndex = bitIndex / ElementsPerByte;
+                    result[byteIndex] |= (byte)(1 << (bitIndex % ElementsPerByte));
                 }
             }
 
@@ -93,7 +97,7 @@ namespace CompactMPC
         
         public static int RequiredBytes(int numberOfBits)
         {
-            return (numberOfBits - 1) / 8 + 1;
+            return (numberOfBits - 1) / ElementsPerByte + 1;
         }
 
         public Bit[] ToArray()

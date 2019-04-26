@@ -36,6 +36,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BitArray.cs" />
+    <Compile Include="PackedArray.cs" />
+    <Compile Include="QuadrupleIndexArray.cs" />
     <Compile Include="BufferHelper.cs" />
     <Compile Include="Circuits\Batching\IBatchEvaluableCircuit.cs" />
     <Compile Include="Circuits\Batching\Internal\GateEvaluation.cs" />
@@ -52,6 +54,7 @@
     <Compile Include="Circuits\Batching\Internal\ForwardNotGate.cs" />
     <Compile Include="Circuits\Batching\Internal\ForwardXorGate.cs" />
     <Compile Include="Circuits\Batching\Internal\BatchCircuitEvaluator.cs" />
+    <Compile Include="BitQuadrupleArray.cs" />
     <Compile Include="ObliviousTransfer\GeneralizedObliviousTransfer.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="Circuits\Circuit.cs" />
@@ -118,7 +121,6 @@
     <Compile Include="Bit.cs" />
     <Compile Include="Networking\INetworkSession.cs" />
     <Compile Include="Networking\Party.cs" />
-    <Compile Include="Networking\PeerToPeerNetwork.cs" />
     <Compile Include="Networking\TwoPartyNetworkSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Virtualization\CircuitEvaluator.cs" />

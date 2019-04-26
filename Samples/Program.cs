@@ -64,7 +64,7 @@ namespace CompactMPC.Samples
 
             result = new Circuits.Batching.ForwardCircuit(circuit).Evaluate(new LocalCircuitEvaluator(), inputs.SelectMany(input => input).ToArray());
             Console.WriteLine("Result (forward): {0}", new BitArray(result).ToBinaryString());
-
+            
             if (args.Length == 0)
             {
                 Console.WriteLine("Starting coordinator...");

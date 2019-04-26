@@ -15,7 +15,7 @@ namespace CompactMPC
 
         private BitQuadruple(byte value)
         {
-            _value = (byte)(value & 15);
+            _value = (byte)(value & 0xf);
         }
 
         public BitQuadruple(Bit v0, Bit v1, Bit v2, Bit v3)

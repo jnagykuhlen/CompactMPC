@@ -26,7 +26,7 @@ namespace CompactMPC.Protocol.Internal
         {
             _session = session;
             _cryptoContext = cryptoContext;
-            _obliviousTransfers = PreprocessObliviousTransfers(obliviousTransfer, circuitContext.NumberOfAndGates);
+            _obliviousTransfers = Enumerable.Repeat(new UnsafeObliviousTransfer(), _session.NumberOfParties).ToArray(); // PreprocessObliviousTransfers(obliviousTransfer, circuitContext.NumberOfAndGates);
         }
 
         private PreprocessedObliviousTransfer[] PreprocessObliviousTransfers(IObliviousTransfer obliviousTransfer, int numberOfInstances)
@@ -61,7 +61,7 @@ namespace CompactMPC.Protocol.Internal
                 }
             });
             
-            Task.WaitAll(preprocessingTasks.ToArray());
+            Task.WaitAll(preprocessingTasks);
             
             return obliviousTransfers;
         }

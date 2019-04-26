@@ -9,24 +9,9 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    public class UnsafeObliviousTransfer : IGeneralizedObliviousTransfer
+    public class UnsafeObliviousTransfer : GeneralizedObliviousTransfer
     {
-        public Task SendAsync(Stream stream, BitQuadruple options)
-        {
-            stream.Write(options.Select(bit => (byte)bit).ToArray(), 0, 4);
-            return Task.CompletedTask;
-        }
-
-        public async Task<Bit> ReceiveAsync(Stream stream, int selectionIndex)
-        {
-            if (selectionIndex < 0 || selectionIndex >= 4)
-                throw new ArgumentOutOfRangeException(nameof(selectionIndex), "Invalid selection index for 1-out-of-4 oblivious transfer.");
-            
-            byte[] buffer = await stream.ReadAsync(4);
-            return (Bit)buffer[selectionIndex];
-        }
-
-        public Task SendAsync(Stream stream, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        public override Task SendAsync(Stream stream, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (options.Length != numberOfInvocations)
                 throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
@@ -50,7 +35,7 @@ namespace CompactMPC.ObliviousTransfer
             return stream.WriteAsync(packedOptions);
         }
 
-        public async Task<byte[][]> ReceiveAsync(Stream stream, int[] selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        public override async Task<byte[][]> ReceiveAsync(Stream stream, int[] selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (selectionIndices.Length != numberOfInvocations)
                 throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
