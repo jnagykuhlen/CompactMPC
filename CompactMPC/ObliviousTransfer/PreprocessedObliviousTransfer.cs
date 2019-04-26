@@ -22,7 +22,7 @@ namespace CompactMPC.ObliviousTransfer
             _nextReceiverInstanceId = 0;
         }
 
-        public async Task SendAsync(Stream stream, BitQuadruple[] options, int numberOfInvocations)
+        public async Task SendAsync(Stream stream, BitQuadrupleArray options, int numberOfInvocations)
         {
             if (options.Length != numberOfInvocations)
                 throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
@@ -30,13 +30,13 @@ namespace CompactMPC.ObliviousTransfer
             if (_senderBatch == null || _nextSenderInstanceId + numberOfInvocations > _senderBatch.NumberOfInstances)
                 throw new InvalidOperationException("Not enough preprocessed sender data available.");
 
-            // TODO: Refactor for more efficient packing
+            byte[] deltaSelectionIndicesBuffer = await stream.ReadAsync(QuadrupleIndexArray.RequiredBytes(numberOfInvocations));
+            QuadrupleIndexArray deltaSelectionIndices = QuadrupleIndexArray.FromBytes(deltaSelectionIndicesBuffer, numberOfInvocations);
 
-            byte[] packedDeltaSelectionIndices = await stream.ReadAsync(numberOfInvocations);
-            byte[] packedMaskedOptions = new byte[numberOfInvocations];
+            BitQuadrupleArray maskedOptionQuadruples = new BitQuadrupleArray(numberOfInvocations);
             for (int i = 0; i < numberOfInvocations; ++i)
             {
-                int deltaSelectionIndex = packedDeltaSelectionIndices[i] % 4;
+                int deltaSelectionIndex = deltaSelectionIndices[i];
                 BitQuadruple preprocessedOptions = _senderBatch.GetOptions(_nextSenderInstanceId + i);
                 BitQuadruple unmaskedOptions = options[i];
                 BitQuadruple maskedOptions = new BitQuadruple(
@@ -46,15 +46,15 @@ namespace CompactMPC.ObliviousTransfer
                     unmaskedOptions[3] ^ preprocessedOptions[(3 + deltaSelectionIndex) % 4]
                 );
 
-                packedMaskedOptions[i] = maskedOptions.PackedValue;
+                maskedOptionQuadruples[i] = maskedOptions;
             }
             
-            await stream.WriteAsync(packedMaskedOptions);
+            await stream.WriteAsync(maskedOptionQuadruples.ToBytes());
 
             _nextSenderInstanceId += numberOfInvocations;
         }
 
-        public async Task<BitArray> ReceiveAsync(Stream stream, int[] selectionIndices, int numberOfInvocations)
+        public async Task<BitArray> ReceiveAsync(Stream stream, QuadrupleIndexArray selectionIndices, int numberOfInvocations)
         {
             if (selectionIndices.Length != numberOfInvocations)
                 throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
@@ -63,20 +63,22 @@ namespace CompactMPC.ObliviousTransfer
                 throw new InvalidOperationException("Not enough preprocessed receiver data available.");
 
 
-            byte[] packedDeltaSelectionIndices = new byte[numberOfInvocations];
+            QuadrupleIndexArray deltaSelectionIndices = new QuadrupleIndexArray(numberOfInvocations);
             for (int i = 0; i < numberOfInvocations; ++i)
             {
                 int deltaSelectionIndex = (_receiverBatch.GetSelectionIndex(_nextReceiverInstanceId + i) - selectionIndices[i] + 4) % 4;
-                packedDeltaSelectionIndices[i] = (byte)deltaSelectionIndex;
+                deltaSelectionIndices[i] = deltaSelectionIndex;
             }
 
-            await stream.WriteAsync(packedDeltaSelectionIndices);
+            await stream.WriteAsync(deltaSelectionIndices.ToBytes());
 
-            byte[] packedMaskedOptions = await stream.ReadAsync(numberOfInvocations);
+            byte[] maskedOptionQuadruplesBuffer = await stream.ReadAsync(BitQuadrupleArray.RequiredBytes(numberOfInvocations));
+            BitQuadrupleArray maskedOptionQuadruples = BitQuadrupleArray.FromBytes(maskedOptionQuadruplesBuffer, numberOfInvocations);
+
             BitArray selectedBits = new BitArray(numberOfInvocations);
             for (int i = 0; i < numberOfInvocations; ++i)
             {
-                BitQuadruple maskedOptions = BitQuadruple.FromPackedValue(packedMaskedOptions[i]);
+                BitQuadruple maskedOptions = maskedOptionQuadruples[i];
                 selectedBits[i] = maskedOptions[selectionIndices[i]] ^ _receiverBatch.GetSelectedOption(_nextReceiverInstanceId + i);
             }
 

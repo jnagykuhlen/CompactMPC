@@ -97,7 +97,7 @@ namespace CompactMPC.Protocol.Internal
                 if (remoteParty.Id < _session.LocalParty.Id)
                 {
                     BitArray randomShares = new BitArray(numberOfInvocations);
-                    BitQuadruple[] options = new BitQuadruple[numberOfInvocations];
+                    BitQuadrupleArray options = new BitQuadrupleArray(numberOfInvocations);
 
                     for (int i = 0; i < numberOfInvocations; ++i)
                     {
@@ -115,7 +115,7 @@ namespace CompactMPC.Protocol.Internal
                 }
                 else
                 {
-                    int[] selectionIndices = new int[numberOfInvocations];
+                    QuadrupleIndexArray selectionIndices = new QuadrupleIndexArray(numberOfInvocations);
                     for (int i = 0; i < numberOfInvocations; ++i)
                         selectionIndices[i] = 2 * (byte)leftShares[i] + (byte)rightShares[i];
 

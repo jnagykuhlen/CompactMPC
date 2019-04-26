@@ -10,7 +10,7 @@ namespace CompactMPC.ObliviousTransfer
 {
     public interface IObliviousTransfer
     {
-        Task SendAsync(Stream stream, BitQuadruple[] options, int numberOfInvocations);
-        Task<BitArray> ReceiveAsync(Stream stream, int[] selectionIndices, int numberOfInvocations);
+        Task SendAsync(Stream stream, BitQuadrupleArray options, int numberOfInvocations);
+        Task<BitArray> ReceiveAsync(Stream stream, QuadrupleIndexArray selectionIndices, int numberOfInvocations);
     }
 }

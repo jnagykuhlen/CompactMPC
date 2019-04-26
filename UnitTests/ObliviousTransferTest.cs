@@ -51,7 +51,7 @@ namespace CompactMPC.UnitTests
                     }
                     else
                     {
-                        int[] indices = { 0, 3, 2 };
+                        QuadrupleIndexArray indices = new QuadrupleIndexArray(new[] { 0, 3, 2 });
                         byte[][] results = obliviousTransfer.ReceiveAsync(stream, indices, 3, 6).Result;
 
                         Assert.IsNotNull(results, "Result is null.");

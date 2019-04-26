@@ -10,12 +10,12 @@ namespace CompactMPC.ObliviousTransfer
 {
     public abstract class GeneralizedObliviousTransfer : IObliviousTransfer, IGeneralizedObliviousTransfer
     {
-        public Task SendAsync(Stream stream, BitQuadruple[] options, int numberOfInvocations)
+        public Task SendAsync(Stream stream, BitQuadrupleArray options, int numberOfInvocations)
         {
             return SendAsync(stream, ToOptionMessages(options), numberOfInvocations, 1);
         }
 
-        private Quadruple<byte[]>[] ToOptionMessages(BitQuadruple[] options)
+        private Quadruple<byte[]>[] ToOptionMessages(BitQuadrupleArray options)
         {
             Quadruple<byte[]>[] optionMessages = new Quadruple<byte[]>[options.Length];
             for (int i = 0; i < optionMessages.Length; ++i)
@@ -31,7 +31,7 @@ namespace CompactMPC.ObliviousTransfer
             return optionMessages;
         }
 
-        public Task<BitArray> ReceiveAsync(Stream stream, int[] selectionIndices, int numberOfInvocations)
+        public Task<BitArray> ReceiveAsync(Stream stream, QuadrupleIndexArray selectionIndices, int numberOfInvocations)
         {
             return ReceiveAsync(stream, selectionIndices, numberOfInvocations, 1).ContinueWith(task => FromResultMessages(task.Result));
         }
@@ -46,6 +46,6 @@ namespace CompactMPC.ObliviousTransfer
         }
 
         public abstract Task SendAsync(Stream stream, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes);
-        public abstract Task<byte[][]> ReceiveAsync(Stream stream, int[] selectionIndices, int numberOfInvocations, int numberOfMessageBytes);
+        public abstract Task<byte[][]> ReceiveAsync(Stream stream, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes);
     }
 }

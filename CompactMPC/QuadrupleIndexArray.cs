@@ -38,6 +38,9 @@ namespace CompactMPC
 
         protected override void WriteElement(int value, int index)
         {
+            if (value < 0 || value >= 4)
+                throw new ArgumentOutOfRangeException(nameof(value), "Quadruple index must be in the range from 0 to 3.");
+
             WriteBits((byte)value, index, ElementsPerByte, BitMask);
         }
     }

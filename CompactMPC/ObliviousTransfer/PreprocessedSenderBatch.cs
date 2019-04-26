@@ -8,34 +8,23 @@ namespace CompactMPC.ObliviousTransfer
 {
     public class PreprocessedSenderBatch
     {
-        private BitArray _packedOptions;
-        private int _numberOfInstances;
+        private BitQuadrupleArray _options;
 
-        public PreprocessedSenderBatch(BitQuadruple[] options)
+        public PreprocessedSenderBatch(BitQuadrupleArray options)
         {
-            _packedOptions = new BitArray(4 * options.Length);
-            _numberOfInstances = options.Length;
-
-            for (int j = 0; j < _numberOfInstances; ++j)
-            {
-                for (int i = 0; i < 4; ++i)
-                    _packedOptions[4 * j + i] = options[j][i];
-            }
+            _options = options;
         }
 
         public BitQuadruple GetOptions(int instanceId)
         {
-            if (instanceId < 0 || instanceId >= _numberOfInstances)
-                throw new ArgumentOutOfRangeException(nameof(instanceId));
-
-            return new BitQuadruple(_packedOptions, 4 * instanceId);
+            return _options[instanceId];
         }
 
         public int NumberOfInstances
         {
             get
             {
-                return _numberOfInstances;
+                return _options.Length;
             }
         }
     }

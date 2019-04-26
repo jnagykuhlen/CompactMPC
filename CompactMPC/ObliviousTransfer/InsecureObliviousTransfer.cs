@@ -35,16 +35,10 @@ namespace CompactMPC.ObliviousTransfer
             return stream.WriteAsync(packedOptions);
         }
 
-        public override async Task<byte[][]> ReceiveAsync(Stream stream, int[] selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        public override async Task<byte[][]> ReceiveAsync(Stream stream, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (selectionIndices.Length != numberOfInvocations)
                 throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
-
-            for (int i = 0; i < selectionIndices.Length; ++i)
-            {
-                if (selectionIndices[i] < 0 || selectionIndices[i] >= 4)
-                    throw new ArgumentOutOfRangeException(nameof(selectionIndices), "Invalid selection index for 1-out-of-4 oblivious transfer.");
-            }
 
             byte[] packedOptions = await stream.ReadAsync(4 * numberOfInvocations * numberOfMessageBytes);
 
