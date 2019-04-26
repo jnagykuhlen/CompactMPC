@@ -9,7 +9,7 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    public class UnsafeObliviousTransfer : GeneralizedObliviousTransfer
+    public class InsecureObliviousTransfer : GeneralizedObliviousTransfer
     {
         public override Task SendAsync(Stream stream, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {

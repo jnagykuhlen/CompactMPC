@@ -97,7 +97,7 @@
     <Compile Include="ObliviousTransfer\NaorPinkasObliviousTransfer.cs" />
     <Compile Include="ObliviousTransfer\SecurityParameters.cs" />
     <Compile Include="StreamHelper.cs" />
-    <Compile Include="ObliviousTransfer\UnsafeObliviousTransfer.cs" />
+    <Compile Include="ObliviousTransfer\InsecureObliviousTransfer.cs" />
     <Compile Include="Networking\MultiPartyNetworkSession.cs" />
     <Compile Include="RandomNumberGeneratorHelper.cs" />
     <Compile Include="Circuits\CircuitContext.cs" />
