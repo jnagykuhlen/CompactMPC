@@ -18,12 +18,12 @@ namespace CompactMPC
         public QuadrupleIndexArray(int[] elements)
             : base(elements, ElementsPerByte) { }
 
-        protected QuadrupleIndexArray(byte[] bytes, int numberOfElements)
-            : base(bytes, numberOfElements, ElementsPerByte) { }
+        protected QuadrupleIndexArray(byte[] bytes, int numberOfElements, int elementsPerByte)
+            : base(bytes, numberOfElements, elementsPerByte) { }
 
         public static QuadrupleIndexArray FromBytes(byte[] bytes, int numberOfElements)
         {
-            return new QuadrupleIndexArray(bytes, numberOfElements);
+            return new QuadrupleIndexArray(bytes, numberOfElements, ElementsPerByte);
         }
 
         public static int RequiredBytes(int numberOfElements)

@@ -18,12 +18,12 @@ namespace CompactMPC
         public BitQuadrupleArray(BitQuadruple[] elements)
             : base(elements, ElementsPerByte) { }
 
-        protected BitQuadrupleArray(byte[] bytes, int numberOfElements)
-            : base(bytes, numberOfElements, ElementsPerByte) { }
+        protected BitQuadrupleArray(byte[] bytes, int numberOfElements, int elementsPerByte)
+            : base(bytes, numberOfElements, elementsPerByte) { }
         
         public static BitQuadrupleArray FromBytes(byte[] bytes, int numberOfElements)
         {
-            return new BitQuadrupleArray(bytes, numberOfElements);
+            return new BitQuadrupleArray(bytes, numberOfElements, ElementsPerByte);
         }
 
         public static int RequiredBytes(int numberOfElements)

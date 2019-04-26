@@ -1,112 +1,97 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using InternalBitArray = System.Collections.BitArray;
-
 namespace CompactMPC
 {
-    public class BitArray : IReadOnlyList<Bit>
+    public class BitArray : PackedArray<Bit>
     {
         private const int ElementsPerByte = 8;
+        private const int BitMask = 0x1;
 
-        private InternalBitArray _bits;
-        
-        public BitArray(InternalBitArray bits)
+        public BitArray(int numberOfElements)
+            : base(numberOfElements, ElementsPerByte) { }
+
+        public BitArray(Bit[] elements)
+            : base(elements, ElementsPerByte) { }
+
+        protected BitArray(byte[] bytes, int numberOfElements)
+            : base(bytes, numberOfElements) { }
+
+        protected BitArray(byte[] bytes, int numberOfElements, int elementsPerByte)
+            : base(bytes, numberOfElements, elementsPerByte) { }
+
+        public static BitArray FromBytes(byte[] bytes, int numberOfElements)
         {
-            _bits = bits;
+            return new BitArray(bytes, numberOfElements, ElementsPerByte);
         }
 
-        public BitArray(int numberOfBits)
+        public static int RequiredBytes(int numberOfBits)
         {
-            _bits = new InternalBitArray(numberOfBits);
+            return RequiredBytes(numberOfBits, ElementsPerByte);
         }
 
-        public BitArray(Bit[] bits)
+        public BitArray Clone()
         {
-            _bits = new InternalBitArray(bits.Length);
-            for (int i = 0; i < _bits.Length; ++i)
-                _bits[i] = bits[i].Value;
+            return new BitArray(Buffer, Length);
         }
-        
+
         public void Or(BitArray other)
         {
-            _bits.Or(other._bits);
+            if (other.Length != Length)
+                throw new ArgumentException("Bit array length does not match.", nameof(other));
+
+            for (int i = 0; i < Buffer.Length; ++i)
+                Buffer[i] |= other.Buffer[i];
         }
 
         public void Xor(BitArray other)
         {
-            _bits.Xor(other._bits);
+            if (other.Length != Length)
+                throw new ArgumentException("Bit array length does not match.", nameof(other));
+
+            for (int i = 0; i < Buffer.Length; ++i)
+                Buffer[i] ^= other.Buffer[i];
         }
 
         public void And(BitArray other)
         {
-            _bits.And(other._bits);
+            if (other.Length != Length)
+                throw new ArgumentException("Bit array length does not match.", nameof(other));
+
+            for (int i = 0; i < Buffer.Length; ++i)
+                Buffer[i] &= other.Buffer[i];
         }
 
         public void Not()
         {
-            _bits.Not();
+            for (int i = 0; i < Buffer.Length; ++i)
+                Buffer[i] = (byte)~Buffer[i];
         }
 
         public static BitArray FromBinaryString(string bitString)
         {
-            InternalBitArray bits = new InternalBitArray(bitString.Length);
+            BitArray result = new BitArray(bitString.Length);
             for (int i = 0; i < bitString.Length; ++i)
             {
                 if (bitString[i] != '0' && bitString[i] != '1')
                     throw new ArgumentException("Binary string is only allowed to contain characters 0 and 1.", nameof(bitString));
 
-                bits[i] = bitString[i] == '1';
+                result[i] = new Bit(bitString[i] == '1');
             }
 
-            return new BitArray(bits);
+            return result;
         }
 
         public string ToBinaryString()
         {
             char[] characters = new char[Length];
-            for (int i = 0; i < characters.Length; ++i)
-                characters[i] = _bits[i] ? '1' : '0';
+            for (int i = 0; i < Length; ++i)
+                characters[i] = ReadElement(i).Value ? '1' : '0';
 
             return new string(characters);
-        }
-
-        public byte[] ToBytes()
-        {
-            byte[] result = new byte[RequiredBytes(_bits.Length)];
-            for (int bitIndex = 0; bitIndex < _bits.Length; ++bitIndex)
-            {
-                if (_bits[bitIndex])
-                {
-                    int byteIndex = bitIndex / ElementsPerByte;
-                    result[byteIndex] |= (byte)(1 << (bitIndex % ElementsPerByte));
-                }
-            }
-
-            return result;
-        }
-
-        public static BitArray FromBytes(byte[] data, int numberOfBits)
-        {
-            return new BitArray(new InternalBitArray(data) { Length = numberOfBits });
-        }
-        
-        public static int RequiredBytes(int numberOfBits)
-        {
-            return (numberOfBits - 1) / ElementsPerByte + 1;
-        }
-
-        public Bit[] ToArray()
-        {
-            Bit[] result = new Bit[Length];
-            for (int i = 0; i < result.Length; ++i)
-                result[i] = this[i];
-
-            return result;
         }
 
         public override string ToString()
@@ -114,66 +99,42 @@ namespace CompactMPC
             return ToBinaryString();
         }
 
-        public IEnumerator<Bit> GetEnumerator()
+        protected override Bit ReadElement(int index)
         {
-            return _bits.Cast<bool>().Select(flag => new Bit(flag)).GetEnumerator();
+            return new Bit(ReadBits(index, ElementsPerByte, BitMask));
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        protected override void WriteElement(Bit value, int index)
         {
-            return GetEnumerator();
-        }
-
-        public Bit this[int index]
-        {
-            get
-            {
-                return new Bit(_bits[index]);
-            }
-            set
-            {
-                _bits[index] = value.Value;
-            }
-        }
-
-        int IReadOnlyCollection<Bit>.Count
-        {
-            get
-            {
-                return _bits.Length;
-            }
-        }
-        
-        public int Length
-        {
-            get
-            {
-                return _bits.Length;
-            }
+            WriteBits((byte)value, index, ElementsPerByte, BitMask);
         }
 
         public static BitArray operator |(BitArray left, BitArray right)
         {
-            InternalBitArray copy = new InternalBitArray(left._bits);
-            return new BitArray(copy.Or(right._bits));
+            BitArray clone = left.Clone();
+            clone.Or(right);
+            return clone;
         }
 
         public static BitArray operator ^(BitArray left, BitArray right)
         {
-            InternalBitArray copy = new InternalBitArray(left._bits);
-            return new BitArray(copy.Xor(right._bits));
+            BitArray clone = left.Clone();
+            clone.Xor(right);
+            return clone;
         }
 
         public static BitArray operator &(BitArray left, BitArray right)
         {
-            InternalBitArray copy = new InternalBitArray(left._bits);
-            return new BitArray(copy.And(right._bits));
+            BitArray clone = left.Clone();
+            clone.And(right);
+            return clone;
         }
 
         public static BitArray operator ~(BitArray right)
         {
-            InternalBitArray copy = new InternalBitArray(right._bits);
-            return new BitArray(copy.Not());
+            BitArray clone = right.Clone();
+            clone.Not();
+            return clone;
         }
     }
 }

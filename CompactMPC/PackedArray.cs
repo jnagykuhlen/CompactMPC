@@ -11,11 +11,19 @@ namespace CompactMPC
     {
         private byte[] _buffer;
         private int _length;
-        
+
         protected PackedArray(int numberOfElements, int elementsPerByte)
         {
             _buffer = new byte[RequiredBytes(numberOfElements, elementsPerByte)];
             _length = numberOfElements;
+        }
+
+        protected PackedArray(byte[] bytes, int numberOfElements)
+        {
+            _buffer = new byte[bytes.Length];
+            _length = numberOfElements;
+
+            Array.Copy(bytes, _buffer, bytes.Length);
         }
 
         protected PackedArray(byte[] bytes, int numberOfElements, int elementsPerByte)
@@ -119,6 +127,14 @@ namespace CompactMPC
             get
             {
                 return _length;
+            }
+        }
+
+        protected byte[] Buffer
+        {
+            get
+            {
+                return _buffer;
             }
         }
     }
