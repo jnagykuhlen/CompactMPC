@@ -6,6 +6,8 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 
+using CompactMPC.Networking;
+
 namespace CompactMPC.ObliviousTransfer
 {
     public class ObliviousTransferPreprocessor
@@ -22,21 +24,21 @@ namespace CompactMPC.ObliviousTransfer
             _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
         }
 
-        public Task<PreprocessedSenderBatch> PreprocessSenderAsync(Stream stream, int numberOfInvocations)
+        public Task<PreprocessedSenderBatch> PreprocessSenderAsync(IMessageChannel channel, int numberOfInvocations)
         {
             byte[] randomOptionsBuffer = _randomNumberGenerator.GetBytes(BitQuadrupleArray.RequiredBytes(numberOfInvocations));
             BitQuadrupleArray randomOptions = BitQuadrupleArray.FromBytes(randomOptionsBuffer, numberOfInvocations);
 
-            return _obliviousTransfer.SendAsync(stream, randomOptions, numberOfInvocations)
+            return _obliviousTransfer.SendAsync(channel, randomOptions, numberOfInvocations)
                 .ContinueWith(task => new PreprocessedSenderBatch(randomOptions));
         }
 
-        public Task<PreprocessedReceiverBatch> PreprocessReceiverAsync(Stream stream, int numberOfInvocations)
+        public Task<PreprocessedReceiverBatch> PreprocessReceiverAsync(IMessageChannel channel, int numberOfInvocations)
         {
             byte[] randomSelectionIndicesBuffer = _randomNumberGenerator.GetBytes(QuadrupleIndexArray.RequiredBytes(numberOfInvocations));
             QuadrupleIndexArray randomSelectionIndices = QuadrupleIndexArray.FromBytes(randomSelectionIndicesBuffer, numberOfInvocations);
 
-            return _obliviousTransfer.ReceiveAsync(stream, randomSelectionIndices, numberOfInvocations)
+            return _obliviousTransfer.ReceiveAsync(channel, randomSelectionIndices, numberOfInvocations)
                 .ContinueWith(task => new PreprocessedReceiverBatch(randomSelectionIndices, task.Result));
         }
     }

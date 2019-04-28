@@ -11,7 +11,7 @@ namespace CompactMPC.ObliviousTransfer
 {
     public class InsecureObliviousTransfer : GeneralizedObliviousTransfer
     {
-        public override Task SendAsync(Stream stream, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        public override Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (options.Length != numberOfInvocations)
                 throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
@@ -32,15 +32,17 @@ namespace CompactMPC.ObliviousTransfer
                     Buffer.BlockCopy(options[i][j], 0, packedOptions, (4 * i + j) * numberOfMessageBytes, numberOfMessageBytes);
             }
 
-            return stream.WriteAsync(packedOptions);
+            return channel.WriteMessageAsync(packedOptions);
         }
 
-        public override async Task<byte[][]> ReceiveAsync(Stream stream, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        public override async Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (selectionIndices.Length != numberOfInvocations)
                 throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
 
-            byte[] packedOptions = await stream.ReadAsync(4 * numberOfInvocations * numberOfMessageBytes);
+            byte[] packedOptions = await channel.ReadMessageAsync();
+            if (packedOptions.Length != 4 * numberOfInvocations * numberOfMessageBytes)
+                throw new DesynchronizationException("Received incorrect number of options.");
 
             byte[][] selectedMessages = new byte[numberOfInvocations][];
             for (int i = 0; i < numberOfInvocations; ++i)

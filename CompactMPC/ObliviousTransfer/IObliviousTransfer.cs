@@ -6,11 +6,13 @@ using System.Text;
 using System.IO;
 using System.Threading.Tasks;
 
+using CompactMPC.Networking;
+
 namespace CompactMPC.ObliviousTransfer
 {
     public interface IObliviousTransfer
     {
-        Task SendAsync(Stream stream, BitQuadrupleArray options, int numberOfInvocations);
-        Task<BitArray> ReceiveAsync(Stream stream, QuadrupleIndexArray selectionIndices, int numberOfInvocations);
+        Task SendAsync(IMessageChannel channel, BitQuadrupleArray options, int numberOfInvocations);
+        Task<BitArray> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations);
     }
 }

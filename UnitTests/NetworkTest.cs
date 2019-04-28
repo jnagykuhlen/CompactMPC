@@ -42,12 +42,12 @@ namespace CompactMPC.UnitTests
             {
                 foreach (Party remoteParty in session.RemoteParties)
                 {
-                    Stream connection = session.GetConnection(remoteParty.Id);
-                    connection.Write(new byte[] { (byte)session.LocalParty.Id, (byte)remoteParty.Id }, 0, 2);
-                    byte[] reply = connection.Read(2);
+                    IMessageChannel channel = session.GetChannel(remoteParty.Id);
+                    channel.WriteMessageAsync(new byte[] { (byte)session.LocalParty.Id, (byte)remoteParty.Id }).Wait();
+                    byte[] reply = channel.ReadMessageAsync().Result;
 
                     Assert.IsTrue(
-                        (int)reply[0] == remoteParty.Id && reply[1] == session.LocalParty.Id,
+                        reply[0] == remoteParty.Id && reply[1] == session.LocalParty.Id,
                         "Inconsistent party identifier detected."
                     );
                 }

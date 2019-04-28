@@ -6,13 +6,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using CompactMPC.Networking;
+
 namespace CompactMPC.ObliviousTransfer
 {
     public abstract class GeneralizedObliviousTransfer : IObliviousTransfer, IGeneralizedObliviousTransfer
     {
-        public Task SendAsync(Stream stream, BitQuadrupleArray options, int numberOfInvocations)
+        public Task SendAsync(IMessageChannel channel, BitQuadrupleArray options, int numberOfInvocations)
         {
-            return SendAsync(stream, ToOptionMessages(options), numberOfInvocations, 1);
+            return SendAsync(channel, ToOptionMessages(options), numberOfInvocations, 1);
         }
 
         private Quadruple<byte[]>[] ToOptionMessages(BitQuadrupleArray options)
@@ -31,9 +33,9 @@ namespace CompactMPC.ObliviousTransfer
             return optionMessages;
         }
 
-        public Task<BitArray> ReceiveAsync(Stream stream, QuadrupleIndexArray selectionIndices, int numberOfInvocations)
+        public Task<BitArray> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations)
         {
-            return ReceiveAsync(stream, selectionIndices, numberOfInvocations, 1).ContinueWith(task => FromResultMessages(task.Result));
+            return ReceiveAsync(channel, selectionIndices, numberOfInvocations, 1).ContinueWith(task => FromResultMessages(task.Result));
         }
 
         private BitArray FromResultMessages(byte[][] resultMessages)
@@ -45,7 +47,7 @@ namespace CompactMPC.ObliviousTransfer
             return result;
         }
 
-        public abstract Task SendAsync(Stream stream, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes);
-        public abstract Task<byte[][]> ReceiveAsync(Stream stream, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes);
+        public abstract Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes);
+        public abstract Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes);
     }
 }

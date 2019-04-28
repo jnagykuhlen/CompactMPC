@@ -39,11 +39,11 @@ namespace CompactMPC.Protocol.Internal
 
             Parallel.ForEach(_session.RemoteParties, remoteParty =>
             {
-                Stream baseStream = _session.GetConnection(remoteParty.Id);
+                IMessageChannel channel = _session.GetChannel(remoteParty.Id);
                 
                 if (remoteParty.Id < _session.LocalParty.Id)
                 {
-                    Task preprocessSenderTask = preprocessor.PreprocessSenderAsync(baseStream, numberOfInstances).ContinueWith(task =>
+                    Task preprocessSenderTask = preprocessor.PreprocessSenderAsync(channel, numberOfInstances).ContinueWith(task =>
                     {
                         obliviousTransfers[remoteParty.Id] = new PreprocessedObliviousTransfer(task.Result, null);
                     });
@@ -52,7 +52,7 @@ namespace CompactMPC.Protocol.Internal
                 }
                 else
                 {
-                    Task preprocessReceiverTask = preprocessor.PreprocessReceiverAsync(baseStream, numberOfInstances).ContinueWith(task =>
+                    Task preprocessReceiverTask = preprocessor.PreprocessReceiverAsync(channel, numberOfInstances).ContinueWith(task =>
                     {
                         obliviousTransfers[remoteParty.Id] = new PreprocessedObliviousTransfer(null, task.Result);
                     });
@@ -92,7 +92,7 @@ namespace CompactMPC.Protocol.Internal
             
             Parallel.ForEach(_session.RemoteParties, remoteParty =>
             {
-                Stream stream = _session.GetConnection(remoteParty.Id);
+                IMessageChannel channel = _session.GetChannel(remoteParty.Id);
 
                 if (remoteParty.Id < _session.LocalParty.Id)
                 {
@@ -110,7 +110,7 @@ namespace CompactMPC.Protocol.Internal
                         );
                     }
 
-                    shareTasks[remoteParty.Id] = _obliviousTransfers[remoteParty.Id].SendAsync(stream, options, numberOfInvocations)
+                    shareTasks[remoteParty.Id] = _obliviousTransfers[remoteParty.Id].SendAsync(channel, options, numberOfInvocations)
                         .ContinueWith(task => randomShares);
                 }
                 else
@@ -119,7 +119,7 @@ namespace CompactMPC.Protocol.Internal
                     for (int i = 0; i < numberOfInvocations; ++i)
                         selectionIndices[i] = 2 * (byte)leftShares[i] + (byte)rightShares[i];
 
-                    shareTasks[remoteParty.Id] = _obliviousTransfers[remoteParty.Id].ReceiveAsync(stream, selectionIndices, numberOfInvocations);
+                    shareTasks[remoteParty.Id] = _obliviousTransfers[remoteParty.Id].ReceiveAsync(channel, selectionIndices, numberOfInvocations);
                 }
             });
 

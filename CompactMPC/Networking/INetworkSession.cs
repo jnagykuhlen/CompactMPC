@@ -9,8 +9,6 @@ namespace CompactMPC.Networking
 {
     public interface INetworkSession : IDisposable
     {
-        [Obsolete("Use GetChannel instead.", false)]
-        Stream GetConnection(int remotePartyId);
         IMessageChannel GetChannel(int remotePartyId);
         Party LocalParty { get; }
         IEnumerable<Party> RemoteParties { get; }

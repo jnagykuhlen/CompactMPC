@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CompactMPC
 {
-    public struct BitQuadruple : IEnumerable<Bit>
+    public struct BitQuadruple : IReadOnlyList<Bit>
     {
         public const int Length = 4;
 
@@ -74,6 +74,14 @@ namespace CompactMPC
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        int IReadOnlyCollection<Bit>.Count
+        {
+            get
+            {
+                return Length;
+            }
         }
 
         public byte PackedValue
