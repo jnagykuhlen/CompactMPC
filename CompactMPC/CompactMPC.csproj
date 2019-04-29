@@ -36,15 +36,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BitArray.cs" />
+    <Compile Include="Buffers\BufferBuilder.cs" />
     <Compile Include="DesynchronizationException.cs" />
-    <Compile Include="Networking\Internal\BufferMessageComponent.cs" />
-    <Compile Include="Networking\Internal\IMessageComponent.cs" />
-    <Compile Include="Networking\Internal\IntMessageComponent.cs" />
-    <Compile Include="Networking\MessageDecomposer.cs" />
-    <Compile Include="Networking\MessageComposer.cs" />
+    <Compile Include="Buffers\Internal\BufferMessageComponent.cs" />
+    <Compile Include="Buffers\Internal\IMessageComponent.cs" />
+    <Compile Include="Buffers\Internal\IntMessageComponent.cs" />
+    <Compile Include="Buffers\MessageDecomposer.cs" />
+    <Compile Include="Buffers\MessageComposer.cs" />
     <Compile Include="PackedArray.cs" />
     <Compile Include="QuadrupleIndexArray.cs" />
-    <Compile Include="BufferHelper.cs" />
     <Compile Include="Circuits\Batching\IBatchEvaluableCircuit.cs" />
     <Compile Include="Circuits\Batching\Internal\GateEvaluation.cs" />
     <Compile Include="Circuits\Batching\Internal\BinaryForwardGate.cs" />

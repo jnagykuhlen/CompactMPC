@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CompactMPC.Networking.Internal
+namespace CompactMPC.Buffers.Internal
 {
     public class BufferMessageComponent : IMessageComponent
     {
@@ -15,15 +15,17 @@ namespace CompactMPC.Networking.Internal
             _buffer = buffer;
         }
 
-        public void WriteToBuffer(byte[] messageBuffer, int offset)
+        public void WriteToBuffer(byte[] messageBuffer, ref int offset)
         {
             Buffer.BlockCopy(_buffer, 0, messageBuffer, offset, _buffer.Length);
+            offset += _buffer.Length;
         }
 
-        public static byte[] ReadFromBuffer(byte[] messageBuffer, int offset, int length)
+        public static byte[] ReadFromBuffer(byte[] messageBuffer, ref int offset, int length)
         {
             byte[] buffer = new byte[length];
             Buffer.BlockCopy(messageBuffer, offset, buffer, 0, length);
+            offset += length;
             return buffer;
         }
 

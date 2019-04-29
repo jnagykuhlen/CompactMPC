@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using CompactMPC.Networking.Internal;
+using CompactMPC.Buffers.Internal;
 
-namespace CompactMPC.Networking
+namespace CompactMPC.Buffers
 {
     public class MessageComposer
     {
@@ -46,10 +46,7 @@ namespace CompactMPC.Networking
 
             int offset = 0;
             foreach (IMessageComponent component in _components)
-            {
-                component.WriteToBuffer(messageBuffer, offset);
-                offset += component.Length;
-            }
+                component.WriteToBuffer(messageBuffer, ref offset);
 
             return messageBuffer;
         }

@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CompactMPC.Networking.Internal
+namespace CompactMPC.Buffers.Internal
 {
     public interface IMessageComponent
     {
-        void WriteToBuffer(byte[] messageBuffer, int offset);
+        void WriteToBuffer(byte[] messageBuffer, ref int offset);
         int Length { get; }
     }
 }

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 
 using CompactMPC.Networking;
+using CompactMPC.Buffers;
 
 namespace CompactMPC.ObliviousTransfer
 {
@@ -97,11 +98,7 @@ namespace CompactMPC.ObliviousTransfer
                         baseD = listOfCs[i] * Invert(baseD);
 
                     BigInteger e = BigInteger.ModPow(baseD, alpha, _parameters.P);
-
-                    maskedOptions[j][i] = _randomOracle.Mask(
-                        options[j][i],
-                        BufferHelper.Combine(e.ToByteArray(), j, i)
-                    );
+                    maskedOptions[j][i] = MaskOption(options[j][i], e, j, i);
                 });
             });
 
@@ -167,11 +164,7 @@ namespace CompactMPC.ObliviousTransfer
             {
                 int i = selectionIndices[j];
                 BigInteger e = BigInteger.ModPow(listOfCs[0], listOfBetas[j], _parameters.P);
-                
-                selectedOptions[j] = _randomOracle.Mask(
-                    maskedOptions[j][i],
-                    BufferHelper.Combine(e.ToByteArray(), j, i)
-                );
+                selectedOptions[j] = MaskOption(maskedOptions[j][i], e, j, i);
             });
 
 #if DEBUG
@@ -251,6 +244,12 @@ namespace CompactMPC.ObliviousTransfer
             }
 
             return options;
+        }
+
+        private byte[] MaskOption(byte[] message, BigInteger groupElement,  int invocationIndex, int optionIndex)
+        {
+            byte[] query = BufferBuilder.From(groupElement.ToByteArray()).With(invocationIndex).With(optionIndex).Create();
+            return _randomOracle.Mask(message, query);
         }
     }
 }
