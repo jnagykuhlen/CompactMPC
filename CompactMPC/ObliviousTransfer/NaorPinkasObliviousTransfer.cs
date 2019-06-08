@@ -9,9 +9,12 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
+using CompactMPC.Networking;
+using CompactMPC.Buffers;
+
 namespace CompactMPC.ObliviousTransfer
 {
-    public class NaorPinkasObliviousTransfer : IBatchObliviousTransfer
+    public class NaorPinkasObliviousTransfer : GeneralizedObliviousTransfer
     {
         private SecurityParameters _parameters;
         private RandomOracle _randomOracle;
@@ -32,27 +35,24 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        public Task SendAsync(Stream stream, Quadruple<byte[]>[] options, int numberOfMessageBytes, int numberOfInvocations)
+        public override async Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (options.Length != numberOfInvocations)
                 throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
             
-            for (int i = 0; i < options.Length; ++i)
+            for (int j = 0; j < options.Length; ++j)
             {
-                foreach (byte[] message in options[i])
+                foreach (byte[] message in options[j])
                 {
                     if (message.Length != numberOfMessageBytes)
                         throw new ArgumentException("Length of provided options does not match the specified message length.", nameof(options));
                 }
             }
             
-            BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true);
-            BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, true);
-
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
-
+            
             Quadruple<BigInteger> listOfCs = new Quadruple<BigInteger>();
             Quadruple<BigInteger> listOfExponents = new Quadruple<BigInteger>();
             
@@ -71,29 +71,15 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            for (int i = 0; i < 4; ++i)
-            {
-                byte[] data = listOfCs[i].ToByteArray();
-                writer.Write(data.Length);
-                writer.Write(data);
-            }
-
-            writer.Flush();
+            await WriteGroupElements(channel, listOfCs);
 
 #if DEBUG
             stopwatch.Stop();
             Console.WriteLine("[Sender] Sending values for c took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
-            
-            BigInteger[] listOfDs = new BigInteger[numberOfInvocations];
-            for (int j = 0; j < numberOfInvocations; ++j)
-            {
-                int size = reader.ReadInt32();
-                byte[] data = reader.ReadBytes(size);
 
-                listOfDs[j] = new BigInteger(data);
-            }
+            BigInteger[] listOfDs = await ReadGroupElements(channel, numberOfInvocations);
 
 #if DEBUG
             stopwatch.Stop();
@@ -112,11 +98,7 @@ namespace CompactMPC.ObliviousTransfer
                         baseD = listOfCs[i] * Invert(baseD);
 
                     BigInteger e = BigInteger.ModPow(baseD, alpha, _parameters.P);
-                    
-                    maskedOptions[j][i] = _randomOracle.Mask(
-                        options[j][i],
-                        CombineBuffers(e.ToByteArray(), BitConverter.GetBytes(j), BitConverter.GetBytes(i))
-                    );
+                    maskedOptions[j][i] = MaskOption(options[j][i], e, j, i);
                 });
             });
 
@@ -126,49 +108,24 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            for (int j = 0; j < numberOfInvocations; ++j)
-            {
-                for (int i = 0; i < 4; ++i)
-                    writer.Write(maskedOptions[j][i]);
-            }
-
-            writer.Flush();
+            await WriteOptions(channel, maskedOptions, numberOfInvocations, numberOfMessageBytes);
 
 #if DEBUG
             stopwatch.Stop();
             Console.WriteLine("[Sender] Sending masked options took {0} ms.", stopwatch.ElapsedMilliseconds);
 #endif
-
-            return Task.CompletedTask;
         }
 
-        public Task<byte[][]> ReceiveAsync(Stream stream, int[] selectionIndices, int numberOfMessageBytes, int numberOfInvocations)
+        public override async Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (selectionIndices.Length != numberOfInvocations)
                 throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
-
-            for (int i = 0; i < selectionIndices.Length; ++i)
-            {
-                if (selectionIndices[i] < 0 || selectionIndices[i] >= 4)
-                    throw new ArgumentOutOfRangeException(nameof(selectionIndices), "Invalid selection index for 1-out-of-4 oblivious transfer.");
-            }
-
-            BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true);
-            BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, true);
 
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
 
-            Quadruple<BigInteger> listOfCs = new Quadruple<BigInteger>();
-
-            for (int i = 0; i < 4; ++i)
-            {
-                int size = reader.ReadInt32();
-                byte[] data = reader.ReadBytes(size);
-
-                listOfCs[i] = new BigInteger(data);
-            }
+            Quadruple<BigInteger> listOfCs = new Quadruple<BigInteger>(await ReadGroupElements(channel, 4));
 
 #if DEBUG
             stopwatch.Stop();
@@ -186,29 +143,15 @@ namespace CompactMPC.ObliviousTransfer
                     listOfDs[j] = (listOfCs[selectionIndices[j]] * Invert(listOfDs[j])) % _parameters.P;
             });
 
-            for (int j = 0; j < numberOfInvocations; ++j)
-            {
-                byte[] data = listOfDs[j].ToByteArray();
-                writer.Write(data.Length);
-                writer.Write(data);
-            }
-
-            writer.Flush();
+            await WriteGroupElements(channel, listOfDs);
 
 #if DEBUG
             stopwatch.Stop();
             Console.WriteLine("[Receiver] Generating and writing d took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
-            
-            Quadruple<byte[]>[] maskedOptions = new Quadruple<byte[]>[numberOfInvocations];
 
-            for (int j = 0; j < numberOfInvocations; ++j)
-            {
-                maskedOptions[j] = new Quadruple<byte[]>();
-                for (int i = 0; i < 4; ++i)
-                    maskedOptions[j][i] = reader.ReadBytes(numberOfMessageBytes);
-            }
+            Quadruple<byte[]>[] maskedOptions = await ReadOptions(channel, numberOfInvocations, numberOfMessageBytes);
 
 #if DEBUG
             stopwatch.Stop();
@@ -221,11 +164,7 @@ namespace CompactMPC.ObliviousTransfer
             {
                 int i = selectionIndices[j];
                 BigInteger e = BigInteger.ModPow(listOfCs[0], listOfBetas[j], _parameters.P);
-                
-                selectedOptions[j] = _randomOracle.Mask(
-                    maskedOptions[j][i],
-                    CombineBuffers(e.ToByteArray(), BitConverter.GetBytes(j), BitConverter.GetBytes(i))
-                );
+                selectedOptions[j] = MaskOption(maskedOptions[j][i], e, j, i);
             });
 
 #if DEBUG
@@ -233,7 +172,7 @@ namespace CompactMPC.ObliviousTransfer
             Console.WriteLine("[Receiver] Unmasking result took {0} ms.", stopwatch.ElapsedMilliseconds);
 #endif
             
-            return Task.FromResult(selectedOptions);
+            return selectedOptions;
         }
 
         private BigInteger GenerateGroupElement(out BigInteger exponent)
@@ -252,19 +191,65 @@ namespace CompactMPC.ObliviousTransfer
             return BigInteger.ModPow(groupElement, _parameters.Q - 1, _parameters.P);
         }
 
-        private byte[] CombineBuffers(params byte[][] buffers)
+        private Task WriteGroupElements(IMessageChannel channel, IReadOnlyList<BigInteger> groupElements)
         {
-            byte[] result = new byte[buffers.Sum(buffer => buffer.Length)];
-
-            int offset = 0;
-            for (int i = 0; i < buffers.Length; ++i)
+            MessageComposer message = new MessageComposer(2 * groupElements.Count);
+            foreach (BigInteger groupElement in groupElements)
             {
-                byte[] buffer = buffers[i];
-                Buffer.BlockCopy(buffer, 0, result, offset, buffer.Length);
-                offset += buffer.Length;
+                byte[] packedGroupElement = groupElement.ToByteArray();
+                message.Write(packedGroupElement.Length);
+                message.Write(packedGroupElement);
             }
 
-            return result;
+            return channel.WriteMessageAsync(message.Compose());
+        }
+
+        private async Task<BigInteger[]> ReadGroupElements(IMessageChannel channel, int numberOfGroupElements)
+        {
+            MessageDecomposer message = new MessageDecomposer(await channel.ReadMessageAsync());
+
+            BigInteger[] groupElements = new BigInteger[numberOfGroupElements];
+            for (int i = 0; i < numberOfGroupElements; ++i)
+            {
+                int length = message.ReadInt();
+                byte[] packedGroupElement = message.ReadBuffer(length);
+                groupElements[i] = new BigInteger(packedGroupElement);
+            }
+
+            return groupElements;
+        }
+
+        private Task WriteOptions(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            MessageComposer message = new MessageComposer(4 * numberOfInvocations);
+            for (int j = 0; j < numberOfInvocations; ++j)
+            {
+                for (int i = 0; i < 4; ++i)
+                    message.Write(options[j][i]);
+            }
+
+            return channel.WriteMessageAsync(message.Compose());
+        }
+
+        private async Task<Quadruple<byte[]>[]> ReadOptions(IMessageChannel channel, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            MessageDecomposer message = new MessageDecomposer(await channel.ReadMessageAsync());
+
+            Quadruple<byte[]>[] options = new Quadruple<byte[]>[numberOfInvocations];
+            for (int j = 0; j < numberOfInvocations; ++j)
+            {
+                options[j] = new Quadruple<byte[]>();
+                for (int i = 0; i < 4; ++i)
+                    options[j][i] = message.ReadBuffer(numberOfMessageBytes);
+            }
+
+            return options;
+        }
+
+        private byte[] MaskOption(byte[] message, BigInteger groupElement,  int invocationIndex, int optionIndex)
+        {
+            byte[] query = BufferBuilder.From(groupElement.ToByteArray()).With(invocationIndex).With(optionIndex).Create();
+            return _randomOracle.Mask(message, query);
         }
     }
 }

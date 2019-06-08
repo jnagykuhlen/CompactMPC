@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using CompactMPC.Expressions;
+using CompactMPC.Circuits.Internal;
 
 namespace CompactMPC.Circuits
 {
@@ -13,26 +13,26 @@ namespace CompactMPC.Circuits
     /// AND, XOR and NOT gates. Derived classes need to translate these gates into
     /// an appropriate internal circuit representation.
     /// </summary>
-    public abstract class CircuitBuilder
+    public class CircuitBuilder
     {
-        private int _nextWireId;
         private int _nextGateId;
         private int _nextAndGateId;
         private int _nextXorGateId;
         private int _nextNotGateId;
-        private CircuitContext _cachedContext;
+        private int _nextInputGateId;
+        private int _nextOutputGateId;
+        private List<OutputGate> _outputGates;
 
         /// <summary>
         /// Creates a new empty circuit builder.
         /// </summary>
-        protected CircuitBuilder()
+        public CircuitBuilder()
         {
-            _nextWireId = 0;
             _nextGateId = 0;
             _nextAndGateId = 0;
             _nextXorGateId = 0;
             _nextNotGateId = 0;
-            _cachedContext = null;
+            _outputGates = new List<OutputGate>();
         }
 
         /// <summary>
@@ -43,9 +43,6 @@ namespace CompactMPC.Circuits
         /// <returns>A wire representing the logical AND of both inputs.</returns>
         public Wire And(Wire leftInput, Wire rightInput)
         {
-            if (!IsValid(leftInput) || !IsValid(rightInput))
-                throw new ArgumentException("Invalid secure bit identifier.");
-
             if (leftInput == Wire.Zero || rightInput == Wire.Zero)
                 return Wire.Zero;
 
@@ -54,10 +51,8 @@ namespace CompactMPC.Circuits
 
             if (rightInput == Wire.One)
                 return leftInput;
-
-            Wire output = RequestWire();
-            AddAndGate(leftInput, rightInput, output, RequestGate(ref _nextAndGateId));
-            return output;
+            
+            return Wire.FromGate(new AndGate(RequestGateContext(ref _nextAndGateId), leftInput.Gate, rightInput.Gate));
         }
 
         /// <summary>
@@ -68,9 +63,6 @@ namespace CompactMPC.Circuits
         /// <returns>A wire representing the logical XOR of both inputs.</returns>
         public Wire Xor(Wire leftInput, Wire rightInput)
         {
-            if (!IsValid(leftInput) || !IsValid(rightInput))
-                throw new ArgumentException("Invalid secure bit identifier.");
-
             if (leftInput == Wire.Zero)
                 return rightInput;
 
@@ -82,10 +74,8 @@ namespace CompactMPC.Circuits
 
             if (rightInput == Wire.One)
                 return Not(leftInput);
-
-            Wire output = RequestWire();
-            AddXorGate(leftInput, rightInput, output, RequestGate(ref _nextXorGateId));
-            return output;
+            
+            return Wire.FromGate(new XorGate(RequestGateContext(ref _nextXorGateId), leftInput.Gate, rightInput.Gate));
         }
 
         /// <summary>
@@ -107,18 +97,13 @@ namespace CompactMPC.Circuits
         /// <returns>A wire representing the logical negation of the input.</returns>
         public Wire Not(Wire input)
         {
-            if (!IsValid(input))
-                throw new ArgumentException("Invalid secure bit identifier.");
-
             if (input == Wire.Zero)
                 return Wire.One;
 
             if (input == Wire.One)
                 return Wire.Zero;
-
-            Wire result = RequestWire();
-            AddNotGate(input, result, RequestGate(ref _nextNotGateId));
-            return result;
+            
+            return Wire.FromGate(new NotGate(RequestGateContext(ref _nextNotGateId), input.Gate));
         }
 
         /// <summary>
@@ -127,9 +112,7 @@ namespace CompactMPC.Circuits
         /// <returns>Input wire.</returns>
         public Wire Input()
         {
-            Wire wire = RequestWire();
-            MakeInputWire(wire);
-            return wire;
+            return Wire.FromGate(new InputGate(RequestGateContext(ref _nextInputGateId)));
         }
 
         /// <summary>
@@ -138,55 +121,28 @@ namespace CompactMPC.Circuits
         /// <param name="wire">Wire to output.</param>
         public void Output(Wire wire)
         {
-            if (wire.IsConstant)
-                throw new ArgumentException("Constant wires are not allow as output.");
+            if (wire == Wire.Zero || wire == Wire.One)
+                throw new ArgumentException("Constant wires are not allowed as output.");
 
-            if (!IsValid(wire))
-                throw new ArgumentException("Invalid secure bit identifier.");
-            
-            MakeOutputWire(wire);
+            _outputGates.Add(new OutputGate(RequestGateContext(ref _nextOutputGateId), wire.Gate));
         }
 
-        private GateContext RequestGate(ref int nextTypeUniqueId)
+        private GateContext RequestGateContext(ref int nextTypeUniqueId)
         {
-            _cachedContext = null;
             return new GateContext(_nextGateId++, nextTypeUniqueId++);
         }
 
-        private Wire RequestWire()
+        public Circuit CreateCircuit()
         {
-            return Wire.FromId(_nextWireId++);
-        }
-
-        private bool IsValid(Wire bit)
-        {
-            return (bit.Id >= 0 && bit.Id < _nextWireId) || bit.IsConstant;
-        }
-
-        protected abstract void AddAndGate(Wire leftInput, Wire rightInput, Wire output, GateContext context);
-        protected abstract void AddXorGate(Wire leftInput, Wire rightInput, Wire output, GateContext context);
-        protected abstract void AddNotGate(Wire input, Wire output, GateContext context);
-        protected abstract void MakeInputWire(Wire bit);
-        protected abstract void MakeOutputWire(Wire bit);
-        
-        /// <summary>
-        /// Gets information on the number of gates in the circuit.
-        /// </summary>
-        public CircuitContext CircuitContext
-        {
-            get
-            {
-                if (_cachedContext == null)
-                {
-                    _cachedContext = new CircuitContext(
-                        _nextAndGateId,
-                        _nextXorGateId,
-                        _nextNotGateId
-                    );
-                }
-                
-                return _cachedContext;
-            }
+            CircuitContext circuitContext = new CircuitContext(
+                _nextAndGateId,
+                _nextXorGateId,
+                _nextNotGateId,
+                _nextInputGateId,
+                _nextOutputGateId
+            );
+            
+            return new Circuit(_outputGates, circuitContext);
         }
     }
 }

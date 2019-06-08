@@ -6,24 +6,25 @@ using System.Text;
 using System.Threading.Tasks;
 
 using CompactMPC.Circuits;
+using CompactMPC.Circuits.Batching;
 using CompactMPC.Protocol;
 
 namespace CompactMPC.Expressions
 {
     public abstract class SecureMultiPartyProgram
     {
-        public object[] Evaluate(Protocol.SecureComputation secureComputation, object[] localInputPrimitives)
+        public async Task<object[]> EvaluateAsync(SecureComputation secureComputation, object[] localInputPrimitives)
         {
             InputPrimitiveDeclaration[] inputDeclaration = InputDeclaration;
             OutputPrimitiveDeclaration[] outputDeclaration = OutputDeclaration;
             
-            EvaluationCircuitBuilder builder = new EvaluationCircuitBuilder();
+            CircuitBuilder builder = new CircuitBuilder();
             SecurePrimitive[] inputPrimitives = InputPrimitives(builder, inputDeclaration);
             SecurePrimitive[] outputPrimitives = Run(builder, inputPrimitives);
             OutputPrimitives(builder, outputPrimitives);
             
-            BitArray outputBuffer = secureComputation.Evaluate(
-                builder,
+            BitArray outputBuffer = await secureComputation.EvaluateAsync(
+                new ForwardCircuit(builder.CreateCircuit()),
                 CreateInputMapping(inputDeclaration),
                 CreateOutputMapping(outputDeclaration),
                 CreateLocalInputBuffer(inputDeclaration, localInputPrimitives, secureComputation.Session.LocalParty.Id)

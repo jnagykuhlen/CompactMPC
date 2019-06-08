@@ -27,7 +27,7 @@ namespace CompactMPC.Expressions
         {
             return new SecureBoolean(builder, Wire.Zero);
         }
-
+        
         public static SecureBoolean operator &(SecureBoolean left, SecureBoolean right)
         {
             if (left.Builder != right.Builder)

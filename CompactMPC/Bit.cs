@@ -22,13 +22,34 @@ namespace CompactMPC
         {
             _value = (byte)(value & 1);
         }
-        
+
+        public override bool Equals(object other)
+        {
+            if (other is Bit)
+            {
+                Bit otherBit = (Bit)other;
+                return _value == otherBit._value;
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return _value;
+        }
+
         public bool Value
         {
             get
             {
                 return _value != 0;
             }
+        }
+
+        public static Bit operator |(Bit left, Bit right)
+        {
+            return new Bit((byte)(left._value | right._value));
         }
 
         public static Bit operator ^(Bit left, Bit right)
@@ -45,12 +66,7 @@ namespace CompactMPC
         {
             return new Bit((byte)(~right._value));
         }
-
-        public static Bit operator !(Bit right)
-        {
-            return ~right;
-        }
-
+        
         public static bool operator true(Bit right)
         {
             return right._value != 0;

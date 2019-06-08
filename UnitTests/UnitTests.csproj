@@ -62,6 +62,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="BitArrayTest.cs" />
+    <Compile Include="QuadrupleIndexArrayTest.cs" />
+    <Compile Include="BitQuadrupleArrayTest.cs" />
+    <Compile Include="BufferBuilderTest.cs" />
     <Compile Include="NetworkTest.cs" />
     <Compile Include="ObliviousTransferTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

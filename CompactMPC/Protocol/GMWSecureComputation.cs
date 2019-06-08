@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using CompactMPC.Circuits;
+using CompactMPC.Circuits.Batching;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol.Internal;
@@ -14,19 +13,19 @@ namespace CompactMPC.Protocol
 {
     public class GMWSecureComputation : SecureComputation
     {
-        private IBatchObliviousTransfer _batchObliviousTransfer;
+        private IObliviousTransfer _obliviousTransfer;
         private CryptoContext _cryptoContext;
         
-        public GMWSecureComputation(INetworkSession session, IBatchObliviousTransfer batchObliviousTransfer, CryptoContext cryptoContext)
+        public GMWSecureComputation(INetworkSession session, IObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
             : base(session)
         {
-            _batchObliviousTransfer = batchObliviousTransfer;
+            _obliviousTransfer = obliviousTransfer;
             _cryptoContext = cryptoContext;
         }
 
-        public override BitArray Evaluate(IBooleanEvaluable evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
+        public override async Task<BitArray> EvaluateAsync(IBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
         {
-            if (inputMapping.NumberOfInputs != evaluable.NumberOfInputs)
+            if (inputMapping.NumberOfInputs != evaluable.Context.NumberOfInputGates)
             {
                 throw new ArgumentException(
                     "The number of inputs in input mapping does not match the number of declared inputs in the circuit.",
@@ -34,7 +33,7 @@ namespace CompactMPC.Protocol
                 );
             }
 
-            if (outputMapping.NumberOfOutputs != evaluable.NumberOfOutputs)
+            if (outputMapping.NumberOfOutputs != evaluable.Context.NumberOfOutputGates)
             {
                 throw new ArgumentException(
                     "The number of outputs in output mapping does not match the number of declared outputs in the circuit.",
@@ -42,16 +41,18 @@ namespace CompactMPC.Protocol
                 );
             }
             
-            GMWBooleanCircuitEvaluator evaluator = new GMWBooleanCircuitEvaluator(Session, _batchObliviousTransfer, _cryptoContext, evaluable.CircuitContext);
+            GMWBooleanCircuitEvaluator evaluator = new GMWBooleanCircuitEvaluator(Session, _obliviousTransfer, _cryptoContext, evaluable.Context);
 
-            Task<Bit>[] inputTasks = MaskInputs(inputMapping, localInputValues);
+            BitArray maskedInputs = await MaskInputs(inputMapping, localInputValues);
+
+            Task<Bit>[] inputTasks = maskedInputs.Select(bit => Task.FromResult(bit)).ToArray();
             Task<Bit>[] outputTasks = evaluable.Evaluate(evaluator, inputTasks);
-            BitArray localOutputValues = UnmaskOutputs(outputMapping, outputTasks);
+            BitArray maskedOutputs = new BitArray(await Task.WhenAll(outputTasks));
 
-            return localOutputValues;
+            return await UnmaskOutputs(outputMapping, maskedOutputs);
         }
 
-        private Task<Bit>[] MaskInputs(InputPartyMapping inputMapping, BitArray localInputValues)
+        private async Task<BitArray> MaskInputs(InputPartyMapping inputMapping, BitArray localInputValues)
         {
             List<int>[] inputIds = new List<int>[Session.NumberOfParties];
             for (int partyId = 0; partyId < inputIds.Length; ++partyId)
@@ -75,7 +76,9 @@ namespace CompactMPC.Protocol
                 );
             }
 
-            Task<Bit>[] inputTasks = new Task<Bit>[inputMapping.NumberOfInputs];
+            // Task<Bit>[] inputTasks = new Task<Bit>[inputMapping.NumberOfInputs];
+
+            BitArray localSharesOfInput = new BitArray(inputMapping.NumberOfInputs);
 
             // --- Share local inputs and send via network ---
             if (localInputIds.Count > 0)
@@ -85,15 +88,15 @@ namespace CompactMPC.Protocol
                 foreach (Party remoteParty in Session.RemoteParties)
                 {
                     BitArray remoteSharesOfLocalInput = _cryptoContext.RandomNumberGenerator.GetBits(localInputIds.Count);
-                    localSharesOfLocalInput = localSharesOfLocalInput.Xor(remoteSharesOfLocalInput);
+                    localSharesOfLocalInput.Xor(remoteSharesOfLocalInput);
 
-                    BitArrayHelper.WriteToStream(remoteSharesOfLocalInput, Session.GetConnection(remoteParty.Id));
+                    await Session.GetChannel(remoteParty.Id).WriteMessageAsync(remoteSharesOfLocalInput.ToBytes());
                 }
                 
                 for (int localInputId = 0; localInputId < localInputIds.Count; ++localInputId)
-                    inputTasks[localInputIds[localInputId]] = Task.FromResult(new Bit(localSharesOfLocalInput[localInputId]));
+                    localSharesOfInput[localInputIds[localInputId]] = localSharesOfLocalInput[localInputId];
             }
-
+            
             // --- Receive shares of remote inputs via network ---
             foreach (Party remoteParty in Session.RemoteParties)
             {
@@ -101,20 +104,20 @@ namespace CompactMPC.Protocol
 
                 if (remoteInputIds.Count > 0)
                 {
-                    BitArray localSharesOfRemoteInput = BitArrayHelper.ReadFromStream(Session.GetConnection(remoteParty.Id));
+                    BitArray localSharesOfRemoteInput = BitArray.FromBytes(await Session.GetChannel(remoteParty.Id).ReadMessageAsync(), remoteInputIds.Count);
 
                     if (localSharesOfRemoteInput.Length != remoteInputIds.Count)
                         throw new ProtocolException("Number of input shares received from remote party does not match number of declared inputs in the circuit.");
 
                     for (int remoteInputId = 0; remoteInputId < remoteInputIds.Count; ++remoteInputId)
-                        inputTasks[remoteInputIds[remoteInputId]] = Task.FromResult(new Bit(localSharesOfRemoteInput[remoteInputId]));
+                        localSharesOfInput[remoteInputIds[remoteInputId]] = localSharesOfRemoteInput[remoteInputId];
                 }
             }
 
-            return inputTasks;
+            return localSharesOfInput;
         }
 
-        private BitArray UnmaskOutputs(OutputPartyMapping outputMapping, Task<Bit>[] outputTasks)
+        private async Task<BitArray> UnmaskOutputs(OutputPartyMapping outputMapping, BitArray localSharesOfOutput)
         {
             List<int>[] outputIds = new List<int>[Session.NumberOfParties];
             for (int partyId = 0; partyId < outputIds.Length; ++partyId)
@@ -128,8 +131,8 @@ namespace CompactMPC.Protocol
                         outputIds[partyId].Add(outputId);
                 }
             }
-
-            BitArray localSharesOfOutput = new BitArray(Task.WhenAll(outputTasks).Result.Select(share => share.Value).ToArray());
+            
+            // BitArray localSharesOfOutput = new BitArray((await Task.WhenAll(outputTasks)).Select(share => share.Value).ToArray());
 
             foreach (Party remoteParty in Session.RemoteParties)
             {
@@ -140,7 +143,7 @@ namespace CompactMPC.Protocol
                     for (int i = 0; i < remoteOutputIds.Count; ++i)
                         localSharesOfRemoteOutput[i] = localSharesOfOutput[remoteOutputIds[i]];
 
-                    BitArrayHelper.WriteToStream(localSharesOfRemoteOutput, Session.GetConnection(remoteParty.Id));
+                    await Session.GetChannel(remoteParty.Id).WriteMessageAsync(localSharesOfRemoteOutput.ToBytes());
                 }
             }
 
@@ -153,13 +156,15 @@ namespace CompactMPC.Protocol
             {
                 foreach (Party remoteParty in Session.RemoteParties)
                 {
-                    BitArray remoteSharesOfLocalOutput = BitArrayHelper.ReadFromStream(Session.GetConnection(remoteParty.Id));
-
-                    if (remoteSharesOfLocalOutput.Length != localOutputIds.Count)
-                        throw new ProtocolException("Number of output shares received from remote party does not match number of declared outputs in the circuit.");
-
-                    localOutputValues = localOutputValues.Xor(remoteSharesOfLocalOutput);
+                    BitArray remoteSharesOfLocalOutput = BitArray.FromBytes(await Session.GetChannel(remoteParty.Id).ReadMessageAsync(), localOutputIds.Count);
+                    localOutputValues.Xor(remoteSharesOfLocalOutput);
                 }
+
+                /*
+                BitArray[] remoteSharesOfLocalOutputs = await Task.WhenAll(Session.RemoteParties.Select(remoteParty => Session.GetChannel(remoteParty.Id).ReadMessageAsync().ContinueWith(task => BitArrayHelper.FromBytes(task.Result, localOutputIds.Count))));
+                foreach (BitArray remoteSharesOfLocalOutput in remoteSharesOfLocalOutputs)
+                    localOutputValues = localOutputValues.Xor(remoteSharesOfLocalOutput);
+                */
             }
 
             return localOutputValues;

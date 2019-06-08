@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using CompactMPC.Circuits;
+using CompactMPC.Circuits.Batching;
 using CompactMPC.Networking;
 
 namespace CompactMPC.Protocol
@@ -19,7 +19,7 @@ namespace CompactMPC.Protocol
             _session = session;
         }
 
-        public abstract BitArray Evaluate(IBooleanEvaluable evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputs);
+        public abstract Task<BitArray> EvaluateAsync(IBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputs);
 
         public INetworkSession Session
         {

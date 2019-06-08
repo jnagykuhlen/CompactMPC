@@ -8,24 +8,41 @@ namespace CompactMPC.Circuits.Internal
 {
     public class NotGate : Gate
     {
-        private int _inputId;
+        private Gate _inputGate;
 
-        public NotGate(GateContext context, int inputId)
+        public NotGate(GateContext context, Gate inputGate)
              : base(context)
         {
-            _inputId = inputId;
+            _inputGate = inputGate;
         }
 
-        public override T Evaluate<T>(IBooleanCircuitEvaluator<T> evaluator, IdMapping<WireState<T>> wireStates, CircuitContext circuitContext)
+        public override void Evaluate<T>(
+            ICircuitEvaluator<T> evaluator,
+            EvaluationState<T> evaluationState,
+            CircuitContext circuitContext)
         {
-            return evaluator.EvaluateNotGate(wireStates[_inputId].Value, Context, circuitContext);
+            T value = evaluator.EvaluateNotGate(
+                evaluationState.GetGateEvaluationValue(_inputGate),
+                Context,
+                circuitContext
+            );
+
+            evaluationState.SetGateEvaluationValue(this, value);
         }
 
-        public override IEnumerable<int> InputWireIds
+        public override IEnumerable<Gate> InputGates
         {
             get
             {
-                yield return _inputId;
+                yield return _inputGate;
+            }
+        }
+
+        public Gate InputGate
+        {
+            get
+            {
+                return _inputGate;
             }
         }
     }

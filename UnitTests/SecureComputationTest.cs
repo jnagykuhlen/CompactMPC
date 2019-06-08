@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Text;
 using System.Linq;
-using System.Collections;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using CompactMPC.Circuits;
+using CompactMPC.Circuits.Batching;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
@@ -26,13 +26,13 @@ namespace CompactMPC.UnitTests
                 "010111",
                 "110011",
                 "110111"
-            }.Select(input => BitArrayHelper.FromBinaryString(input)).ToArray();
+            }.Select(input => BitArray.FromBinaryString(input)).ToArray();
 
             int startPort = 12348;
             int numberOfParties = inputs.Length;
             int numberOfElements = inputs[0].Length;
 
-            BitArray expectedOutput = inputs.Aggregate(new BitArray(numberOfElements, true), (x, y) => x.And(y));
+            BitArray expectedOutput = inputs.Aggregate((left, right) => left & right);
             
             Task[] tasks = new Task[numberOfParties];
             for (int i = 0; i < numberOfParties; ++i)
@@ -53,7 +53,7 @@ namespace CompactMPC.UnitTests
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
-                    IBatchObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                    IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                         new SecurityParameters(47, 23, 4, 1, 1),
                         cryptoContext
                     );
@@ -61,10 +61,12 @@ namespace CompactMPC.UnitTests
                     GMWSecureComputation computation = new GMWSecureComputation(session, obliviousTransfer, cryptoContext);
                     
                     SetIntersectionCircuitRecorder circuitRecorder = new SetIntersectionCircuitRecorder(numberOfParties, numberOfElements);
-                    EvaluationCircuitBuilder circuitBuilder = new EvaluationCircuitBuilder();
+                    CircuitBuilder circuitBuilder = new CircuitBuilder();
                     circuitRecorder.Record(circuitBuilder);
 
-                    BitArray output = computation.Evaluate(circuitBuilder, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput);
+                    ForwardCircuit circuit = new ForwardCircuit(circuitBuilder.CreateCircuit());
+
+                    BitArray output = computation.EvaluateAsync(circuit, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput).Result;
 
                     Assert.AreEqual(
                         expectedOutput.Length,
@@ -75,7 +77,7 @@ namespace CompactMPC.UnitTests
                     );
 
                     Assert.IsTrue(
-                        Enumerable.SequenceEqual(expectedOutput.Cast<bool>(), output.Cast<bool>()),
+                        Enumerable.SequenceEqual(expectedOutput, output),
                         "Incorrect output {0} (should be {1}).",
                         output.ToBinaryString(),
                         expectedOutput.ToBinaryString()

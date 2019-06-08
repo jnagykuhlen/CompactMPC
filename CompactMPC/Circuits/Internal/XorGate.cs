@@ -8,27 +8,53 @@ namespace CompactMPC.Circuits.Internal
 {
     public class XorGate : Gate
     {
-        private int _leftInputId;
-        private int _rightInputId;
+        private Gate _leftInputGate;
+        private Gate _rightInputGate;
 
-        public XorGate(GateContext context, int leftInputId, int rightInputId)
+        public XorGate(GateContext context, Gate leftInputGate, Gate rightInputGate)
              : base(context)
         {
-            _leftInputId = leftInputId;
-            _rightInputId = rightInputId;
+            _leftInputGate = leftInputGate;
+            _rightInputGate = rightInputGate;
         }
 
-        public override T Evaluate<T>(IBooleanCircuitEvaluator<T> evaluator, IdMapping<WireState<T>> wireStates, CircuitContext circuitContext)
+        public override void Evaluate<T>(
+            ICircuitEvaluator<T> evaluator,
+            EvaluationState<T> evaluationState,
+            CircuitContext circuitContext)
         {
-            return evaluator.EvaluateXorGate(wireStates[_leftInputId].Value, wireStates[_rightInputId].Value, Context, circuitContext);
+            T value = evaluator.EvaluateXorGate(
+                evaluationState.GetGateEvaluationValue(_leftInputGate),
+                evaluationState.GetGateEvaluationValue(_rightInputGate),
+                Context,
+                circuitContext
+            );
+
+            evaluationState.SetGateEvaluationValue(this, value);
         }
 
-        public override IEnumerable<int> InputWireIds
+        public override IEnumerable<Gate> InputGates
         {
             get
             {
-                yield return _leftInputId;
-                yield return _rightInputId;
+                yield return _leftInputGate;
+                yield return _rightInputGate;
+            }
+        }
+
+        public Gate LeftInputGate
+        {
+            get
+            {
+                return _leftInputGate;
+            }
+        }
+
+        public Gate RightInputGate
+        {
+            get
+            {
+                return _rightInputGate;
             }
         }
     }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CompactMPC
 {
-    public class Quadruple<T> : IEnumerable<T>
+    public class Quadruple<T> : IReadOnlyList<T>
     {
         public const int Length = 4;
 
@@ -60,6 +60,14 @@ namespace CompactMPC
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _values.GetEnumerator();
+        }
+
+        int IReadOnlyCollection<T>.Count
+        {
+            get
+            {
+                return Length;
+            }
         }
     }
 }

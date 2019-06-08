@@ -62,6 +62,11 @@ namespace CompactMPC.Networking
             return _client.GetStream();
         }
 
+        public IMessageChannel GetChannel(int remotePartyId)
+        {
+            return new StreamMessageChannel(GetConnection(remotePartyId));
+        }
+
         public void Dispose()
         {
             _client.Dispose();

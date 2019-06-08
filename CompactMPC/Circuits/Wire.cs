@@ -6,39 +6,31 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits
 {
-    public class Wire
+    public sealed class Wire
     {
-        public static readonly Wire Zero = new Wire(-1);
-        public static readonly Wire One = new Wire(-2);
+        public static readonly Wire Zero = new Wire(null);
+        public static readonly Wire One = new Wire(null);
 
-        private int _id;
+        private Gate _gate;
 
-        private Wire(int id)
+        private Wire(Gate gate)
         {
-            _id = id;
+            _gate = gate;
         }
 
-        public static Wire FromId(int id)
+        public static Wire FromGate(Gate gate)
         {
-            if (id < 0)
-                throw new ArgumentException("Wire identifier must be non-negative.", nameof(id));
-
-            return new Wire(id);
+            if (gate == null)
+                throw new ArgumentNullException(nameof(gate));
+            
+            return new Wire(gate);
         }
 
-        public int Id
+        public Gate Gate
         {
             get
             {
-                return _id;
-            }
-        }
-
-        public bool IsConstant
-        {
-            get
-            {
-                return _id < 0;
+                return _gate;
             }
         }
     }

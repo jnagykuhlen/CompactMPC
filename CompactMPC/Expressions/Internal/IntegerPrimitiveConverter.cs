@@ -50,12 +50,12 @@ namespace CompactMPC.Expressions.Internal
             {
                 ulong fixedValue = (ulong)value;
                 for (int i = 0; i < length; ++i)
-                    buffer[startIndex + i] = (fixedValue & (1UL << i)) != 0;
+                    buffer[startIndex + i] = new Bit((fixedValue & (1UL << i)) != 0);
             }
             else
             {
                 for (int i = 0; i < length; ++i)
-                    buffer[startIndex + i] = (value & (BigInteger.One << i)) != 0;
+                    buffer[startIndex + i] = new Bit((value & (BigInteger.One << i)) != 0);
             }
         }
 
