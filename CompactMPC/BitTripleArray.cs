@@ -48,5 +48,10 @@ namespace CompactMPC
             WriteBit((byte)value.Y, startBitIndex + 1);
             WriteBit((byte)value.Z, startBitIndex + 2);
         }
+
+        public BitTripleArray Clone()
+        {
+            return new BitTripleArray(Buffer, Length);
+        }
     }
 }

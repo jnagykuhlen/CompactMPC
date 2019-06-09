@@ -40,5 +40,10 @@ namespace CompactMPC
         {
             WriteBits(value.PackedValue, index, ElementsPerByte, BitMask);
         }
+
+        public BitQuadrupleArray Clone()
+        {
+            return new BitQuadrupleArray(Buffer, Length);
+        }
     }
 }

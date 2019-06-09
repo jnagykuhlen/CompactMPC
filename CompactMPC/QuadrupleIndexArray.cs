@@ -43,5 +43,10 @@ namespace CompactMPC
 
             WriteBits((byte)value, index, ElementsPerByte, BitMask);
         }
+
+        public QuadrupleIndexArray Clone()
+        {
+            return new QuadrupleIndexArray(Buffer, Length);
+        }
     }
 }

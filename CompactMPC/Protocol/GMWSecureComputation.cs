@@ -83,7 +83,7 @@ namespace CompactMPC.Protocol
             // --- Share local inputs and send via network ---
             if (localInputIds.Count > 0)
             {
-                BitArray localSharesOfLocalInput = localInputValues;
+                BitArray localSharesOfLocalInput = localInputValues.Clone();
                 
                 foreach (ITwoPartyNetworkSession session in _multiPartySession.RemotePartySessions)
                 {

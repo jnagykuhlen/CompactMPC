@@ -9,7 +9,6 @@ namespace CompactMPC
     public class BitArray : PackedArray<Bit>
     {
         private const int ElementsPerByte = 8;
-        private const int BitMask = 0x1;
 
         public BitArray(int numberOfElements)
             : base(RequiredBytes(numberOfElements), numberOfElements) { }
@@ -101,7 +100,7 @@ namespace CompactMPC
             WriteBit((byte)value, index);
         }
 
-        private BitArray Clone()
+        public BitArray Clone()
         {
             return new BitArray(Buffer, Length);
         }
