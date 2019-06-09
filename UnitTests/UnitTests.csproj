@@ -2,7 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>CompactMPC.UnitTests</RootNamespace>
+    <AssemblyName>CompactMPC.UnitTests</AssemblyName>
+    <AssemblyVersion>0.1.0</AssemblyVersion>
+    <Title>CompactMPC Unit Tests</Title>
+    <Authors>Jonas Nagy-Kuhlen</Authors>
+    <Description>Unit Tests for CompactMPC Library</Description>
+    <Copyright>Copyright © 2019 Jonas Nagy-Kuhlen</Copyright>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

@@ -2,7 +2,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net46</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>CompactMPC.Application</RootNamespace>
+    <AssemblyName>CompactMPC.Application</AssemblyName>
+    <AssemblyVersion>0.1.0</AssemblyVersion>
+    <Title>CompactMPC Application</Title>
+    <Authors>Jonas Nagy-Kuhlen</Authors>
+    <Description>Sample Application for CompactMPC Library</Description>
+    <Copyright>Copyright © 2019 Jonas Nagy-Kuhlen</Copyright> 
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\CompactMPC\CompactMPC.csproj" />

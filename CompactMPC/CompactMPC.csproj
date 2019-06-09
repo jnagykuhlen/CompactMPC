@@ -4,7 +4,11 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace>CompactMPC</RootNamespace>
     <AssemblyName>CompactMPC</AssemblyName>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyVersion>0.1.0</AssemblyVersion>
+    <Title>CompactMPC</Title>
+    <Authors>Jonas Nagy-Kuhlen</Authors>
+    <Description>Lightweight Library for Secure Multi-Party Computation in C#</Description>
+    <Copyright>Copyright © 2019 Jonas Nagy-Kuhlen</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,7 +4,11 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace>CompactMPC.SampleCircuits</RootNamespace>
     <AssemblyName>CompactMPC.SampleCircuits</AssemblyName>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyVersion>0.1.0</AssemblyVersion>
+    <Title>CompactMPC Sample Circuits</Title>
+    <Authors>Jonas Nagy-Kuhlen</Authors>
+    <Description>Sample Circuits for CompactMPC Library</Description>
+    <Copyright>Copyright © 2019 Jonas Nagy-Kuhlen</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
