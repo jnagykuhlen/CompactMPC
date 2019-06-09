@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CompactMPC
 {
-    public abstract class PackedArray<T> : IReadOnlyList<T>
+    public abstract class PackedArray<T> : IReadOnlyList<T>, ICollection<T>, ICollection
     {
         private byte[] _buffer;
         private int _length;
@@ -56,16 +56,6 @@ namespace CompactMPC
                 result[i] = this[i];
 
             return result;
-        }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            return Enumerable.Range(0, _length).Select(i => this[i]).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
 
         protected static int RequiredBytes(int numberOfElements, int elementsPerByte)
@@ -120,6 +110,87 @@ namespace CompactMPC
                     throw new ArgumentOutOfRangeException(nameof(index));
 
                 WriteElement(value, index);
+            }
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return Enumerable.Range(0, _length).Select(i => this[i]).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        void ICollection<T>.Add(T item)
+        {
+            throw new NotSupportedException("Cannot add element to array.");
+        }
+
+        bool ICollection<T>.Remove(T item)
+        {
+            throw new NotSupportedException("Cannot remove element from array.");
+        }
+
+        void ICollection<T>.Clear()
+        {
+            throw new NotSupportedException("Cannot clear array.");
+        }
+
+        bool ICollection<T>.Contains(T item)
+        {
+            return Enumerable.Contains(this, item);
+        }
+
+        void ICollection<T>.CopyTo(T[] array, int startIndex)
+        {
+            ((ICollection)this).CopyTo(array, startIndex);
+        }
+
+        void ICollection.CopyTo(Array array, int startIndex)
+        {
+            for (int i = 0; i < _length; ++i)
+                array.SetValue(this[i], startIndex + i);
+        }
+
+        bool ICollection<T>.IsReadOnly
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        int ICollection<T>.Count
+        {
+            get
+            {
+                return _length;
+            }
+        }
+
+        int ICollection.Count
+        {
+            get
+            {
+                return _length;
+            }
+        }
+
+        bool ICollection.IsSynchronized
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        object ICollection.SyncRoot
+        {
+            get
+            {
+                return null;
             }
         }
 
