@@ -39,7 +39,7 @@
     <Compile Include="BitTripleArray.cs" />
     <Compile Include="BitTriple.cs" />
     <Compile Include="Buffers\BufferBuilder.cs" />
-    <Compile Include="DesynchronizationException.cs" />
+    <Compile Include="ObliviousTransfer\DesynchronizationException.cs" />
     <Compile Include="Buffers\Internal\BufferMessageComponent.cs" />
     <Compile Include="Buffers\Internal\IMessageComponent.cs" />
     <Compile Include="Buffers\Internal\IntMessageComponent.cs" />

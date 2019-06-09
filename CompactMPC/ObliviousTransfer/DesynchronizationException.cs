@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CompactMPC
+namespace CompactMPC.ObliviousTransfer
 {
     public class DesynchronizationException : Exception
     {
