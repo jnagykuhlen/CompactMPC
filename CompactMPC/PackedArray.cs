@@ -12,23 +12,19 @@ namespace CompactMPC
         private byte[] _buffer;
         private int _length;
 
-        protected PackedArray(int numberOfElements, int elementsPerByte)
+        protected PackedArray(int numberOfBytes, int numberOfElements)
         {
-            _buffer = new byte[RequiredBytes(numberOfElements, elementsPerByte)];
+            if (numberOfElements < 0)
+                throw new ArgumentOutOfRangeException(nameof(numberOfElements));
+
+            _buffer = new byte[numberOfBytes];
             _length = numberOfElements;
         }
 
-        protected PackedArray(byte[] bytes, int numberOfElements)
+        protected PackedArray(byte[] bytes, int numberOfBytes, int numberOfElements)
         {
-            _buffer = new byte[bytes.Length];
-            _length = numberOfElements;
-
-            Array.Copy(bytes, _buffer, bytes.Length);
-        }
-
-        protected PackedArray(byte[] bytes, int numberOfElements, int elementsPerByte)
-        {
-            int numberOfBytes = RequiredBytes(numberOfElements, elementsPerByte);
+            if (numberOfElements < 0)
+                throw new ArgumentOutOfRangeException(nameof(numberOfElements));
 
             if (bytes.Length < numberOfBytes)
                 throw new ArgumentException("Not enough data provided.", nameof(bytes));
@@ -39,8 +35,8 @@ namespace CompactMPC
             Array.Copy(bytes, _buffer, numberOfBytes);
         }
 
-        protected PackedArray(T[] elements, int elementsPerByte)
-            : this(elements.Length, elementsPerByte)
+        protected PackedArray(int numberOfBytes, T[] elements)
+            : this(numberOfBytes, elements.Length)
         {
             for (int i = 0; i < _length; ++i)
                 WriteElement(elements[i], i);
@@ -74,7 +70,20 @@ namespace CompactMPC
 
         protected static int RequiredBytes(int numberOfElements, int elementsPerByte)
         {
-            return (numberOfElements - 1) / elementsPerByte + 1;
+            if (numberOfElements > 0)
+                return (numberOfElements - 1) / elementsPerByte + 1;
+
+            return 0;
+        }
+
+        protected byte ReadBit(int index)
+        {
+            return ReadBits(index, 8, 0x1);
+        }
+
+        protected void WriteBit(byte bit, int index)
+        {
+            WriteBits(bit, index, 8, 0x1);
         }
 
         protected byte ReadBits(int index, int elementsPerByte, int bitMask)

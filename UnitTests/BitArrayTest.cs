@@ -14,7 +14,7 @@ namespace CompactMPC.UnitTests
     public class BitArrayTest
     {
         [TestMethod]
-        public void TestBitArray()
+        public void TestByteConversion()
         {
             BitArray array = BitArray.FromBinaryString("100101011100101");
 
@@ -31,7 +31,17 @@ namespace CompactMPC.UnitTests
         }
 
         [TestMethod]
-        public void TestBitArrayOperations()
+        public void TestRequiredBytes()
+        {
+            Assert.AreEqual(0, BitArray.RequiredBytes(0));
+            Assert.AreEqual(1, BitArray.RequiredBytes(1));
+            Assert.AreEqual(1, BitArray.RequiredBytes(7));
+            Assert.AreEqual(1, BitArray.RequiredBytes(8));
+            Assert.AreEqual(2, BitArray.RequiredBytes(9));
+        }
+
+        [TestMethod]
+        public void TestBitwiseOperations()
         {
             BitArray left = BitArray.FromBinaryString("1001");
             BitArray right = BitArray.FromBinaryString("1010");

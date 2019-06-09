@@ -36,6 +36,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BitArray.cs" />
+    <Compile Include="BitTripleArray.cs" />
+    <Compile Include="BitTriple.cs" />
     <Compile Include="Buffers\BufferBuilder.cs" />
     <Compile Include="DesynchronizationException.cs" />
     <Compile Include="Buffers\Internal\BufferMessageComponent.cs" />

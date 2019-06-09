@@ -47,6 +47,16 @@ namespace CompactMPC
             }
         }
 
+        public static bool operator ==(Bit left, Bit right)
+        {
+            return left._value == right._value;
+        }
+
+        public static bool operator !=(Bit left, Bit right)
+        {
+            return left._value != right._value;
+        }
+
         public static Bit operator |(Bit left, Bit right)
         {
             return new Bit((byte)(left._value | right._value));

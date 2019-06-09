@@ -12,30 +12,22 @@ namespace CompactMPC
         private const int BitMask = 0x1;
 
         public BitArray(int numberOfElements)
-            : base(numberOfElements, ElementsPerByte) { }
+            : base(RequiredBytes(numberOfElements), numberOfElements) { }
 
         public BitArray(Bit[] elements)
-            : base(elements, ElementsPerByte) { }
+            : base(RequiredBytes(elements.Length), elements) { }
 
         protected BitArray(byte[] bytes, int numberOfElements)
-            : base(bytes, numberOfElements) { }
-
-        protected BitArray(byte[] bytes, int numberOfElements, int elementsPerByte)
-            : base(bytes, numberOfElements, elementsPerByte) { }
+            : base(bytes, RequiredBytes(numberOfElements), numberOfElements) { }
 
         public static BitArray FromBytes(byte[] bytes, int numberOfElements)
         {
-            return new BitArray(bytes, numberOfElements, ElementsPerByte);
+            return new BitArray(bytes, numberOfElements);
         }
 
         public static int RequiredBytes(int numberOfBits)
         {
             return RequiredBytes(numberOfBits, ElementsPerByte);
-        }
-
-        public BitArray Clone()
-        {
-            return new BitArray(Buffer, Length);
         }
 
         public void Or(BitArray other)
@@ -101,12 +93,17 @@ namespace CompactMPC
 
         protected override Bit ReadElement(int index)
         {
-            return new Bit(ReadBits(index, ElementsPerByte, BitMask));
+            return (Bit)ReadBit(index);
         }
 
         protected override void WriteElement(Bit value, int index)
         {
-            WriteBits((byte)value, index, ElementsPerByte, BitMask);
+            WriteBit((byte)value, index);
+        }
+
+        private BitArray Clone()
+        {
+            return new BitArray(Buffer, Length);
         }
 
         public static BitArray operator |(BitArray left, BitArray right)

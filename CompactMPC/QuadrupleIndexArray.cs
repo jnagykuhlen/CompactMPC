@@ -13,17 +13,17 @@ namespace CompactMPC
         private const int BitMask = 0x3;
 
         public QuadrupleIndexArray(int numberOfElements)
-            : base(numberOfElements, ElementsPerByte) { }
+            : base(RequiredBytes(numberOfElements), numberOfElements) { }
 
         public QuadrupleIndexArray(int[] elements)
-            : base(elements, ElementsPerByte) { }
+            : base(RequiredBytes(elements.Length), elements) { }
 
-        protected QuadrupleIndexArray(byte[] bytes, int numberOfElements, int elementsPerByte)
-            : base(bytes, numberOfElements, elementsPerByte) { }
+        protected QuadrupleIndexArray(byte[] bytes, int numberOfElements)
+            : base(bytes, RequiredBytes(numberOfElements), numberOfElements) { }
 
         public static QuadrupleIndexArray FromBytes(byte[] bytes, int numberOfElements)
         {
-            return new QuadrupleIndexArray(bytes, numberOfElements, ElementsPerByte);
+            return new QuadrupleIndexArray(bytes, numberOfElements);
         }
 
         public static int RequiredBytes(int numberOfElements)

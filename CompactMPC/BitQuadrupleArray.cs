@@ -13,17 +13,17 @@ namespace CompactMPC
         private const int BitMask = 0xf;
 
         public BitQuadrupleArray(int numberOfElements)
-            : base(numberOfElements, ElementsPerByte) { }
+            : base(RequiredBytes(numberOfElements), numberOfElements) { }
 
         public BitQuadrupleArray(BitQuadruple[] elements)
-            : base(elements, ElementsPerByte) { }
+            : base(RequiredBytes(elements.Length), elements) { }
 
-        protected BitQuadrupleArray(byte[] bytes, int numberOfElements, int elementsPerByte)
-            : base(bytes, numberOfElements, elementsPerByte) { }
-        
+        protected BitQuadrupleArray(byte[] bytes, int numberOfElements)
+            : base(bytes, RequiredBytes(numberOfElements), numberOfElements) { }
+
         public static BitQuadrupleArray FromBytes(byte[] bytes, int numberOfElements)
         {
-            return new BitQuadrupleArray(bytes, numberOfElements, ElementsPerByte);
+            return new BitQuadrupleArray(bytes, numberOfElements);
         }
 
         public static int RequiredBytes(int numberOfElements)

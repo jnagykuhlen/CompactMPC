@@ -62,6 +62,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="BitTripleArrayTest.cs" />
+    <Compile Include="BitTest.cs" />
     <Compile Include="BitArrayTest.cs" />
     <Compile Include="QuadrupleIndexArrayTest.cs" />
     <Compile Include="BitQuadrupleArrayTest.cs" />
