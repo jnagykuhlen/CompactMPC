@@ -13,7 +13,7 @@ namespace CompactMPC.Expressions
 {
     public abstract class SecureMultiPartyProgram
     {
-        public async Task<object[]> EvaluateAsync(SecureComputation secureComputation, object[] localInputPrimitives)
+        public async Task<object[]> EvaluateAsync(ISecureComputation secureComputation, object[] localInputPrimitives)
         {
             InputPrimitiveDeclaration[] inputDeclaration = InputDeclaration;
             OutputPrimitiveDeclaration[] outputDeclaration = OutputDeclaration;

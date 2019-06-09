@@ -126,7 +126,7 @@
     <Compile Include="Circuits\Wire.cs" />
     <Compile Include="Expressions\SecureWord.cs" />
     <Compile Include="Protocol\InputPartyMapping.cs" />
-    <Compile Include="Protocol\SecureComputation.cs" />
+    <Compile Include="Protocol\ISecureComputation.cs" />
     <Compile Include="ObliviousTransfer\IObliviousTransfer.cs" />
     <Compile Include="Protocol\ProtocolException.cs" />
     <Compile Include="Protocol\Internal\GMWBooleanCircuitEvaluator.cs" />
