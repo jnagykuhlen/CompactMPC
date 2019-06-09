@@ -11,5 +11,6 @@ namespace CompactMPC.Protocol
     public interface IPairwiseMultiplicationScheme
     {
         Task<BitArray> ComputeMultiplicationSharesAsync(ITwoPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations);
+        bool IncludesLocalTerms { get; }
     }
 }

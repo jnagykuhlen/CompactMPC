@@ -39,7 +39,7 @@ namespace CompactMPC.Protocol.Internal
             }
 
             BitArray localMultiplicationShares = new BitArray(numberOfInvocations);
-            if (_multiPartySession.NumberOfParties % 2 == 1)
+            if (!_multiplicationScheme.IncludesLocalTerms || IsEvenNumberOfRemoteParties)
                 localMultiplicationShares = leftShares & rightShares;
 
             Task<BitArray>[] pairwiseMultiplicationTasks = new Task<BitArray>[_multiPartySession.NumberOfParties];
@@ -66,7 +66,7 @@ namespace CompactMPC.Protocol.Internal
 #endif
             return multiplicationShares;
         }
-        
+
         public async Task<Bit> EvaluateXorGate(Task<Bit> leftValue, Task<Bit> rightValue, GateContext gateContext, CircuitContext circuitContext)
         {
             Bit leftShare = await leftValue.ConfigureAwait(false);
@@ -77,10 +77,27 @@ namespace CompactMPC.Protocol.Internal
         public async Task<Bit> EvaluateNotGate(Task<Bit> value, GateContext gateContext, CircuitContext circuitContext)
         {
             Bit share = await value.ConfigureAwait(false);
-            if (_multiPartySession.LocalParty.Id == 0)
+            if (IsFirstParty)
                 return ~share;
 
             return share;
+        }
+
+        private bool IsFirstParty
+        {
+            get
+            {
+                return _multiPartySession.LocalParty.Id == 0;
+            }
+        }
+
+        private bool IsEvenNumberOfRemoteParties
+        {
+            get
+            {
+                int numberOfRemoteParties = _multiPartySession.NumberOfParties - 1;
+                return numberOfRemoteParties % 2 == 0;
+            }
         }
     }
 }
