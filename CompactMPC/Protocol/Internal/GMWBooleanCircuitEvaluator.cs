@@ -32,16 +32,18 @@ namespace CompactMPC.Protocol.Internal
 
             BitArray leftShares = new BitArray(numberOfInvocations);
             BitArray rightShares = new BitArray(numberOfInvocations);
-            BitArray localShares = new BitArray(numberOfInvocations);
             for (int i = 0; i < numberOfInvocations; ++i)
             {
                 leftShares[i] = await evaluationInputs[i].LeftValue.ConfigureAwait(false);
                 rightShares[i] = await evaluationInputs[i].RightValue.ConfigureAwait(false);
-                localShares[i] = leftShares[i] & rightShares[i];
             }
 
+            BitArray localMultiplicationShares = new BitArray(numberOfInvocations);
+            if (_multiPartySession.NumberOfParties % 2 == 1)
+                localMultiplicationShares = leftShares & rightShares;
+
             Task<BitArray>[] pairwiseMultiplicationTasks = new Task<BitArray>[_multiPartySession.NumberOfParties];
-            pairwiseMultiplicationTasks[_multiPartySession.LocalParty.Id] = Task.FromResult(localShares);
+            pairwiseMultiplicationTasks[_multiPartySession.LocalParty.Id] = Task.FromResult(localMultiplicationShares);
             
             Parallel.ForEach(_multiPartySession.RemotePartySessions, session =>
             {
@@ -53,8 +55,8 @@ namespace CompactMPC.Protocol.Internal
                 );
             });
 
-            BitArray[] shares = await Task.WhenAll(pairwiseMultiplicationTasks).ConfigureAwait(false);
-            BitArray result = shares.Aggregate((left, right) => left ^ right);
+            BitArray[] pairwiseMultiplicationShares = await Task.WhenAll(pairwiseMultiplicationTasks).ConfigureAwait(false);
+            BitArray multiplicationShares = pairwiseMultiplicationShares.Aggregate((left, right) => left ^ right);
 #if DEBUG
             Console.WriteLine(
                 "Evaluated AND gates {0} of {1} total.",
@@ -62,7 +64,7 @@ namespace CompactMPC.Protocol.Internal
                 circuitContext.NumberOfAndGates
             );
 #endif
-            return result;
+            return multiplicationShares;
         }
         
         public async Task<Bit> EvaluateXorGate(Task<Bit> leftValue, Task<Bit> rightValue, GateContext gateContext, CircuitContext circuitContext)
