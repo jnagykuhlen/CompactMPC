@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using CompactMPC;
-
 namespace CompactMPC.UnitTests
 {
     [TestClass]
