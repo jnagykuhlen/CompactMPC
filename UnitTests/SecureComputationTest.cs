@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,6 +12,7 @@ using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
 using CompactMPC.SampleCircuits;
+using CompactMPC.UnitTests.Util;
 
 namespace CompactMPC.UnitTests
 {
@@ -72,7 +74,7 @@ namespace CompactMPC.UnitTests
 
         private static void RunSecureComputationParty(int startPort, int numberOfParties, int localPartyId, BitArray localInput, BitArray expectedOutput)
         {
-            using (TcpMultiPartyNetworkSession session = new TcpMultiPartyNetworkSession(startPort, numberOfParties, localPartyId))
+            using (IMultiPartyNetworkSession session = TestNetworkSession.EstablishMultiParty(localPartyId, numberOfParties))
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
@@ -93,21 +95,11 @@ namespace CompactMPC.UnitTests
                     circuitRecorder.Record(circuitBuilder);
 
                     ForwardCircuit circuit = new ForwardCircuit(circuitBuilder.CreateCircuit());
-
-                    Console.WriteLine("Input of party {0} is: {1}", localPartyId, localInput.ToBinaryString());
-
                     BitArray output = computation.EvaluateAsync(circuit, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput).Result;
 
-                    Assert.AreEqual(
-                        expectedOutput.Length,
-                        output.Length,
-                        "Incorrect output length {0} (should be {1}).",
-                        output.Length,
-                        expectedOutput.Length
-                    );
-
-                    Assert.IsTrue(
-                        Enumerable.SequenceEqual(expectedOutput, output),
+                    CollectionAssert.AreEqual(
+                        expectedOutput,
+                        output,
                         "Incorrect output {0} (should be {1}).",
                         output.ToBinaryString(),
                         expectedOutput.ToBinaryString()

@@ -12,39 +12,41 @@ namespace CompactMPC.Networking
 {
     public class TcpMultiPartyNetworkSession : IMultiPartyNetworkSession
     {
-        private List<ITwoPartyNetworkSession> _remotePartySessions;
+        private ITwoPartyNetworkSession[] _remotePartySessions;
         private Party _localParty;
-        private int _numberOfParties;
 
-        public TcpMultiPartyNetworkSession(int startPort, int numberOfParties, int localPartyId)
+        private TcpMultiPartyNetworkSession(Party localParty, ITwoPartyNetworkSession[] remotePartySessions)
         {
-            _remotePartySessions = new List<ITwoPartyNetworkSession>(numberOfParties - 1);
-            _localParty = new Party(localPartyId, "Party " + (localPartyId + 1));
-            _numberOfParties = numberOfParties;
+            _remotePartySessions = remotePartySessions;
+            _localParty = localParty;
+        }
 
-            for (int i = 0; i < localPartyId; ++i)
+        public static async Task<TcpMultiPartyNetworkSession> EstablishAsync(Party localParty, IPAddress address, int startPort, int numberOfParties)
+        {
+            TcpTwoPartyNetworkSession[] remotePartySessions = new TcpTwoPartyNetworkSession[numberOfParties - 1];
+
+            for (int i = 0; i < localParty.Id; ++i)
             {
-                TcpClient client = new TcpClient();
-                client.ConnectAsync("127.0.0.1", startPort + i).Wait();
-                _remotePartySessions.Add(new TcpTwoPartyNetworkSession(client, _localParty));
+                remotePartySessions[i] = await TcpTwoPartyNetworkSession.ConnectAsync(localParty, address, startPort + i);
             }
 
-            TcpListener listener = new TcpListener(IPAddress.Any, startPort + localPartyId) { ExclusiveAddressUse = true };
+            TcpListener listener = new TcpListener(IPAddress.Any, startPort + localParty.Id) { ExclusiveAddressUse = true };
             listener.Start();
 
-            for (int j = localPartyId + 1; j < numberOfParties; ++j)
+            for (int j = localParty.Id + 1; j < numberOfParties; ++j)
             {
-                TcpClient client = listener.AcceptTcpClientAsync().Result;
-                _remotePartySessions.Add(new TcpTwoPartyNetworkSession(client, _localParty));
+                remotePartySessions[j - 1] = await TcpTwoPartyNetworkSession.AcceptAsync(localParty, listener);
             }
 
             listener.Stop();
 
             for (int i = 0; i < numberOfParties; ++i)
             {
-                if (i != localPartyId && !_remotePartySessions.Any(session => session.RemoteParty.Id == i))
-                    throw new InvalidDataException("Establishing connections was unsuccessful.");
+                if (i != localParty.Id && !remotePartySessions.Any(session => session.RemoteParty.Id == i))
+                    throw new NetworkConsistencyException("Inconsistent TCP connection graph.");
             }
+
+            return new TcpMultiPartyNetworkSession(localParty, remotePartySessions);
         }
 
         public void Dispose()
@@ -73,7 +75,7 @@ namespace CompactMPC.Networking
         {
             get
             {
-                return _numberOfParties;
+                return _remotePartySessions.Length + 1;
             }
         }
     }

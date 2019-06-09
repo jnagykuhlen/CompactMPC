@@ -2,11 +2,13 @@
 using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Net;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Networking;
+using CompactMPC.UnitTests.Util;
 
 namespace CompactMPC.UnitTests
 {
@@ -19,12 +21,12 @@ namespace CompactMPC.UnitTests
         public void TestNaorPinkasObliviousTransfer()
         {
             Task.WhenAll(
-                Task.Factory.StartNew(RunParty, TaskCreationOptions.LongRunning),
-                Task.Factory.StartNew(RunParty, TaskCreationOptions.LongRunning)
+                Task.Factory.StartNew(RunObliviousTransferParty, TaskCreationOptions.LongRunning),
+                Task.Factory.StartNew(RunObliviousTransferParty, TaskCreationOptions.LongRunning)
             ).Wait();
         }
 
-        private void RunParty()
+        private void RunObliviousTransferParty()
         {
             Quadruple<byte[]>[] options = new Quadruple<byte[]>[3];
             options = new Quadruple<byte[]>[]
@@ -41,8 +43,8 @@ namespace CompactMPC.UnitTests
                     cryptoContext
                 );
 
-                using (ITwoPartyNetworkSession session = TcpTwoPartyNetworkSession.FromPort(12348))
-                 {
+                using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
+                {
                     if (session.LocalParty.Id == 0)
                     {
                         obliviousTransfer.SendAsync(session.Channel, options, 3, 6).Wait();
@@ -57,14 +59,12 @@ namespace CompactMPC.UnitTests
 
                         for (int j = 0; j < 3; ++j)
                         {
-                            Assert.IsNotNull(results[j], String.Format("Received message is null for index {0}.", j));
-                            Assert.IsTrue(
-                                Enumerable.SequenceEqual(results[j], options[j][indices[j]]),
-                                String.Format(
-                                    "Received message has wrong content <{0}>, must be <{1}>.",
-                                    Encoding.ASCII.GetString(results[j]),
-                                    Encoding.ASCII.GetString(options[j][indices[j]])
-                                )
+                            CollectionAssert.AreEqual(
+                                results[j],
+                                options[j][indices[j]],
+                                "Incorrect message content {0} (should be {1}).",
+                                Encoding.ASCII.GetString(results[j]),
+                                Encoding.ASCII.GetString(options[j][indices[j]])
                             );
                         }
                     }

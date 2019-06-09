@@ -5,9 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics;
+using System.Net;
 
-using CompactMPC.Circuits;
-using CompactMPC.Circuits.Statistics;
 using CompactMPC.Networking;
 using CompactMPC.Protocol;
 using CompactMPC.ObliviousTransfer;
@@ -29,43 +28,6 @@ namespace CompactMPC.Application
                 BitArray.FromBinaryString("1101100010"),
                 BitArray.FromBinaryString("0111110011")
             };
-
-            CircuitBuilder builder = new CircuitBuilder();
-            (new SetIntersectionCircuitRecorder(NumberOfParties, NumberOfElements)).Record(builder);
-
-            Circuit circuit = builder.CreateCircuit();
-
-            CircuitStatistics statistics = CircuitStatistics.FromCircuit(circuit);
-
-            Console.WriteLine("--- Circuit Statistics ---");
-            Console.WriteLine("Number of inputs: {0}", statistics.NumberOfInputs);
-            Console.WriteLine("Number of outputs: {0}", statistics.NumberOfOutputs);
-            Console.WriteLine("Number of ANDs: {0}", circuit.Context.NumberOfAndGates);
-            Console.WriteLine("Number of XORs: {0}", circuit.Context.NumberOfXorGates);
-            Console.WriteLine("Number of NOTs: {0}", circuit.Context.NumberOfNotGates);
-            Console.WriteLine("  Total linear: {0}", circuit.Context.NumberOfXorGates + circuit.Context.NumberOfNotGates);
-            Console.WriteLine("Multiplicative depth: {0}", statistics.Layers.Count);
-
-            int totalNonlinearGates = 0;
-            int totalLinearGates = 0;
-
-            for (int i = 0; i < statistics.Layers.Count; ++i)
-            {
-                totalNonlinearGates += statistics.Layers[i].NumberOfNonlinearGates;
-                totalLinearGates += statistics.Layers[i].NumberOfLinearGates;
-                Console.WriteLine("  Layer {0}: {1} nonlinear / {2} linear", i, statistics.Layers[i].NumberOfNonlinearGates, statistics.Layers[i].NumberOfLinearGates);
-            }
-
-            Console.WriteLine("Number of nonlinear gates in layers: {0}", totalNonlinearGates);
-            Console.WriteLine("Number of linear gates in layers: {0}", totalLinearGates);
-            
-            Bit[] result;
-            
-            result = circuit.Evaluate(new LocalCircuitEvaluator(), inputs.SelectMany(input => input).ToArray());
-            Console.WriteLine("Result (normal): {0}", new BitArray(result).ToBinaryString());
-
-            result = new Circuits.Batching.ForwardCircuit(circuit).Evaluate(new LocalCircuitEvaluator(), inputs.SelectMany(input => input).ToArray());
-            Console.WriteLine("Result (forward): {0}", new BitArray(result).ToBinaryString());
             
             if (args.Length == 0)
             {
@@ -97,7 +59,7 @@ namespace CompactMPC.Application
 
         private static void RunSecureComputationParty(int localPartyId, BitArray localInput)
         {
-            using (TcpMultiPartyNetworkSession session = new TcpMultiPartyNetworkSession(StartPort, NumberOfParties, localPartyId))
+            using (IMultiPartyNetworkSession session = CreateLocalSession(localPartyId, StartPort, NumberOfParties))
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
@@ -129,6 +91,11 @@ namespace CompactMPC.Application
                     Console.WriteLine("  Computed number of matches: {0}", count);
                 }
             }
+        }
+
+        private static IMultiPartyNetworkSession CreateLocalSession(int localPartyId, int startPort, int numberOfParties)
+        {
+            return TcpMultiPartyNetworkSession.EstablishAsync(new Party(localPartyId), IPAddress.Loopback, StartPort, NumberOfParties).Result;
         }
     }
 }

@@ -36,15 +36,17 @@ namespace CompactMPC.UnitTests
             BitArray forwardEvaluationOutput = new BitArray(new ForwardCircuit(circuit).Evaluate(new LocalCircuitEvaluator(), sequentialInput));
             BitArray expectedEvaluationOutput = BitArray.FromBinaryString("01010000101100");
 
-            Assert.IsTrue(
-                Enumerable.SequenceEqual(expectedEvaluationOutput, lazyEvaluationOutput),
+            CollectionAssert.AreEqual(
+                expectedEvaluationOutput,
+                lazyEvaluationOutput,
                 "Incorrect lazy evaluation output {0} (should be {1}).",
                 lazyEvaluationOutput.ToBinaryString(),
                 expectedEvaluationOutput.ToBinaryString()
             );
 
-            Assert.IsTrue(
-                Enumerable.SequenceEqual(expectedEvaluationOutput, forwardEvaluationOutput),
+            CollectionAssert.AreEqual(
+                expectedEvaluationOutput,
+                forwardEvaluationOutput,
                 "Incorrect forward evaluation output {0} (should be {1}).",
                 forwardEvaluationOutput.ToBinaryString(),
                 expectedEvaluationOutput.ToBinaryString()

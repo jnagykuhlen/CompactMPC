@@ -9,65 +9,70 @@ using System.Net.Sockets;
 
 namespace CompactMPC.Networking
 {
-    public class TcpTwoPartyNetworkSession : ITwoPartyNetworkSession, IMultiPartyNetworkSession
+    public class TcpTwoPartyNetworkSession : ITwoPartyNetworkSession
     {
         private TcpClient _client;
         private IMessageChannel _channel;
         private Party _localParty;
         private Party _remoteParty;
 
-        public TcpTwoPartyNetworkSession(TcpClient client, Party localParty)
+        private TcpTwoPartyNetworkSession(TcpClient client, Party localParty, Party remoteParty)
         {
-            Stream stream = client.GetStream();
-            stream.Write(new byte[] { (byte)localParty.Id }, 0, 1);
-            int remotePartyId = stream.Read(1)[0];
-
             _client = client;
-            _channel = new StreamMessageChannel(stream);
+            _channel = new StreamMessageChannel(client.GetStream());
             _localParty = localParty;
-            _remoteParty = new Party(remotePartyId, "Party " + (remotePartyId + 1));
+            _remoteParty = remoteParty;
         }
 
-        public static TcpTwoPartyNetworkSession FromPort(int port)
-        {
-            TcpClient client;
-            Party localParty;
-
-            try
-            {
-                Console.WriteLine("Starting TCP server...");
-                client = AcceptTcpClient(port);
-                Console.WriteLine("TCP server started.");
-
-                localParty = new Party(0, "Party 0");
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Starting TCP server failed, starting client...");
-                client = ConnectTcpClient(port);
-                Console.WriteLine("TCP client started.");
-
-                localParty = new Party(1, "Bob");
-            }
-
-            return new TcpTwoPartyNetworkSession(client, localParty);
-        }
-
-        private static TcpClient AcceptTcpClient(int port)
-        {
-            TcpListener listener = new TcpListener(IPAddress.Any, port) { ExclusiveAddressUse = true };
-            listener.Start();
-            Task<TcpClient> acceptTask = listener.AcceptTcpClientAsync();
-            acceptTask.Wait();
-            listener.Stop();
-            return acceptTask.Result;
-        }
-
-        private static TcpClient ConnectTcpClient(int port)
+        public static async Task<TcpTwoPartyNetworkSession> ConnectAsync(Party localParty, IPAddress address, int port)
         {
             TcpClient client = new TcpClient();
-            client.ConnectAsync("127.0.0.1", port).Wait();
-            return client;
+            await client.ConnectAsync(address, port);
+            return CreateFromPartyInformationExchange(localParty, client);
+        }
+
+        public static async Task<TcpTwoPartyNetworkSession> AcceptAsync(Party localParty, int port)
+        {
+            TcpTwoPartyNetworkSession session;
+
+            TcpListener listener = new TcpListener(IPAddress.Any, port) { ExclusiveAddressUse = true };
+            listener.Start();
+            session = await AcceptAsync(localParty, listener);
+            listener.Stop();
+
+            return session;
+        }
+
+        public static async Task<TcpTwoPartyNetworkSession> AcceptAsync(Party localParty, TcpListener listener)
+        {
+            TcpClient client = await listener.AcceptTcpClientAsync();
+            return CreateFromPartyInformationExchange(localParty, client);
+        }
+
+        private static TcpTwoPartyNetworkSession CreateFromPartyInformationExchange(Party localParty, TcpClient client)
+        {
+            WritePartyInformation(client, localParty);
+            Party remoteParty = ReadPartyInformation(client);
+            return new TcpTwoPartyNetworkSession(client, localParty, remoteParty);
+        }
+
+        private static void WritePartyInformation(TcpClient client, Party party)
+        {
+            using (BinaryWriter writer = new BinaryWriter(client.GetStream(), Encoding.UTF8, true))
+            {
+                writer.Write(party.Id);
+                writer.Write(party.Name);
+            }
+        }
+
+        private static Party ReadPartyInformation(TcpClient client)
+        {
+            using (BinaryReader reader = new BinaryReader(client.GetStream(), Encoding.UTF8, true))
+            {
+                int id = reader.ReadInt32();
+                string name = reader.ReadString();
+                return new Party(id, name);
+            }
         }
 
         public void Dispose()
@@ -96,22 +101,6 @@ namespace CompactMPC.Networking
             get
             {
                 return _remoteParty;
-            }
-        }
-
-        public IEnumerable<ITwoPartyNetworkSession> RemotePartySessions
-        {
-            get
-            {
-                yield return this;
-            }
-        }
-
-        public int NumberOfParties
-        {
-            get
-            {
-                return 2;
             }
         }
     }
