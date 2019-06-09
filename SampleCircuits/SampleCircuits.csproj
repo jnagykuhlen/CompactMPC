@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>CompactMPC.SampleCircuits</RootNamespace>
+    <AssemblyName>CompactMPC.SampleCircuits</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CompactMPC\CompactMPC.csproj" />
+  </ItemGroup>
+
+</Project>

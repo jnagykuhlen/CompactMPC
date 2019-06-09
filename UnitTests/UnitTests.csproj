@@ -72,12 +72,15 @@
     <Compile Include="ObliviousTransferTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SecureComputationTest.cs" />
-    <Compile Include="SetIntersectionCircuitRecorder.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CompactMPC\CompactMPC.csproj">
       <Project>{15ad1ba0-82f9-4bbd-9fd2-d2458cd173a5}</Project>
       <Name>CompactMPC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SampleCircuits\SampleCircuits.csproj">
+      <Project>{4d579f60-2ee5-4d50-9102-1b351fc2fc6a}</Project>
+      <Name>SampleCircuits</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

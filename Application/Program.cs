@@ -11,12 +11,14 @@ using CompactMPC.Circuits.Statistics;
 using CompactMPC.Networking;
 using CompactMPC.Protocol;
 using CompactMPC.ObliviousTransfer;
+using CompactMPC.SampleCircuits;
 
-namespace CompactMPC.Samples
+namespace CompactMPC.Application
 {
     public class Program
     {
         private const int NumberOfParties = 3;
+        private const int NumberOfElements = 10;
         private const int StartPort = 12348;
 
         public static void Main(string[] args)
@@ -29,7 +31,7 @@ namespace CompactMPC.Samples
             };
 
             CircuitBuilder builder = new CircuitBuilder();
-            (new SetIntersectionCircuitRecorder()).Record(builder);
+            (new SetIntersectionCircuitRecorder(NumberOfParties, NumberOfElements)).Record(builder);
 
             Circuit circuit = builder.CreateCircuit();
 
@@ -112,8 +114,9 @@ namespace CompactMPC.Samples
                     GMWSecureComputation computation = new GMWSecureComputation(session, multiplicationScheme, cryptoContext);
 
                     Stopwatch stopwatch = Stopwatch.StartNew();
-                    
-                    object[] outputPrimitives = (new SetIntersectionSecureProgram()).EvaluateAsync(computation, new[] { localInput }).Result;
+
+                    SetIntersectionSecureProgram secureProgram = new SetIntersectionSecureProgram(NumberOfParties, NumberOfElements);
+                    object[] outputPrimitives = secureProgram.EvaluateAsync(computation, new[] { localInput }).Result;
                     BitArray intersection = (BitArray)outputPrimitives[0];
                     BigInteger count = (BigInteger)outputPrimitives[1];
 

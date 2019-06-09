@@ -10,16 +10,14 @@ using CompactMPC.Circuits.Batching;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
+using CompactMPC.SampleCircuits;
 
 namespace CompactMPC.UnitTests
 {
     [TestClass]
     public class SecureComputationTest
     {
-        [TestMethod]
-        public void TestSetIntersection()
-        {
-            BitArray[] inputs = new string[]
+        private static readonly BitArray[] Inputs = new string[]
             {
                 "010101",
                 "110111",
@@ -28,18 +26,43 @@ namespace CompactMPC.UnitTests
                 "110111"
             }.Select(input => BitArray.FromBinaryString(input)).ToArray();
 
-            int startPort = 12348;
-            int numberOfParties = inputs.Length;
-            int numberOfElements = inputs[0].Length;
+        [TestMethod]
+        public void TestTwoPartySetIntersection()
+        {
+            RunSecureComputationParties(12313, 2, "010101110");
+        }
 
-            BitArray expectedOutput = inputs.Aggregate((left, right) => left & right);
-            
+        [TestMethod]
+        public void TestThreePartySetIntersection()
+        {
+            RunSecureComputationParties(12343, 3, "010101110");
+        }
+
+        [TestMethod]
+        public void TestFourPartySetIntersection()
+        {
+            RunSecureComputationParties(12367, 4, "010001010");
+        }
+
+        [TestMethod]
+        public void TestFivePartySetIntersection()
+        {
+            RunSecureComputationParties(12385, 5, "010001010");
+        }
+
+        private static void RunSecureComputationParties(int startPort, int numberOfParties, string expectedOutputString)
+        {
+            int numberOfElements = Inputs[0].Length;
+            BitArray expectedOutput = BitArray.FromBinaryString(expectedOutputString);
+
             Task[] tasks = new Task[numberOfParties];
             for (int i = 0; i < numberOfParties; ++i)
             {
                 int localPartyId = i;
+                BitArray localInput = new BitArray(Inputs[localPartyId].ToArray());
+
                 tasks[i] = Task.Factory.StartNew(
-                    () => RunSecureComputationParty(startPort, numberOfParties, numberOfElements, localPartyId, inputs[localPartyId], expectedOutput),
+                    () => RunSecureComputationParty(startPort, numberOfParties, localPartyId, localInput, expectedOutput),
                     TaskCreationOptions.LongRunning
                 );
             }
@@ -47,7 +70,7 @@ namespace CompactMPC.UnitTests
             Task.WaitAll(tasks);
         }
 
-        private static void RunSecureComputationParty(int startPort, int numberOfParties, int numberOfElements, int localPartyId, BitArray localInput, BitArray expectedOutput)
+        private static void RunSecureComputationParty(int startPort, int numberOfParties, int localPartyId, BitArray localInput, BitArray expectedOutput)
         {
             using (TcpMultiPartyNetworkSession session = new TcpMultiPartyNetworkSession(startPort, numberOfParties, localPartyId))
             {
@@ -65,11 +88,13 @@ namespace CompactMPC.UnitTests
 
                     GMWSecureComputation computation = new GMWSecureComputation(session, multiplicationScheme, cryptoContext);
                     
-                    SetIntersectionCircuitRecorder circuitRecorder = new SetIntersectionCircuitRecorder(numberOfParties, numberOfElements);
+                    SetIntersectionCircuitRecorder circuitRecorder = new SetIntersectionCircuitRecorder(numberOfParties, localInput.Length);
                     CircuitBuilder circuitBuilder = new CircuitBuilder();
                     circuitRecorder.Record(circuitBuilder);
 
                     ForwardCircuit circuit = new ForwardCircuit(circuitBuilder.CreateCircuit());
+
+                    Console.WriteLine("Input of party {0} is: {1}", localPartyId, localInput.ToBinaryString());
 
                     BitArray output = computation.EvaluateAsync(circuit, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput).Result;
 

@@ -1,12 +1,10 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("CompactMPC Samples")]
+[assembly: AssemblyTitle("CompactMPC.Application")]
 [assembly: AssemblyDescription("Sample Application for CompactMPC Library")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("CompactMPC Samples")]
-[assembly: AssemblyCopyright("Copyright © 2018 Jonas Nagy-Kuhlen")]
+[assembly: AssemblyProduct("CompactMPC.Application")]
+[assembly: AssemblyCopyright("Copyright © 2019 Jonas Nagy-Kuhlen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

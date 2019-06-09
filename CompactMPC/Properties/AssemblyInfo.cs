@@ -5,7 +5,7 @@
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("CompactMPC")]
-[assembly: AssemblyCopyright("Copyright © 2018 Jonas Nagy-Kuhlen")]
+[assembly: AssemblyCopyright("Copyright © 2019 Jonas Nagy-Kuhlen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
