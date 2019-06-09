@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 
 namespace CompactMPC
 {
-    public class CryptoContext : IDisposable
+    public sealed class CryptoContext : IDisposable
     {
         private RandomNumberGenerator _randomNumberGenerator;
         private HashAlgorithm _hashAlgorithm;
