@@ -27,10 +27,10 @@ namespace CompactMPC.Expressions
                 new ForwardCircuit(builder.CreateCircuit()),
                 CreateInputMapping(inputDeclaration),
                 CreateOutputMapping(outputDeclaration),
-                CreateLocalInputBuffer(inputDeclaration, localInputPrimitives, secureComputation.Session.LocalParty.Id)
+                CreateLocalInputBuffer(inputDeclaration, localInputPrimitives, secureComputation.MultiPartySession.LocalParty.Id)
             );
 
-            return CreateLocalOutputPrimitives(outputDeclaration, outputBuffer, secureComputation.Session.LocalParty.Id);
+            return CreateLocalOutputPrimitives(outputDeclaration, outputBuffer, secureComputation.MultiPartySession.LocalParty.Id);
         }
 
         private static BitArray CreateLocalInputBuffer(InputPrimitiveDeclaration[] inputDeclaration, object[] localInputPrimitives, int localPartyId)

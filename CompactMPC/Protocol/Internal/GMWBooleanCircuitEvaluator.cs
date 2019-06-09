@@ -2,68 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.IO;
 using System.Threading.Tasks;
 
 using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Networking;
-using CompactMPC.ObliviousTransfer;
 
 namespace CompactMPC.Protocol.Internal
 {
     public class GMWBooleanCircuitEvaluator : IBatchCircuitEvaluator<Task<Bit>>
     {
-        private INetworkSession _session;
-        private CryptoContext _cryptoContext;
-        private IObliviousTransfer[] _obliviousTransfers;
+        private IMultiPartyNetworkSession _multiPartySession;
+        private IPairwiseMultiplicationScheme _multiplicationScheme;
         
-        public GMWBooleanCircuitEvaluator(
-            INetworkSession session,
-            IObliviousTransfer obliviousTransfer,
-            CryptoContext cryptoContext,
-            CircuitContext circuitContext)
+        public GMWBooleanCircuitEvaluator(IMultiPartyNetworkSession multiPartySession, IPairwiseMultiplicationScheme multiplicationScheme)
         {
-            _session = session;
-            _cryptoContext = cryptoContext;
-            _obliviousTransfers = PreprocessObliviousTransfers(obliviousTransfer, circuitContext.NumberOfAndGates);
-        }
-
-        private PreprocessedObliviousTransfer[] PreprocessObliviousTransfers(IObliviousTransfer obliviousTransfer, int numberOfInstances)
-        {
-            PreprocessedObliviousTransfer[] obliviousTransfers = new PreprocessedObliviousTransfer[_session.NumberOfParties];
-            ObliviousTransferPreprocessor preprocessor = new ObliviousTransferPreprocessor(obliviousTransfer, _cryptoContext);
-            
-            Task[] preprocessingTasks = new Task[_session.NumberOfParties];
-            preprocessingTasks[_session.LocalParty.Id] = Task.CompletedTask;
-
-            Parallel.ForEach(_session.RemoteParties, remoteParty =>
-            {
-                IMessageChannel channel = _session.GetChannel(remoteParty.Id);
-                
-                if (remoteParty.Id < _session.LocalParty.Id)
-                {
-                    Task preprocessSenderTask = preprocessor.PreprocessSenderAsync(channel, numberOfInstances).ContinueWith(task =>
-                    {
-                        obliviousTransfers[remoteParty.Id] = new PreprocessedObliviousTransfer(task.Result, null);
-                    });
-
-                    preprocessingTasks[remoteParty.Id] = preprocessSenderTask;
-                }
-                else
-                {
-                    Task preprocessReceiverTask = preprocessor.PreprocessReceiverAsync(channel, numberOfInstances).ContinueWith(task =>
-                    {
-                        obliviousTransfers[remoteParty.Id] = new PreprocessedObliviousTransfer(null, task.Result);
-                    });
-
-                    preprocessingTasks[remoteParty.Id] = preprocessReceiverTask;
-                }
-            });
-            
-            Task.WaitAll(preprocessingTasks);
-            
-            return obliviousTransfers;
+            _multiPartySession = multiPartySession;
+            _multiplicationScheme = multiplicationScheme;
         }
 
         public Task<Bit>[] EvaluateAndGateBatch(GateEvaluationInput<Task<Bit>>[] evaluationInputs, CircuitContext circuitContext)
@@ -85,45 +40,20 @@ namespace CompactMPC.Protocol.Internal
                 localShares[i] = leftShares[i] & rightShares[i];
             }
 
-            BitArray randomBits = _cryptoContext.RandomNumberGenerator.GetBits(numberOfInvocations * _session.LocalParty.Id);
-
-            Task<BitArray>[] shareTasks = new Task<BitArray>[_session.NumberOfParties];
-            shareTasks[_session.LocalParty.Id] = Task.FromResult(localShares);
+            Task<BitArray>[] pairwiseMultiplicationTasks = new Task<BitArray>[_multiPartySession.NumberOfParties];
+            pairwiseMultiplicationTasks[_multiPartySession.LocalParty.Id] = Task.FromResult(localShares);
             
-            Parallel.ForEach(_session.RemoteParties, remoteParty =>
+            Parallel.ForEach(_multiPartySession.RemotePartySessions, session =>
             {
-                IMessageChannel channel = _session.GetChannel(remoteParty.Id);
-
-                if (remoteParty.Id < _session.LocalParty.Id)
-                {
-                    BitArray randomShares = new BitArray(numberOfInvocations);
-                    BitQuadrupleArray options = new BitQuadrupleArray(numberOfInvocations);
-
-                    for (int i = 0; i < numberOfInvocations; ++i)
-                    {
-                        randomShares[i] = randomBits[numberOfInvocations * remoteParty.Id + i];
-                        options[i] = new BitQuadruple(
-                            randomShares[i],                                     // 00
-                            randomShares[i] ^ leftShares[i],                     // 01
-                            randomShares[i] ^ rightShares[i],                    // 10
-                            randomShares[i] ^ leftShares[i] ^ rightShares[i]     // 11
-                        );
-                    }
-
-                    shareTasks[remoteParty.Id] = _obliviousTransfers[remoteParty.Id].SendAsync(channel, options, numberOfInvocations)
-                        .ContinueWith(task => randomShares);
-                }
-                else
-                {
-                    QuadrupleIndexArray selectionIndices = new QuadrupleIndexArray(numberOfInvocations);
-                    for (int i = 0; i < numberOfInvocations; ++i)
-                        selectionIndices[i] = 2 * (byte)leftShares[i] + (byte)rightShares[i];
-
-                    shareTasks[remoteParty.Id] = _obliviousTransfers[remoteParty.Id].ReceiveAsync(channel, selectionIndices, numberOfInvocations);
-                }
+                pairwiseMultiplicationTasks[session.RemoteParty.Id] = _multiplicationScheme.ComputeMultiplicationSharesAsync(
+                    session,
+                    leftShares,
+                    rightShares,
+                    numberOfInvocations
+                );
             });
 
-            BitArray[] shares = await Task.WhenAll(shareTasks).ConfigureAwait(false);
+            BitArray[] shares = await Task.WhenAll(pairwiseMultiplicationTasks).ConfigureAwait(false);
             BitArray result = shares.Aggregate((left, right) => left ^ right);
 #if DEBUG
             Console.WriteLine(
@@ -145,7 +75,7 @@ namespace CompactMPC.Protocol.Internal
         public async Task<Bit> EvaluateNotGate(Task<Bit> value, GateContext gateContext, CircuitContext circuitContext)
         {
             Bit share = await value.ConfigureAwait(false);
-            if (_session.LocalParty.Id == 0)
+            if (_multiPartySession.LocalParty.Id == 0)
                 return ~share;
 
             return share;

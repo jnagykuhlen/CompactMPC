@@ -17,16 +17,16 @@ namespace CompactMPC.UnitTests
         [TestMethod]
         public void TestTwoPartyNetworkSession()
         {
-            TestNetworkSession(2, i => new TwoPartyNetworkSession(12348));
+            TestNetworkSession(2, i => TcpTwoPartyNetworkSession.FromPort(12348));
         }
 
         [TestMethod]
         public void TestMultipartyNetworkSession()
         {
-            TestNetworkSession(5, i => new MultiPartyNetworkSession(12748, 5, i));
+            TestNetworkSession(5, i => new TcpMultiPartyNetworkSession(12748, 5, i));
         }
 
-        private void TestNetworkSession(int numberOfParties, Func<int, INetworkSession> sessionFactory)
+        private void TestNetworkSession(int numberOfParties, Func<int, IMultiPartyNetworkSession> sessionFactory)
         {
             Task.WhenAll(
                 Enumerable.Range(0, numberOfParties).Select(i => Task.Factory.StartNew(
@@ -36,18 +36,18 @@ namespace CompactMPC.UnitTests
             ).Wait();
         }
 
-        private void RunSessionConsistencyCheck(int partyId, Func<int, INetworkSession> sessionFactory)
+        private void RunSessionConsistencyCheck(int partyId, Func<int, IMultiPartyNetworkSession> sessionFactory)
         {
-            using (INetworkSession session = sessionFactory(partyId))
+            using (IMultiPartyNetworkSession multiPartySession = sessionFactory(partyId))
             {
-                foreach (Party remoteParty in session.RemoteParties)
+                foreach (ITwoPartyNetworkSession twoPartySession in multiPartySession.RemotePartySessions)
                 {
-                    IMessageChannel channel = session.GetChannel(remoteParty.Id);
-                    channel.WriteMessageAsync(new byte[] { (byte)session.LocalParty.Id, (byte)remoteParty.Id }).Wait();
+                    IMessageChannel channel = twoPartySession.Channel;
+                    channel.WriteMessageAsync(new byte[] { (byte)multiPartySession.LocalParty.Id, (byte)twoPartySession.RemoteParty.Id }).Wait();
                     byte[] reply = channel.ReadMessageAsync().Result;
 
                     Assert.IsTrue(
-                        reply[0] == remoteParty.Id && reply[1] == session.LocalParty.Id,
+                        reply[0] == twoPartySession.RemoteParty.Id && reply[1] == multiPartySession.LocalParty.Id,
                         "Inconsistent party identifier detected."
                     );
                 }

@@ -49,7 +49,7 @@ namespace CompactMPC.UnitTests
 
         private static void RunSecureComputationParty(int startPort, int numberOfParties, int numberOfElements, int localPartyId, BitArray localInput, BitArray expectedOutput)
         {
-            using (MultiPartyNetworkSession session = new MultiPartyNetworkSession(startPort, numberOfParties, localPartyId))
+            using (TcpMultiPartyNetworkSession session = new TcpMultiPartyNetworkSession(startPort, numberOfParties, localPartyId))
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
@@ -58,7 +58,12 @@ namespace CompactMPC.UnitTests
                         cryptoContext
                     );
 
-                    GMWSecureComputation computation = new GMWSecureComputation(session, obliviousTransfer, cryptoContext);
+                    IPairwiseMultiplicationScheme multiplicationScheme = new ObliviousTransferMultiplicationScheme(
+                        obliviousTransfer,
+                        cryptoContext
+                    );
+
+                    GMWSecureComputation computation = new GMWSecureComputation(session, multiplicationScheme, cryptoContext);
                     
                     SetIntersectionCircuitRecorder circuitRecorder = new SetIntersectionCircuitRecorder(numberOfParties, numberOfElements);
                     CircuitBuilder circuitBuilder = new CircuitBuilder();

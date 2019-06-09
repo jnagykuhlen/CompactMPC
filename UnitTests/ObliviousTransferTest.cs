@@ -42,17 +42,16 @@ namespace CompactMPC.UnitTests
                     cryptoContext
                 );
 
-                using (TwoPartyNetworkSession session = new TwoPartyNetworkSession(12348))
+                using (ITwoPartyNetworkSession session = TcpTwoPartyNetworkSession.FromPort(12348))
                  {
-                    IMessageChannel channel = session.GetChannel(session.RemoteParties.First().Id);
                     if (session.LocalParty.Id == 0)
                     {
-                        obliviousTransfer.SendAsync(channel, options, 3, 6).Wait();
+                        obliviousTransfer.SendAsync(session.Channel, options, 3, 6).Wait();
                     }
                     else
                     {
                         QuadrupleIndexArray indices = new QuadrupleIndexArray(new[] { 0, 3, 2 });
-                        byte[][] results = obliviousTransfer.ReceiveAsync(channel, indices, 3, 6).Result;
+                        byte[][] results = obliviousTransfer.ReceiveAsync(session.Channel, indices, 3, 6).Result;
 
                         Assert.IsNotNull(results, "Result is null.");
                         Assert.AreEqual(3, results.Length, "Result does not match the correct number of invocations.");

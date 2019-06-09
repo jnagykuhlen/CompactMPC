@@ -95,7 +95,7 @@ namespace CompactMPC.Samples
 
         private static void RunSecureComputationParty(int localPartyId, BitArray localInput)
         {
-            using (MultiPartyNetworkSession session = new MultiPartyNetworkSession(StartPort, NumberOfParties, localPartyId))
+            using (TcpMultiPartyNetworkSession session = new TcpMultiPartyNetworkSession(StartPort, NumberOfParties, localPartyId))
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
@@ -104,7 +104,12 @@ namespace CompactMPC.Samples
                         cryptoContext
                     );
 
-                    GMWSecureComputation computation = new GMWSecureComputation(session, obliviousTransfer, cryptoContext);
+                    IPairwiseMultiplicationScheme multiplicationScheme = new ObliviousTransferMultiplicationScheme(
+                        obliviousTransfer,
+                        cryptoContext
+                    );
+
+                    GMWSecureComputation computation = new GMWSecureComputation(session, multiplicationScheme, cryptoContext);
 
                     Stopwatch stopwatch = Stopwatch.StartNew();
                     

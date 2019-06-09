@@ -39,6 +39,8 @@
     <Compile Include="BitTripleArray.cs" />
     <Compile Include="BitTriple.cs" />
     <Compile Include="Buffers\BufferBuilder.cs" />
+    <Compile Include="Networking\ITwoPartyNetworkSession.cs" />
+    <Compile Include="Networking\TwoPartyNetworkSession.cs" />
     <Compile Include="ObliviousTransfer\DesynchronizationException.cs" />
     <Compile Include="Buffers\Internal\BufferMessageComponent.cs" />
     <Compile Include="Buffers\Internal\IMessageComponent.cs" />
@@ -46,6 +48,9 @@
     <Compile Include="Buffers\MessageDecomposer.cs" />
     <Compile Include="Buffers\MessageComposer.cs" />
     <Compile Include="PackedArray.cs" />
+    <Compile Include="Protocol\IMultiplicationChannel.cs" />
+    <Compile Include="Protocol\IPairwiseMultiplicationScheme.cs" />
+    <Compile Include="Protocol\ObliviousTransferMultiplicationScheme.cs" />
     <Compile Include="QuadrupleIndexArray.cs" />
     <Compile Include="Circuits\Batching\IBatchEvaluableCircuit.cs" />
     <Compile Include="Circuits\Batching\Internal\GateEvaluation.cs" />
@@ -106,7 +111,7 @@
     <Compile Include="ObliviousTransfer\SecurityParameters.cs" />
     <Compile Include="StreamHelper.cs" />
     <Compile Include="ObliviousTransfer\InsecureObliviousTransfer.cs" />
-    <Compile Include="Networking\MultiPartyNetworkSession.cs" />
+    <Compile Include="Networking\TcpMultiPartyNetworkSession.cs" />
     <Compile Include="RandomNumberGeneratorHelper.cs" />
     <Compile Include="Circuits\CircuitContext.cs" />
     <Compile Include="Circuits\GateContext.cs" />
@@ -127,9 +132,9 @@
     <Compile Include="Protocol\Internal\GMWBooleanCircuitEvaluator.cs" />
     <Compile Include="Protocol\GMWSecureComputation.cs" />
     <Compile Include="Bit.cs" />
-    <Compile Include="Networking\INetworkSession.cs" />
+    <Compile Include="Networking\IMultiPartyNetworkSession.cs" />
     <Compile Include="Networking\Party.cs" />
-    <Compile Include="Networking\TwoPartyNetworkSession.cs" />
+    <Compile Include="Networking\TcpTwoPartyNetworkSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Virtualization\CircuitEvaluator.cs" />
     <Compile Include="Virtualization\GateContext.cs" />

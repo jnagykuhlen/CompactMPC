@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Networking
 {
-    public interface INetworkSession : IDisposable
+    public interface IMultiPartyNetworkSession : IDisposable
     {
-        IMessageChannel GetChannel(int remotePartyId);
+        IEnumerable<ITwoPartyNetworkSession> RemotePartySessions { get; }
         Party LocalParty { get; }
-        IEnumerable<Party> RemoteParties { get; }
         int NumberOfParties { get; }
     }
 }

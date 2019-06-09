@@ -12,20 +12,20 @@ namespace CompactMPC.Protocol
 {
     public abstract class SecureComputation
     {
-        private INetworkSession _session;
+        private IMultiPartyNetworkSession _multiPartySession;
 
-        public SecureComputation(INetworkSession session)
+        public SecureComputation(IMultiPartyNetworkSession multiPartySession)
         {
-            _session = session;
+            _multiPartySession = multiPartySession;
         }
 
         public abstract Task<BitArray> EvaluateAsync(IBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputs);
 
-        public INetworkSession Session
+        public IMultiPartyNetworkSession MultiPartySession
         {
             get
             {
-                return _session;
+                return _multiPartySession;
             }
         }
     }
