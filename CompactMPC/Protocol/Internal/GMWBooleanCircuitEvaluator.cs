@@ -12,13 +12,13 @@ namespace CompactMPC.Protocol.Internal
 {
     public class GMWBooleanCircuitEvaluator : IBatchCircuitEvaluator<Task<Bit>>
     {
-        private IMultiPartyNetworkSession _multiPartySession;
-        private IPairwiseMultiplicationScheme _multiplicationScheme;
+        private IMultiPartyNetworkSession _session;
+        private IMultiplicativeSharing _multiplicativeSharing;
         
-        public GMWBooleanCircuitEvaluator(IMultiPartyNetworkSession multiPartySession, IPairwiseMultiplicationScheme multiplicationScheme)
+        public GMWBooleanCircuitEvaluator(IMultiPartyNetworkSession session, IMultiplicativeSharing multiplicativeSharing)
         {
-            _multiPartySession = multiPartySession;
-            _multiplicationScheme = multiplicationScheme;
+            _session = session;
+            _multiplicativeSharing = multiplicativeSharing;
         }
 
         public Task<Bit>[] EvaluateAndGateBatch(GateEvaluationInput<Task<Bit>>[] evaluationInputs, CircuitContext circuitContext)
@@ -38,25 +38,7 @@ namespace CompactMPC.Protocol.Internal
                 rightShares[i] = await evaluationInputs[i].RightValue.ConfigureAwait(false);
             }
 
-            BitArray localMultiplicationShares = new BitArray(numberOfInvocations);
-            if (!_multiplicationScheme.IncludesLocalTerms || IsEvenNumberOfRemoteParties)
-                localMultiplicationShares = leftShares & rightShares;
-
-            Task<BitArray>[] pairwiseMultiplicationTasks = new Task<BitArray>[_multiPartySession.NumberOfParties];
-            pairwiseMultiplicationTasks[_multiPartySession.LocalParty.Id] = Task.FromResult(localMultiplicationShares);
-            
-            Parallel.ForEach(_multiPartySession.RemotePartySessions, session =>
-            {
-                pairwiseMultiplicationTasks[session.RemoteParty.Id] = _multiplicationScheme.ComputeMultiplicationSharesAsync(
-                    session,
-                    leftShares,
-                    rightShares,
-                    numberOfInvocations
-                );
-            });
-
-            BitArray[] pairwiseMultiplicationShares = await Task.WhenAll(pairwiseMultiplicationTasks).ConfigureAwait(false);
-            BitArray multiplicationShares = pairwiseMultiplicationShares.Aggregate((left, right) => left ^ right);
+            BitArray multiplicativeShares = await _multiplicativeSharing.ComputeMultiplicativeSharesAsync(_session, leftShares, rightShares, numberOfInvocations);
 #if DEBUG
             Console.WriteLine(
                 "Evaluated AND gates {0} of {1} total.",
@@ -64,7 +46,7 @@ namespace CompactMPC.Protocol.Internal
                 circuitContext.NumberOfAndGates
             );
 #endif
-            return multiplicationShares;
+            return multiplicativeShares;
         }
 
         public async Task<Bit> EvaluateXorGate(Task<Bit> leftValue, Task<Bit> rightValue, GateContext gateContext, CircuitContext circuitContext)
@@ -77,27 +59,10 @@ namespace CompactMPC.Protocol.Internal
         public async Task<Bit> EvaluateNotGate(Task<Bit> value, GateContext gateContext, CircuitContext circuitContext)
         {
             Bit share = await value.ConfigureAwait(false);
-            if (IsFirstParty)
+            if (_session.LocalParty.IsFirstParty())
                 return ~share;
 
             return share;
-        }
-
-        private bool IsFirstParty
-        {
-            get
-            {
-                return _multiPartySession.LocalParty.Id == 0;
-            }
-        }
-
-        private bool IsEvenNumberOfRemoteParties
-        {
-            get
-            {
-                int numberOfRemoteParties = _multiPartySession.NumberOfParties - 1;
-                return numberOfRemoteParties % 2 == 0;
-            }
         }
     }
 }

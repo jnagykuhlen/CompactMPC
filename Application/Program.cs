@@ -68,12 +68,12 @@ namespace CompactMPC.Application
                         cryptoContext
                     );
 
-                    IPairwiseMultiplicationScheme multiplicationScheme = new ObliviousTransferMultiplicationScheme(
+                    IMultiplicativeSharing multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(
                         obliviousTransfer,
                         cryptoContext
                     );
 
-                    GMWSecureComputation computation = new GMWSecureComputation(session, multiplicationScheme, cryptoContext);
+                    GMWSecureComputation computation = new GMWSecureComputation(session, multiplicativeSharing, cryptoContext);
 
                     Stopwatch stopwatch = Stopwatch.StartNew();
 

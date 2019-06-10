@@ -10,18 +10,18 @@ using CompactMPC.ObliviousTransfer;
 
 namespace CompactMPC.Protocol
 {
-    public class ObliviousTransferMultiplicationScheme : IPairwiseMultiplicationScheme
+    public class ObliviousTransferMultiplicativeSharing : PairwiseMultiplicativeSharing
     {
         private IObliviousTransfer _obliviousTransfer;
         private RandomNumberGenerator _randomNumberGenerator;
 
-        public ObliviousTransferMultiplicationScheme(IObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
+        public ObliviousTransferMultiplicativeSharing(IObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
         {
             _obliviousTransfer = obliviousTransfer;
             _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
         }
 
-        public Task<BitArray> ComputeMultiplicationSharesAsync(ITwoPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
+        protected override Task<BitArray> ComputePairwiseMultiplicativeSharesAsync(ITwoPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
         {
             // Given local shares x1, y1
             // compute share of x1 * y2 + x2 * y1
@@ -63,7 +63,7 @@ namespace CompactMPC.Protocol
             return _obliviousTransfer.ReceiveAsync(channel, selectionIndices, numberOfInvocations);
         }
 
-        public bool IncludesLocalTerms
+        protected override bool IncludesLocalTerms
         {
             get
             {
