@@ -9,14 +9,21 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
+    /// <summary>
+    /// Insecure (non-oblivious) implementation of the oblivious transfer interface.
+    /// </summary>
+    /// 
+    /// Caution! This class is intended for testing and debugging purposes and does not provide any security.
+    /// Hence, it should not be used with any sensitive or in production deployments. All options are SENT IN THE PLAIN.
     public class InsecureObliviousTransfer : GeneralizedObliviousTransfer
     {
         public override Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
+            // note(lumip): common argument verification code.. wrap into a common method in a base class?
             if (options.Length != numberOfInvocations)
                 throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
 
-            for (int i = 0; i < options.Length; ++i)
+            for (int i = 0; i < numberOfInvocations; ++i)
             {
                 foreach (byte[] message in options[i])
                 {

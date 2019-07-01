@@ -14,6 +14,11 @@ using CompactMPC.Buffers;
 
 namespace CompactMPC.ObliviousTransfer
 {
+    // note(lumip): the implementation does not seem to actually follow any construction given in
+    // [Moni Naor and Benny Pinkas: Computationally Secure Oblivious Transfer. 2005.]
+    // so what is the exact reference here?
+    // looks like
+    // [Moni Naor and Benny Pinkas: Efficient oblivious transfer protocols 2001.]
     public class NaorPinkasObliviousTransfer : GeneralizedObliviousTransfer
     {
         private SecurityParameters _parameters;
@@ -37,6 +42,7 @@ namespace CompactMPC.ObliviousTransfer
 
         public override async Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
+            // note(lumip): common argument verification code.. wrap into a common method in a base class?
             if (options.Length != numberOfInvocations)
                 throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
             
@@ -64,6 +70,8 @@ namespace CompactMPC.ObliviousTransfer
             });
 
             BigInteger alpha = listOfExponents[0];
+            // note(lumip): sender should probably verify that the all generated elements are different!
+            //  otherwise the receiver could recover two or more of the sent values
 
 #if DEBUG
             stopwatch.Stop();
@@ -175,6 +183,11 @@ namespace CompactMPC.ObliviousTransfer
             return selectedOptions;
         }
 
+        /// <summary>
+        /// Returns a random element from the group as well as the corresponding exponent for the group generator.
+        /// </summary>
+        /// <param name="exponent">The exponent with which the returned group element can be obtained from the group generator.</param>
+        /// <returns>A random group element.</returns>
         private BigInteger GenerateGroupElement(out BigInteger exponent)
         {
             do
@@ -186,11 +199,22 @@ namespace CompactMPC.ObliviousTransfer
             return BigInteger.ModPow(_parameters.G, exponent, _parameters.P);
         }
 
+        /// <summary>
+        /// Multiplicatively inverts a group element.
+        /// </summary>
+        /// <param name="groupElement">The group element to be inverted.</param>
+        /// <returns>The multiplicative inverse of the argument in the group.</returns>
         private BigInteger Invert(BigInteger groupElement)
         {
             return BigInteger.ModPow(groupElement, _parameters.Q - 1, _parameters.P);
         }
 
+        /// <summary>
+        /// Asynchronously writes a list of group elements (BigInteger) to a message channel.
+        /// </summary>
+        /// <param name="channel">The network message channel.</param>
+        /// <param name="groupElements">The list of group elements to write/send.</param>
+        /// <returns></returns>
         private Task WriteGroupElements(IMessageChannel channel, IReadOnlyList<BigInteger> groupElements)
         {
             MessageComposer message = new MessageComposer(2 * groupElements.Count);
@@ -204,6 +228,12 @@ namespace CompactMPC.ObliviousTransfer
             return channel.WriteMessageAsync(message.Compose());
         }
 
+        /// <summary>
+        /// Asynchronously reads a specified number of group elements from a message channel.
+        /// </summary>
+        /// <param name="channel">The network message channel.</param>
+        /// <param name="numberOfGroupElements">Number of group elements to read/receive.</param>
+        /// <returns></returns>
         private async Task<BigInteger[]> ReadGroupElements(IMessageChannel channel, int numberOfGroupElements)
         {
             MessageDecomposer message = new MessageDecomposer(await channel.ReadMessageAsync());
@@ -246,10 +276,22 @@ namespace CompactMPC.ObliviousTransfer
             return options;
         }
 
-        private byte[] MaskOption(byte[] message, BigInteger groupElement,  int invocationIndex, int optionIndex)
+        /// <summary>
+        /// Masks an option (i.e., a sender input message).
+        /// </summary>
+        /// 
+        /// The option is XOR-masked with the output of a random oracle queried with the
+        /// concatentation of the binary representations of the given groupElement, invocationIndex and optionIndex.
+        /// 
+        /// <param name="option">The sender input/option to be masked.</param>
+        /// <param name="groupElement">The group element that contributes receiver choice to the query.</param>
+        /// <param name="invocationIndex">The index of the OT invocation this options belongs to.</param>
+        /// <param name="optionIndex">The index of the option.</param>
+        /// <returns></returns>
+        private byte[] MaskOption(byte[] option, BigInteger groupElement,  int invocationIndex, int optionIndex)
         {
             byte[] query = BufferBuilder.From(groupElement.ToByteArray()).With(invocationIndex).With(optionIndex).Create();
-            return _randomOracle.Mask(message, query);
+            return _randomOracle.Mask(option, query);
         }
     }
 }

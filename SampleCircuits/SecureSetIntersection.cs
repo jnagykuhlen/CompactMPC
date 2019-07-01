@@ -9,6 +9,12 @@ using CompactMPC.Expressions;
 
 namespace CompactMPC.SampleCircuits
 {
+    /// <summary>
+    /// Circuit which computes the intersection of sets given in a binary word representation.
+    /// </summary>
+    /// 
+    /// In addition to the intersection result, a counter giving the cardinality of the intersection
+    /// is also calculated.
     public class SecureSetIntersection
     {
         private SecureWord _intersection;
@@ -25,6 +31,9 @@ namespace CompactMPC.SampleCircuits
             _counter = counter.OfFixedLength(numberOfCounterBits);
         }
 
+        /// <summary>
+        /// The binary encoding of the intersection set.
+        /// </summary>
         public SecureWord Intersection
         {
             get
@@ -33,6 +42,9 @@ namespace CompactMPC.SampleCircuits
             }
         }
 
+        /// <summary>
+        /// The number of elements in the intersection set.
+        /// </summary>
         public SecureInteger Counter
         {
             get

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Buffers
 {
+    /// <summary>
+    /// Allows to build a byte buffer by composing existing buffers and integer values.
+    /// </summary>
     public class BufferBuilder
     {
         private MessageComposer _composer;
