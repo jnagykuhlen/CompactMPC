@@ -71,7 +71,6 @@ namespace CompactMPC.ObliviousTransfer
                 {
                     BigInteger exponent;
                     listOfCs[i] = GenerateGroupElement(out exponent);
-                    listOfExpCs[i] = BigInteger.ModPow(listOfCs[i], alpha, _parameters.P);
                 });
             } while (listOfCs.Distinct().Count() != listOfCs.Count()); // ensuring that all values are unique!
 
@@ -81,11 +80,18 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            await WriteGroupElements(channel, listOfCs);
+            Task writeCTask = WriteGroupElements(channel, listOfCs);
+            
+            Parallel.For(1, 4, i =>
+            {
+                listOfExpCs[i] = BigInteger.ModPow(listOfCs[i], alpha, _parameters.P);
+            });
+
+            await writeCTask;
 
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Sender] Sending values for c took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Sender] Precomputing exponentations and sending values for c (in parallel) took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
@@ -171,11 +177,27 @@ namespace CompactMPC.ObliviousTransfer
                     listOfDs[j] = (listOfCs[selectionIndices[j]] * Invert(listOfDs[j])) % _parameters.P;
             });
 
-            await WriteGroupElements(channel, listOfDs);
+            Task writeDTask = WriteGroupElements(channel, listOfDs);
 
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Receiver] Generating and writing d took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Receiver] Generating and d took {0} ms.", stopwatch.ElapsedMilliseconds);
+            stopwatch.Restart();
+#endif
+
+            BigInteger[] demaskingKeys = new BigInteger[numberOfInvocations];
+            Parallel.For(0, numberOfInvocations, j =>
+            {
+                int i = selectionIndices[j];
+                BigInteger e = BigInteger.ModPow(listOfCs[0], listOfBetas[j], _parameters.P);
+                demaskingKeys[j] = e;
+            });
+
+            await writeDTask; // ensure the channel is free
+
+#if DEBUG
+            stopwatch.Stop();
+            Console.WriteLine("[Receiver] Computing demasking keys and sending d (in parallel) took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
@@ -191,7 +213,7 @@ namespace CompactMPC.ObliviousTransfer
             Parallel.For(0, numberOfInvocations, j =>
             {
                 int i = selectionIndices[j];
-                BigInteger e = BigInteger.ModPow(listOfCs[0], listOfBetas[j], _parameters.P);
+                BigInteger e = demaskingKeys[j];
                 selectedOptions[j] = MaskOption(maskedOptions[j][i], e, j, i);
             });
 
