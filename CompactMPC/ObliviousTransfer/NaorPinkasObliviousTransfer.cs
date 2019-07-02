@@ -64,14 +64,16 @@ namespace CompactMPC.ObliviousTransfer
             BigInteger alpha;
             listOfCs[0] = GenerateGroupElement(out alpha);
             listOfExpCs[0] = listOfCs[0];
-            
-            Parallel.For(1, 4, i =>
-            {
-                BigInteger exponent;
-                listOfCs[i] = GenerateGroupElement(out exponent);
-                listOfExpCs[i] = BigInteger.ModPow(listOfCs[i], alpha, _parameters.P);
-            });
 
+            do
+            {
+                Parallel.For(1, 4, i =>
+                {
+                    BigInteger exponent;
+                    listOfCs[i] = GenerateGroupElement(out exponent);
+                    listOfExpCs[i] = BigInteger.ModPow(listOfCs[i], alpha, _parameters.P);
+                });
+            } while (listOfCs.Distinct().Count() != listOfCs.Count()); // ensuring that all values are unique!
 
 #if DEBUG
             stopwatch.Stop();
