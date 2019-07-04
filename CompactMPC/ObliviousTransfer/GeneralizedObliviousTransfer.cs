@@ -12,6 +12,27 @@ namespace CompactMPC.ObliviousTransfer
 {
     public abstract class GeneralizedObliviousTransfer : IObliviousTransfer, IGeneralizedObliviousTransfer
     {
+        protected void ThrowIfInvalidSendArguments(Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            if (options.Length != numberOfInvocations)
+                throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
+
+            for (int j = 0; j < options.Length; ++j)
+            {
+                foreach (byte[] message in options[j])
+                {
+                    if (message.Length != numberOfMessageBytes)
+                        throw new ArgumentException("Length of provided options does not match the specified message length.", nameof(options));
+                }
+            }
+        }
+
+        protected void ThrowIfInvalidReceiveArguments(QuadrupleIndexArray selectionIndices, int numberOfInvocations)
+        {
+            if (selectionIndices.Length != numberOfInvocations)
+                throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
+        }
+
         public Task SendAsync(IMessageChannel channel, BitQuadrupleArray options, int numberOfInvocations)
         {
             return SendAsync(channel, ToOptionMessages(options), numberOfInvocations, 1);

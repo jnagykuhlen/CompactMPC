@@ -37,17 +37,7 @@ namespace CompactMPC.ObliviousTransfer
 
         public override async Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
-            if (options.Length != numberOfInvocations)
-                throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
-            
-            for (int j = 0; j < options.Length; ++j)
-            {
-                foreach (byte[] message in options[j])
-                {
-                    if (message.Length != numberOfMessageBytes)
-                        throw new ArgumentException("Length of provided options does not match the specified message length.", nameof(options));
-                }
-            }
+            ThrowIfInvalidSendArguments(options, numberOfInvocations, numberOfMessageBytes);
             
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -118,8 +108,7 @@ namespace CompactMPC.ObliviousTransfer
 
         public override async Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
-            if (selectionIndices.Length != numberOfInvocations)
-                throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
+            ThrowIfInvalidReceiveArguments(selectionIndices, numberOfInvocations);
 
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
