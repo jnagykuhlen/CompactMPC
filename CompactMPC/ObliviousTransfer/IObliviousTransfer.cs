@@ -17,6 +17,7 @@ namespace CompactMPC.ObliviousTransfer
     /// For a variant with arbitrary bit length for messages/options, see <see cref="IGeneralizedObliviousTransfer"/>.
     public interface IObliviousTransfer
     {
+        // note(lumip): why have numberOfInvocations as an argument when it could be derived from options.Length?
         /// <summary>
         /// Supplies the four options from the sender to the oblivious transfer.
         /// </summary>
@@ -29,6 +30,7 @@ namespace CompactMPC.ObliviousTransfer
         /// <returns>An asynchronous task which performs the server side of the oblivious transfer.</returns>
         Task SendAsync(IMessageChannel channel, BitQuadrupleArray options, int numberOfInvocations);
 
+        // note(lumip): why have numberOfInvocations as an argument when it could be derived from selectionIndices.Length?
         /// <summary>
         /// Supplies the selection index from the client side to the oblivious transfer and returns the corresponding option from the server.
         /// </summary>
