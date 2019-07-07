@@ -35,6 +35,7 @@ namespace CompactMPC.ObliviousTransfer
 
         public Task<BitArray> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations)
         {
+
             return ReceiveAsync(channel, selectionIndices, numberOfInvocations, 1).ContinueWith(task => FromResultMessages(task.Result));
         }
 
@@ -47,7 +48,32 @@ namespace CompactMPC.ObliviousTransfer
             return result;
         }
 
-        public abstract Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes);
-        public abstract Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes);
+        public Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            if (options.Length != numberOfInvocations)
+                throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
+
+            for (int j = 0; j < options.Length; ++j)
+            {
+                foreach (byte[] message in options[j])
+                {
+                    if (message.Length != numberOfMessageBytes)
+                        throw new ArgumentException("Length of provided options does not match the specified message length.", nameof(options));
+                }
+            }
+
+            return GeneralizedSendAsync(channel, options, numberOfInvocations, numberOfMessageBytes);
+        }
+
+        public Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            if (selectionIndices.Length != numberOfInvocations)
+                throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
+
+            return GeneralizedReceiveAsync(channel, selectionIndices, numberOfInvocations, numberOfMessageBytes);
+        }
+
+        protected abstract Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes);
+        protected abstract Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes);
     }
 }
