@@ -35,10 +35,8 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        public override async Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
-        {
-            ThrowIfInvalidSendArguments(options, numberOfInvocations, numberOfMessageBytes);
-            
+        protected override async Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        {   
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
@@ -106,10 +104,8 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        public override async Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        protected override async Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
-            ThrowIfInvalidReceiveArguments(selectionIndices, numberOfInvocations);
-
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif

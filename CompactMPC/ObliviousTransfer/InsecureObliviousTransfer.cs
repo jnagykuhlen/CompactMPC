@@ -11,10 +11,8 @@ namespace CompactMPC.ObliviousTransfer
 {
     public class InsecureObliviousTransfer : GeneralizedObliviousTransfer
     {
-        public override Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        protected override Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
-            ThrowIfInvalidSendArguments(options, numberOfInvocations, numberOfMessageBytes);
-
             byte[] packedOptions = new byte[4 * numberOfInvocations * numberOfMessageBytes];
             for (int i = 0; i < numberOfInvocations; ++i)
             {
@@ -25,10 +23,8 @@ namespace CompactMPC.ObliviousTransfer
             return channel.WriteMessageAsync(packedOptions);
         }
 
-        public override async Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        protected override async Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
-            ThrowIfInvalidReceiveArguments(selectionIndices, numberOfInvocations);
-
             byte[] packedOptions = await channel.ReadMessageAsync();
             if (packedOptions.Length != 4 * numberOfInvocations * numberOfMessageBytes)
                 throw new DesynchronizationException("Received incorrect number of options.");
