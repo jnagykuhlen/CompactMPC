@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,10 +13,13 @@ using CompactMPC.Buffers;
 namespace CompactMPC.ObliviousTransfer
 {
     /// <summary>
-    /// 1-out-of-4 Oblivious Transfer Implementation following a protocol by Naor and Pinkas.
+    /// 1-out-of-4 Oblivious Transfer implementation following a protocol by Naor and Pinkas.
     /// </summary>
-    /// 
+    /// <remarks>
     /// Reference: Moni Naor and Benny Pinkas: Efficient oblivious transfer protocols 2001. https://dl.acm.org/citation.cfm?id=365502
+    /// Further implementation details: Seung Geol Choi et al.: Secure Multi-Party Computation of Boolean Circuits with Applications
+    /// to Privacy in On-Line Marketplaces. https://link.springer.com/chapter/10.1007/978-3-642-27954-6_26
+    /// </remarks>
     public class NaorPinkasObliviousTransfer : GeneralizedObliviousTransfer
     {
         private SecurityParameters _parameters;
@@ -47,20 +48,16 @@ namespace CompactMPC.ObliviousTransfer
 #endif
             
             Quadruple<BigInteger> listOfCs = new Quadruple<BigInteger>();
-            Quadruple<BigInteger> listOfExpCs = new Quadruple<BigInteger>();
+            Quadruple<BigInteger> listOfExponents = new Quadruple<BigInteger>();
 
-            BigInteger alpha;
-            listOfCs[0] = GenerateGroupElement(out alpha);
-            listOfExpCs[0] = listOfCs[0];
-
-            do
+            Parallel.For(0, 4, i =>
             {
-                Parallel.For(1, 4, i =>
-                {
-                    BigInteger exponent;
-                    listOfCs[i] = GenerateGroupElement(out exponent);
-                });
-            } while (listOfCs.Distinct().Count() != listOfCs.Count()); // ensuring that all values are unique!
+                BigInteger exponent;
+                listOfCs[i] = GenerateGroupElement(out exponent);
+                listOfExponents[i] = exponent;
+            });
+
+            BigInteger alpha = listOfExponents[0];
 
 #if DEBUG
             stopwatch.Stop();
@@ -68,26 +65,21 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            Task writeCTask = WriteGroupElements(channel, listOfCs);
-            
+            Task writeCsTask = WriteGroupElements(channel, listOfCs);
+            Task<BigInteger[]> readDsTask = ReadGroupElements(channel, numberOfInvocations);
+
+            Quadruple<BigInteger> listOfExponentiatedCs = new Quadruple<BigInteger>();
             Parallel.For(1, 4, i =>
             {
-                listOfExpCs[i] = BigInteger.ModPow(listOfCs[i], alpha, _parameters.P);
+                listOfExponentiatedCs[i] = BigInteger.ModPow(listOfCs[i], alpha, _parameters.P);
             });
 
-            await writeCTask;
+            await Task.WhenAll(writeCsTask, readDsTask);
+            BigInteger[] listOfDs = readDsTask.Result;
 
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Sender] Precomputing exponentations and sending values for c (in parallel) took {0} ms.", stopwatch.ElapsedMilliseconds);
-            stopwatch.Restart();
-#endif
-
-            BigInteger[] listOfDs = await ReadGroupElements(channel, numberOfInvocations);
-
-#if DEBUG
-            stopwatch.Stop();
-            Console.WriteLine("[Sender] Reading d took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Sender] Precomputing exponentations, sending c and reading d took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
@@ -95,20 +87,14 @@ namespace CompactMPC.ObliviousTransfer
             Parallel.For(0, numberOfInvocations, j =>
             {
                 maskedOptions[j] = new Quadruple<byte[]>();
-                BigInteger baseExpD = BigInteger.ModPow(listOfDs[j], alpha, _parameters.P);
-                BigInteger invBaseExpD = Invert(baseExpD);
+                BigInteger exponentiatedD = BigInteger.ModPow(listOfDs[j], alpha, _parameters.P);
+                BigInteger inverseExponentiatedD = Invert(exponentiatedD);
 
                 Parallel.For(0, 4, i =>
                 {
-                    BigInteger expD;
-                    if (i == 0)
-                    {
-                        expD = baseExpD;
-                    }
-                    else
-                    {
-                        expD = (listOfExpCs[i] * invBaseExpD) % _parameters.P;
-                    }
+                    BigInteger e = exponentiatedD;
+                    if (i > 0)
+                        e = (listOfExponentiatedCs[i] * inverseExponentiatedD) % _parameters.P;
 
                     // note(lumip): the protocol as proposed by Naor and Pinkas includes a random value
                     //  to be incorporated in the random oracle query to ensure that the same query does
@@ -120,7 +106,7 @@ namespace CompactMPC.ObliviousTransfer
                     // todo: think about whether we want to use a static set of Cs for each sender for all
                     //  connection to reduce the required amount of computation per OT. Would require to
                     //  maintain state in this class and negate the points made in the note above.
-                    maskedOptions[j][i] = MaskOption(options[j][i], expD, j, i);
+                    maskedOptions[j][i] = MaskOption(options[j][i], e, j, i);
                 });
             });
 
@@ -162,35 +148,28 @@ namespace CompactMPC.ObliviousTransfer
                     listOfDs[j] = (listOfCs[selectionIndices[j]] * Invert(listOfDs[j])) % _parameters.P;
             });
 
-            Task writeDTask = WriteGroupElements(channel, listOfDs);
-
 #if DEBUG
             stopwatch.Stop();
             Console.WriteLine("[Receiver] Generating and d took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
-            BigInteger[] demaskingKeys = new BigInteger[numberOfInvocations];
+            Task writeDsTask = WriteGroupElements(channel, listOfDs);
+            Task<Quadruple<byte[]>[]> readMaskedOptionsTask = ReadOptions(channel, numberOfInvocations, numberOfMessageBytes);
+
+            BigInteger[] listOfEs = new BigInteger[numberOfInvocations];
             Parallel.For(0, numberOfInvocations, j =>
             {
                 int i = selectionIndices[j];
-                BigInteger e = BigInteger.ModPow(listOfCs[0], listOfBetas[j], _parameters.P);
-                demaskingKeys[j] = e;
+                listOfEs[j] = BigInteger.ModPow(listOfCs[0], listOfBetas[j], _parameters.P);
             });
 
-            await writeDTask; // ensure the channel is free
+            await Task.WhenAll(writeDsTask, readMaskedOptionsTask);
+            Quadruple<byte[]>[] maskedOptions = readMaskedOptionsTask.Result;
 
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Receiver] Computing demasking keys and sending d (in parallel) took {0} ms.", stopwatch.ElapsedMilliseconds);
-            stopwatch.Restart();
-#endif
-
-            Quadruple<byte[]>[] maskedOptions = await ReadOptions(channel, numberOfInvocations, numberOfMessageBytes);
-
-#if DEBUG
-            stopwatch.Stop();
-            Console.WriteLine("[Receiver] Reading masked options took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Receiver] Computing e, sending d and reading masked options took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
@@ -198,7 +177,7 @@ namespace CompactMPC.ObliviousTransfer
             Parallel.For(0, numberOfInvocations, j =>
             {
                 int i = selectionIndices[j];
-                BigInteger e = demaskingKeys[j];
+                BigInteger e = listOfEs[j];
                 selectedOptions[j] = MaskOption(maskedOptions[j][i], e, j, i);
             });
 
@@ -213,7 +192,7 @@ namespace CompactMPC.ObliviousTransfer
         private BigInteger GenerateGroupElement(out BigInteger exponent)
         {
             // note(lumip): do not give in to the temptation of replacing the exponent > _parameters.Q part with a
-            //  modulo operation, as that would case the exponent to be no longer uniformly sampled (which could
+            //  modulo operation, as that would cause the exponent to be no longer uniformly sampled (which could
             //  have an impact on security)
             do
             {
@@ -287,10 +266,10 @@ namespace CompactMPC.ObliviousTransfer
         /// <summary>
         /// Masks an option (i.e., a sender input message).
         /// </summary>
-        /// 
+        /// <remarks>
         /// The option is XOR-masked with the output of a random oracle queried with the
         /// concatentation of the binary representations of the given groupElement, invocationIndex and optionIndex.
-        /// 
+        /// </remarks>
         /// <param name="option">The sender input/option to be masked.</param>
         /// <param name="groupElement">The group element that acts as "key" in the query to the random oracle.</param>
         /// <param name="invocationIndex">The index of the OT invocation this options belongs to.</param>
