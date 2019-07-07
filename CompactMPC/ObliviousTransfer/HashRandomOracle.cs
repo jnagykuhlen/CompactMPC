@@ -30,28 +30,28 @@ namespace CompactMPC.ObliviousTransfer
                 seed = _hashAlgorithm.ComputeHash(query);
             }
 
-            int counter = 0;
-            while (counter < Int32.MaxValue)
+            using (MemoryStream stream = new MemoryStream(seed.Length + 4))
             {
-                byte[] block;
-                using (MemoryStream stream = new MemoryStream(seed.Length + 4))
-                {
-                    stream.Write(seed, 0, seed.Length);
-                    stream.Write(BitConverter.GetBytes(counter), 0, 4);
-                    // note(lumip): seek to beginning of the stream! otherwise, ComputeHash will start at the end and compute the
-                    //  hash over the empty word no matter what query/seed is given!
-                    stream.Seek(0, SeekOrigin.Begin);
+                stream.Write(seed, 0, seed.Length);
 
+                int counter = 0;
+                while (counter < Int32.MaxValue)
+                {
+                    stream.Position = seed.Length;
+                    stream.Write(BitConverter.GetBytes(counter), 0, 4);
+                    stream.Position = 0;
+
+                    byte[] block;
                     lock (_hashAlgorithmLock)
                     {
                         block = _hashAlgorithm.ComputeHash(stream);
                     }
-                }
 
-                foreach (byte blockByte in block)
-                    yield return blockByte;
-                
-                counter++;
+                    foreach (byte blockByte in block)
+                        yield return blockByte;
+
+                    counter++;
+                }
             }
 
             throw new InvalidOperationException("Random oracle cannot provide more data since the counter has reached its maximum value.");
