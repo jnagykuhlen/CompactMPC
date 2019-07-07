@@ -1,29 +1,15 @@
 ﻿using System;
 using System.Text;
 using System.Linq;
-using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
-namespace CompactMPC.ObliviousTransfer.UnitTests
+using CompactMPC.ObliviousTransfer;
+
+namespace CompactMPC.UnitTests.ObliviousTransfer
 {
-    internal class ConstantRandomOracleMock : RandomOracle
-    {
-        private byte[] _response;
-
-        public ConstantRandomOracleMock(byte[] staticResponse)
-        {
-            _response = staticResponse;
-        }
-        
-        public override IEnumerable<byte> Invoke(byte[] query)
-        {
-            return _response;
-        }
-    }
-
     [TestClass]
     public class RandomOracleTest
     {
@@ -31,13 +17,13 @@ namespace CompactMPC.ObliviousTransfer.UnitTests
         [TestMethod]
         public void TestMask()
         {
-            byte[] query = new byte[] { 0x13, 0xf4 };
-            BitArray randomOracleOutput = BitArray.FromBinaryString("1001010111001011");
+            byte[] query = { 0x00 };
+            BitArray invokeResponse = BitArray.FromBinaryString("1001010111001011");
             BitArray message = BitArray.FromBinaryString("1100110011001100");
 
-            BitArray expectedMaskedMessage = message ^ randomOracleOutput;
+            BitArray expectedMaskedMessage = message ^ invokeResponse;
 
-            RandomOracle oracle = new ConstantRandomOracleMock(randomOracleOutput.ToBytes());
+            RandomOracle oracle = new ConstantRandomOracle(invokeResponse.ToBytes());
             byte[] maskedMessage = oracle.Mask(message.ToBytes(), query);
 
             CollectionAssert.AreEqual(expectedMaskedMessage.ToBytes(), maskedMessage);

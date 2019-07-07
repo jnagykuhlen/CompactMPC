@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.ObliviousTransfer.UnitTests
+using CompactMPC.ObliviousTransfer;
+
+namespace CompactMPC.UnitTests.ObliviousTransfer
 {
     [TestClass]
     public class HashRandomOracleTest
