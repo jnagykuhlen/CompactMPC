@@ -21,7 +21,7 @@ namespace CompactMPC.ObliviousTransfer
             _hashAlgorithm = hashAlgorithm;
             _hashAlgorithmLock = new object();
         }
-        
+
         public override IEnumerable<byte> Invoke(byte[] query)
         {
             byte[] seed;
@@ -38,6 +38,9 @@ namespace CompactMPC.ObliviousTransfer
                 {
                     stream.Write(seed, 0, seed.Length);
                     stream.Write(BitConverter.GetBytes(counter), 0, 4);
+                    // note(lumip): seek to beginning of the stream! otherwise, ComputeHash will start at the end and compute the
+                    //  hash over the empty word no matter what query/seed is given!
+                    stream.Seek(0, SeekOrigin.Begin);
 
                     lock (_hashAlgorithmLock)
                     {
