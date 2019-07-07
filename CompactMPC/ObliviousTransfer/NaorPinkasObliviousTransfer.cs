@@ -13,7 +13,7 @@ using CompactMPC.Buffers;
 namespace CompactMPC.ObliviousTransfer
 {
     /// <summary>
-    /// 1-out-of-4 Oblivious Transfer implementation following a protocol by Naor and Pinkas.
+    /// 1-out-of-N Oblivious Transfer implementation following a protocol by Naor and Pinkas.
     /// </summary>
     /// <remarks>
     /// Reference: Moni Naor and Benny Pinkas: Efficient oblivious transfer protocols 2001. https://dl.acm.org/citation.cfm?id=365502
@@ -41,16 +41,16 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        protected override async Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
-        {   
+        protected override async Task GeneralizedSendAsync(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
+        {
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
             
-            Quadruple<BigInteger> listOfCs = new Quadruple<BigInteger>();
-            Quadruple<BigInteger> listOfExponents = new Quadruple<BigInteger>();
+            BigInteger[] listOfCs = new BigInteger[numberOfOptions];
+            BigInteger[] listOfExponents = new BigInteger[numberOfOptions];
 
-            Parallel.For(0, 4, i =>
+            Parallel.For(0, numberOfOptions, i =>
             {
                 BigInteger exponent;
                 listOfCs[i] = GenerateGroupElement(out exponent);
@@ -69,7 +69,7 @@ namespace CompactMPC.ObliviousTransfer
             Task<BigInteger[]> readDsTask = ReadGroupElements(channel, numberOfInvocations);
 
             Quadruple<BigInteger> listOfExponentiatedCs = new Quadruple<BigInteger>();
-            Parallel.For(1, 4, i =>
+            Parallel.For(1, numberOfOptions, i =>
             {
                 listOfExponentiatedCs[i] = BigInteger.ModPow(listOfCs[i], alpha, _parameters.P);
             });
@@ -83,14 +83,14 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            Quadruple<byte[]>[] maskedOptions = new Quadruple<byte[]>[numberOfInvocations];
+            byte[][][] maskedOptions = new byte[numberOfInvocations][][];
             Parallel.For(0, numberOfInvocations, j =>
             {
-                maskedOptions[j] = new Quadruple<byte[]>();
+                maskedOptions[j] = new byte[numberOfOptions][];
                 BigInteger exponentiatedD = BigInteger.ModPow(listOfDs[j], alpha, _parameters.P);
                 BigInteger inverseExponentiatedD = Invert(exponentiatedD);
 
-                Parallel.For(0, 4, i =>
+                Parallel.For(0, numberOfOptions, i =>
                 {
                     BigInteger e = exponentiatedD;
                     if (i > 0)
@@ -116,7 +116,7 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            await WriteOptions(channel, maskedOptions, numberOfInvocations, numberOfMessageBytes);
+            await WriteOptions(channel, maskedOptions, numberOfOptions, numberOfInvocations, numberOfMessageBytes);
 
 #if DEBUG
             stopwatch.Stop();
@@ -124,13 +124,13 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        protected override async Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        protected override async Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
 
-            Quadruple<BigInteger> listOfCs = new Quadruple<BigInteger>(await ReadGroupElements(channel, 4));
+            BigInteger[] listOfCs = await ReadGroupElements(channel, numberOfOptions);
 
 #if DEBUG
             stopwatch.Stop();
@@ -155,7 +155,7 @@ namespace CompactMPC.ObliviousTransfer
 #endif
 
             Task writeDsTask = WriteGroupElements(channel, listOfDs);
-            Task<Quadruple<byte[]>[]> readMaskedOptionsTask = ReadOptions(channel, numberOfInvocations, numberOfMessageBytes);
+            Task<byte[][][]> readMaskedOptionsTask = ReadOptions(channel, numberOfOptions, numberOfInvocations, numberOfMessageBytes);
 
             BigInteger[] listOfEs = new BigInteger[numberOfInvocations];
             Parallel.For(0, numberOfInvocations, j =>
@@ -165,7 +165,7 @@ namespace CompactMPC.ObliviousTransfer
             });
 
             await Task.WhenAll(writeDsTask, readMaskedOptionsTask);
-            Quadruple<byte[]>[] maskedOptions = readMaskedOptionsTask.Result;
+            byte[][][] maskedOptions = readMaskedOptionsTask.Result;
 
 #if DEBUG
             stopwatch.Stop();
@@ -236,27 +236,27 @@ namespace CompactMPC.ObliviousTransfer
             return groupElements;
         }
 
-        private Task WriteOptions(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        private Task WriteOptions(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
-            MessageComposer message = new MessageComposer(4 * numberOfInvocations);
+            MessageComposer message = new MessageComposer(numberOfOptions * numberOfInvocations);
             for (int j = 0; j < numberOfInvocations; ++j)
             {
-                for (int i = 0; i < 4; ++i)
+                for (int i = 0; i < numberOfOptions; ++i)
                     message.Write(options[j][i]);
             }
 
             return channel.WriteMessageAsync(message.Compose());
         }
 
-        private async Task<Quadruple<byte[]>[]> ReadOptions(IMessageChannel channel, int numberOfInvocations, int numberOfMessageBytes)
+        private async Task<byte[][][]> ReadOptions(IMessageChannel channel, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
             MessageDecomposer message = new MessageDecomposer(await channel.ReadMessageAsync());
 
-            Quadruple<byte[]>[] options = new Quadruple<byte[]>[numberOfInvocations];
+            byte[][][] options = new byte[numberOfInvocations][][];
             for (int j = 0; j < numberOfInvocations; ++j)
             {
-                options[j] = new Quadruple<byte[]>();
-                for (int i = 0; i < 4; ++i)
+                options[j] = new byte[numberOfOptions][];
+                for (int i = 0; i < numberOfOptions; ++i)
                     options[j][i] = message.ReadBuffer(numberOfMessageBytes);
             }
 

@@ -17,6 +17,11 @@ namespace CompactMPC.ObliviousTransfer
             return SendAsync(channel, ToOptionMessages(options), numberOfInvocations, 1);
         }
 
+        public Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            return SendAsync(channel, options.Select(quad => quad.ToArray()).ToArray(), 4, numberOfInvocations, numberOfMessageBytes);
+        }
+
         private Quadruple<byte[]>[] ToOptionMessages(BitQuadrupleArray options)
         {
             Quadruple<byte[]>[] optionMessages = new Quadruple<byte[]>[options.Length];
@@ -35,8 +40,12 @@ namespace CompactMPC.ObliviousTransfer
 
         public Task<BitArray> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations)
         {
-
             return ReceiveAsync(channel, selectionIndices, numberOfInvocations, 1).ContinueWith(task => FromResultMessages(task.Result));
+        }
+
+        public Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            return ReceiveAsync(channel, selectionIndices.ToArray(), 4, numberOfInvocations, numberOfMessageBytes);
         }
 
         private BitArray FromResultMessages(byte[][] resultMessages)
@@ -47,14 +56,17 @@ namespace CompactMPC.ObliviousTransfer
 
             return result;
         }
-
-        public Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        
+        public Task SendAsync(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (options.Length != numberOfInvocations)
                 throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
 
             for (int j = 0; j < options.Length; ++j)
             {
+                if (options[j].Length != numberOfOptions)
+                    throw new ArgumentException("Each per-invocation options tuple must provide the specified number of options.", nameof(options));
+
                 foreach (byte[] message in options[j])
                 {
                     if (message.Length != numberOfMessageBytes)
@@ -62,18 +74,24 @@ namespace CompactMPC.ObliviousTransfer
                 }
             }
 
-            return GeneralizedSendAsync(channel, options, numberOfInvocations, numberOfMessageBytes);
+            return GeneralizedSendAsync(channel, options, numberOfOptions, numberOfInvocations, numberOfMessageBytes);
         }
 
-        public Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        public Task<byte[][]> ReceiveAsync(IMessageChannel channel, int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
             if (selectionIndices.Length != numberOfInvocations)
                 throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
 
-            return GeneralizedReceiveAsync(channel, selectionIndices, numberOfInvocations, numberOfMessageBytes);
+            for (int i = 0; i < selectionIndices.Length; ++i)
+            {
+                if (selectionIndices[i] >= numberOfOptions)
+                    throw new ArgumentException("Provided selection indices must not exceed the number of available options.", nameof(numberOfOptions));
+            }
+
+            return GeneralizedReceiveAsync(channel, selectionIndices, numberOfOptions, numberOfInvocations, numberOfMessageBytes);
         }
 
-        protected abstract Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes);
-        protected abstract Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes);
+        protected abstract Task GeneralizedSendAsync(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes);
+        protected abstract Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes);
     }
 }
