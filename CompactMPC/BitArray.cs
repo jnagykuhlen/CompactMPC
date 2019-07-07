@@ -132,5 +132,16 @@ namespace CompactMPC
             clone.Not();
             return clone;
         }
+
+        public static BitArray FromPairIndexArray(PairIndexArray array)
+        {
+            return new BitArray(array.ToBytes(), array.Length);
+        }
+
+        public PairIndexArray ToPairIndexArray()
+        {
+            return PairIndexArray.FromBytes(ToBytes(), Length);
+        }
+
     }
 }

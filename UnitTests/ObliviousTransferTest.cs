@@ -22,6 +22,33 @@ namespace CompactMPC.UnitTests
         private static readonly string[] TestOptions = { "Alicia", "Briann", "Charly", "Dennis", "Elenor", "Frieda" };
 
         [TestMethod]
+        public void TestInsecureObliviousTransfer1oo2()
+        {
+            Task.WhenAll(
+                Task.Factory.StartNew(RunInsecureObliviousTransferParty1oo2, TaskCreationOptions.LongRunning),
+                Task.Factory.StartNew(RunInsecureObliviousTransferParty1oo2, TaskCreationOptions.LongRunning)
+            ).Wait();
+        }
+
+        [TestMethod]
+        public void TestInsecureObliviousTransfer1oo6()
+        {
+            Task.WhenAll(
+                Task.Factory.StartNew(RunInsecureObliviousTransferParty1oo6, TaskCreationOptions.LongRunning),
+                Task.Factory.StartNew(RunInsecureObliviousTransferParty1oo6, TaskCreationOptions.LongRunning)
+            ).Wait();
+        }
+
+        [TestMethod]
+        public void TestNaorPinkasObliviousTransfer1oo2()
+        {
+            Task.WhenAll(
+                Task.Factory.StartNew(RunObliviousTransferParty1oo2, TaskCreationOptions.LongRunning),
+                Task.Factory.StartNew(RunObliviousTransferParty1oo2, TaskCreationOptions.LongRunning)
+            ).Wait();
+        }
+
+        [TestMethod]
         public void TestNaorPinkasObliviousTransfer1oo4()
         {
             Task.WhenAll(
@@ -37,6 +64,54 @@ namespace CompactMPC.UnitTests
                 Task.Factory.StartNew(RunObliviousTransferParty1oo4, TaskCreationOptions.LongRunning),
                 Task.Factory.StartNew(RunObliviousTransferParty1oo4, TaskCreationOptions.LongRunning)
             ).Wait();
+        }
+
+        private void RunObliviousTransferParty1oo2()
+        {
+            const int numberOfInvocations = 3;
+            const int numberOfOptions = 2;
+            Pair<byte[]>[] options = new Pair<byte[]>[numberOfInvocations];
+            options = new Pair<byte[]>[]
+            {
+                new Pair<byte[]>(TestOptions.Take(numberOfOptions).Select(s => Encoding.ASCII.GetBytes(s)).ToArray()),
+                new Pair<byte[]>(TestOptions.Take(numberOfOptions).Select(s => Encoding.ASCII.GetBytes(s.ToLower())).ToArray()),
+                new Pair<byte[]>(TestOptions.Take(numberOfOptions).Select(s => Encoding.ASCII.GetBytes(s.ToUpper())).ToArray()),
+            };
+
+            using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
+            {
+                IGeneralizedObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                    SecurityParameters.CreateDefault768Bit(),
+                    cryptoContext
+                );
+
+                using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
+                {
+                    if (session.LocalParty.Id == 0)
+                    {
+                        obliviousTransfer.SendAsync(session.Channel, options, numberOfInvocations, 6).Wait();
+                    }
+                    else
+                    {
+                        PairIndexArray indices = new PairIndexArray(new[] { 0, 1, 0 });
+                        byte[][] results = obliviousTransfer.ReceiveAsync(session.Channel, indices, numberOfInvocations, 6).Result;
+
+                        Assert.IsNotNull(results, "Result is null.");
+                        Assert.AreEqual(numberOfInvocations, results.Length, "Result does not match the correct number of invocations.");
+
+                        for (int j = 0; j < numberOfInvocations; ++j)
+                        {
+                            CollectionAssert.AreEqual(
+                                results[j],
+                                options[j][indices[j]],
+                                "Incorrect message content {0} (should be {1}).",
+                                Encoding.ASCII.GetString(results[j]),
+                                Encoding.ASCII.GetString(options[j][indices[j]])
+                            );
+                        }
+                    }
+                }
+            }
         }
 
         private void RunObliviousTransferParty1oo4()
@@ -105,6 +180,96 @@ namespace CompactMPC.UnitTests
                     SecurityParameters.CreateDefault768Bit(),
                     cryptoContext
                 );
+
+                using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
+                {
+                    if (session.LocalParty.Id == 0)
+                    {
+                        obliviousTransfer.SendAsync(session.Channel, options, numberOfOptions, numberOfInvocations, 6).Wait();
+                    }
+                    else
+                    {
+                        int[] indices = new[] { 4, 1, 3, 5 };
+                        byte[][] results = obliviousTransfer.ReceiveAsync(session.Channel, indices, numberOfOptions, numberOfInvocations, 6).Result;
+
+                        Assert.IsNotNull(results, "Result is null.");
+                        Assert.AreEqual(numberOfInvocations, results.Length, "Result does not match the correct number of invocations.");
+
+                        for (int j = 0; j < numberOfInvocations; ++j)
+                        {
+                            CollectionAssert.AreEqual(
+                                results[j],
+                                options[j][indices[j]],
+                                "Incorrect message content {0} (should be {1}).",
+                                Encoding.ASCII.GetString(results[j]),
+                                Encoding.ASCII.GetString(options[j][indices[j]])
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        private void RunInsecureObliviousTransferParty1oo2()
+        {
+            const int numberOfInvocations = 3;
+            const int numberOfOptions = 2;
+            Pair<byte[]>[] options = new Pair<byte[]>[numberOfInvocations];
+            options = new Pair<byte[]>[]
+            {
+                new Pair<byte[]>(TestOptions.Take(numberOfOptions).Select(s => Encoding.ASCII.GetBytes(s)).ToArray()),
+                new Pair<byte[]>(TestOptions.Take(numberOfOptions).Select(s => Encoding.ASCII.GetBytes(s.ToLower())).ToArray()),
+                new Pair<byte[]>(TestOptions.Take(numberOfOptions).Select(s => Encoding.ASCII.GetBytes(s.ToUpper())).ToArray()),
+            };
+
+            using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
+            {
+                IGeneralizedObliviousTransfer obliviousTransfer = new InsecureObliviousTransfer();
+
+                using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
+                {
+                    if (session.LocalParty.Id == 0)
+                    {
+                        obliviousTransfer.SendAsync(session.Channel, options, numberOfInvocations, 6).Wait();
+                    }
+                    else
+                    {
+                        PairIndexArray indices = new PairIndexArray(new[] { 0, 1, 0 });
+                        byte[][] results = obliviousTransfer.ReceiveAsync(session.Channel, indices, numberOfInvocations, 6).Result;
+
+                        Assert.IsNotNull(results, "Result is null.");
+                        Assert.AreEqual(numberOfInvocations, results.Length, "Result does not match the correct number of invocations.");
+
+                        for (int j = 0; j < numberOfInvocations; ++j)
+                        {
+                            CollectionAssert.AreEqual(
+                                results[j],
+                                options[j][indices[j]],
+                                "Incorrect message content {0} (should be {1}).",
+                                Encoding.ASCII.GetString(results[j]),
+                                Encoding.ASCII.GetString(options[j][indices[j]])
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        private void RunInsecureObliviousTransferParty1oo6()
+        {
+            const int numberOfInvocations = 4;
+            const int numberOfOptions = 6;
+            byte[][][] options = new byte[][][]
+            {
+                TestOptions.Take(numberOfOptions).Select(s => Encoding.ASCII.GetBytes(s)).ToArray(),
+                TestOptions.Take(numberOfOptions).Select(s => Encoding.ASCII.GetBytes(s.ToLower())).ToArray(),
+                TestOptions.Take(numberOfOptions).Select(s => Encoding.ASCII.GetBytes(s.ToUpper())).ToArray(),
+                TestOptions.Take(numberOfOptions).Select(s => Encoding.ASCII.GetBytes(s.ToUpper())).ToArray(),
+            };
+
+            using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
+            {
+                IGeneralizedObliviousTransfer obliviousTransfer = new InsecureObliviousTransfer();
 
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {

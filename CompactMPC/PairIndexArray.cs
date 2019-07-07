@@ -7,23 +7,23 @@ using System.Threading.Tasks;
 
 namespace CompactMPC
 {
-    public class QuadrupleIndexArray : PackedArray<int>
+    public class PairIndexArray : PackedArray<int>
     {
-        private const int ElementsPerByte = 4;
-        private const int BitMask = 0b11;
+        private const int ElementsPerByte = 8;
+        private const int BitMask = 0b1;
 
-        public QuadrupleIndexArray(int numberOfElements)
+        public PairIndexArray(int numberOfElements)
             : base(RequiredBytes(numberOfElements), numberOfElements) { }
 
-        public QuadrupleIndexArray(int[] elements)
+        public PairIndexArray(int[] elements)
             : base(RequiredBytes(elements.Length), elements) { }
 
-        protected QuadrupleIndexArray(byte[] bytes, int numberOfElements)
+        protected PairIndexArray(byte[] bytes, int numberOfElements)
             : base(bytes, RequiredBytes(numberOfElements), numberOfElements) { }
 
-        public static QuadrupleIndexArray FromBytes(byte[] bytes, int numberOfElements)
+        public static PairIndexArray FromBytes(byte[] bytes, int numberOfElements)
         {
-            return new QuadrupleIndexArray(bytes, numberOfElements);
+            return new PairIndexArray(bytes, numberOfElements);
         }
 
         public static int RequiredBytes(int numberOfElements)
@@ -38,15 +38,15 @@ namespace CompactMPC
 
         protected override void WriteElement(int value, int index)
         {
-            if (value < 0 || value >= 4)
-                throw new ArgumentOutOfRangeException(nameof(value), "Quadruple index must be in the range from 0 to 3.");
+            if (value < 0 || value >= 2)
+                throw new ArgumentOutOfRangeException(nameof(value), "Pair index must be in the range from 0 to 1.");
 
             WriteBits((byte)value, index, ElementsPerByte, BitMask);
         }
 
-        public QuadrupleIndexArray Clone()
+        public PairIndexArray Clone()
         {
-            return new QuadrupleIndexArray(Buffer, Length);
+            return new PairIndexArray(Buffer, Length);
         }
     }
 }

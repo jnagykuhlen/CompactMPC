@@ -93,5 +93,21 @@ namespace CompactMPC.ObliviousTransfer
 
         protected abstract Task GeneralizedSendAsync(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes);
         protected abstract Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes);
+
+        public async Task SendAsync(IMessageChannel channel, Pair<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            await SendAsync(channel, options.Select(pair => pair.ToArray()).ToArray(), 2, numberOfInvocations, numberOfMessageBytes);
+        }
+
+        public async Task<byte[][]> ReceiveAsync(IMessageChannel channel, BitArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            return await ReceiveAsync(channel, selectionIndices.ToPairIndexArray(), numberOfInvocations, numberOfMessageBytes);
+        }
+
+        public async Task<byte[][]> ReceiveAsync(IMessageChannel channel, PairIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            return await ReceiveAsync(channel, selectionIndices.ToArray(), 2, numberOfInvocations, numberOfMessageBytes);
+        }
+
     }
 }
