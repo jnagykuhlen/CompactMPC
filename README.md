@@ -4,7 +4,7 @@
 
 CompactMPC is a lightweight library for *secure multi-party computation* (MPC), fully written in managed C# code with no native dependencies. It targets .NET Standard 1.3 and can therefore be easily deployed on different operating systems.
 
-MPC is a cryptographic technique for collaboratively computing a function with a number of parties, in a way that the inputs provided by individual participants remain private. This library implements the GMW protocol [1] which is a generic protocol for secure *n*-party computation in the semi-honest setting relying on functions modelled as boolean circuits. The necessary *oblivious transfer* (OT) primitives follow the construction by Naor and Pinkas [2, 3]. For further details on implementation, also see the work of Choi et al. which focusses on MPC in practical applications [4].
+MPC is a cryptographic technique for collaboratively computing a function with a number of parties, in a way that the inputs provided by individual participants remain private. This library implements the GMW protocol [1] which is a generic protocol for secure *n*-party computation in the semi-honest setting relying on functions modelled as boolean circuits. The necessary *oblivious transfer* (OT) primitives follow the construction by Naor and Pinkas [2, 3] as well as the _OT extension_ protocol of Ishai et al. [4] with the optimization of Asharov et al. [5]. For further details on implementation, also see the work of Choi et al. which focusses on MPC in practical applications [6].
 
 ## Features
 
@@ -34,4 +34,8 @@ This project is published under the [MIT license](/LICENSE).
 
 [3] Moni Naor and Benny Pinkas: Computationally Secure Oblivious Transfer. 2005.
 
-[4] Seung Geol Choi, Kyung-Wook Hwang, Jonathan Katz, Tal Malkin, Dan Rubenstein: Secure Multi-Party Computation of Boolean Circuits with Applications to Privacy in On-Line Marketplaces. 2012.
+[4] Yuval Ishai, Joe Kilian, Kobbi Nissim and Erez Petrank: Extending Oblivious Transfers Efficiently. 2003.
+
+[5] Gilad Asharov, Yehuda Lindell, Thomas Schneider and Michael Zohner: More Efficient Oblivious Transfer and Extensions for Faster Secure Computation. 2013.
+
+[6] Seung Geol Choi, Kyung-Wook Hwang, Jonathan Katz, Tal Malkin, Dan Rubenstein: Secure Multi-Party Computation of Boolean Circuits with Applications to Privacy in On-Line Marketplaces. 2012.

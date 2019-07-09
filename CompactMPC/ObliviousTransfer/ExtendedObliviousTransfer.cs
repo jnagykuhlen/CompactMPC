@@ -12,30 +12,44 @@ namespace CompactMPC.ObliviousTransfer
 {
     internal class CommunicationTools
     {
-        public static Task WriteOptionsAsync(IMessageChannel channel, Pair<byte[]>[] options, int numberOfMessageBytes)
+        public static Task WriteOptionsAsync(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
-            byte[] messageBuffer = new byte[2 * numberOfMessageBytes * options.Length];
-            Parallel.For(0, options.Length, i =>
+            byte[] messageBuffer = new byte[numberOfOptions * numberOfMessageBytes * numberOfInvocations];
+            Parallel.For(0, numberOfInvocations, i =>
             {
-                Buffer.BlockCopy(options[i][0], 0, messageBuffer, (2 * numberOfMessageBytes) * i, numberOfMessageBytes);
-                Buffer.BlockCopy(options[i][1], 0, messageBuffer, (2 * numberOfMessageBytes) * i + numberOfMessageBytes, numberOfMessageBytes);
+                for (int j = 0; j < numberOfOptions; ++j)
+                {
+                    Buffer.BlockCopy(
+                        options[i][j],
+                        0,
+                        messageBuffer,
+                        (numberOfOptions * numberOfMessageBytes) * i + j * numberOfMessageBytes,
+                        numberOfMessageBytes
+                    );
+                }
             });
 
             return channel.WriteMessageAsync(messageBuffer);
         }
 
-        public static async Task<Pair<byte[]>[]> ReadOptionsAsync(IMessageChannel channel, int numberOfInvocations, int numberOfMessageBytes)
+        public static async Task<byte[][][]> ReadOptionsAsync(IMessageChannel channel, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
             byte[] messageBuffer = await channel.ReadMessageAsync();
-            Pair<byte[]>[] result = new Pair<byte[]>[numberOfInvocations];
+            byte[][][] result = new byte[numberOfInvocations][][];
             Parallel.For(0, numberOfInvocations, i =>
             {
-                byte[][] options = new[] { new byte[numberOfMessageBytes], new byte[numberOfMessageBytes] };
-
-                Buffer.BlockCopy(messageBuffer, (2 * numberOfMessageBytes) * i, options[0], 0, numberOfMessageBytes);
-                Buffer.BlockCopy(messageBuffer, (2 * numberOfMessageBytes) * i + numberOfMessageBytes, options[1], 0, numberOfMessageBytes);
-
-                result[i] = new Pair<byte[]>(options);
+                result[i] = new byte[numberOfOptions][];
+                for (int j = 0; j < numberOfOptions; ++j)
+                {
+                    result[i][j] = new byte[numberOfMessageBytes];
+                    Buffer.BlockCopy(
+                        messageBuffer,
+                        (numberOfOptions * numberOfMessageBytes) * i + j * numberOfMessageBytes,
+                        result[i][j],
+                        0,
+                        numberOfMessageBytes
+                    );
+                }
             });
             return result;
         }
@@ -108,9 +122,7 @@ namespace CompactMPC.ObliviousTransfer
                 await ExecuteBaseOTAsync();
 
             // draw random bit matrix t
-            BitMatrix t = new BitMatrix((uint)numberOfInvocations, (uint)_securityParameter,
-                _randomNumberGenerator.GetBits(numberOfInvocations * _securityParameter)
-            );
+            BitMatrix tTransposed = new BitMatrix((uint)_securityParameter, (uint)numberOfInvocations);
 
             Console.WriteLine("[Receiver] selection indices {0}", selectionIndices.ToBinaryString());
 
@@ -123,37 +135,32 @@ namespace CompactMPC.ObliviousTransfer
             // todo(lumip): should try-catch in case random oracle runs out
             //  and ideally performs new base OTs and repeat
             int numberOfRandomBytes = BitArray.RequiredBytes(numberOfInvocations);
-            Pair<byte[]>[] otInputs = new Pair<byte[]>[_securityParameter];
+            byte[][][] sendBuffer = new byte[_securityParameter][][];
             Parallel.For(0, _securityParameter, k =>
             {
-                otInputs[k] = new Pair<byte[]>();
-                BitArray tColumn = t.GetColumn((uint)k);
-                BitArray mask0 = BitArray.FromBytes(
+                BitArray tColumn = BitArray.FromBytes(
                     _seededRandomOracles[k][0].Take(numberOfRandomBytes).ToArray(),
                     numberOfInvocations
                 );
-                BitArray input0 = tColumn.Clone();
-                input0.Xor(mask0);
-                otInputs[k][0] = input0.ToBytes();
+                tTransposed.SetRow((uint)k, tColumn);
 
-                BitArray mask1 = BitArray.FromBytes(
+                BitArray mask = BitArray.FromBytes(
                     _seededRandomOracles[k][1].Take(numberOfRandomBytes).ToArray(),
                     numberOfInvocations
                 );
-                BitArray input1 = tColumn.Clone();
-                input1.Xor(selectionIndices);
-                input1.Xor(mask1);
-                otInputs[k][1] = input1.ToBytes();
+
+                BitArray maskedSecondOption = tColumn ^ mask ^ selectionIndices;
+                sendBuffer[k] = new byte[1][] { maskedSecondOption.ToBytes() };
             });
 
-            await CommunicationTools.WriteOptionsAsync(_channel, otInputs, numberOfRandomBytes);
+            await CommunicationTools.WriteOptionsAsync(_channel, sendBuffer, 1, _securityParameter, numberOfRandomBytes);
 
             // note(lumip): could precompute the masks for the response to have only cheap Xor after
             //  waiting for the message, but not sure if it really is a significant performance issue
 
             // retrieve the masked options from the sender and unmask the one indicated by the
             //  corresponding selection indices
-            Pair<byte[]>[] maskedOptions = await CommunicationTools.ReadOptionsAsync(_channel, numberOfInvocations, numberOfMessageBytes);
+            byte[][][] maskedOptions = await CommunicationTools.ReadOptionsAsync(_channel, 2, numberOfInvocations, numberOfMessageBytes);
 
             byte[][] results = new byte[numberOfInvocations][];
             Parallel.For(0, numberOfInvocations, i =>
@@ -161,7 +168,7 @@ namespace CompactMPC.ObliviousTransfer
                 uint invocationIndex = _invocationCounter + (uint)i;
                 int s = Convert.ToInt32(selectionIndices[i].Value);
 
-                byte[] query = BufferBuilder.From(t.GetRow((uint)i).ToBytes()).With((int)invocationIndex).With(s).Create();
+                byte[] query = BufferBuilder.From(tTransposed.GetColumn((uint)i).ToBytes()).With((int)invocationIndex).With(s).Create();
                 results[i] = _randomOracle.Mask(maskedOptions[i][s], query);
             });
             _invocationCounter += (uint)numberOfInvocations;
@@ -237,7 +244,7 @@ namespace CompactMPC.ObliviousTransfer
 
             // todo(lumip): should try-catch in case random oracle runs out
             //  and ideally performs new base OTs and repeat
-            Pair<byte[]>[] qOTResult = await CommunicationTools.ReadOptionsAsync(_channel, _securityParameter, numberOfRandomBytes);
+            byte[][][] qOTResult = await CommunicationTools.ReadOptionsAsync(_channel, 1, _securityParameter, numberOfRandomBytes);
 
             Parallel.For(0, _securityParameter, k =>
             {
@@ -247,16 +254,18 @@ namespace CompactMPC.ObliviousTransfer
                 );
                 int s = Convert.ToInt32(_randomChoices[k].Value);
 
-                BitArray qColumn = BitArray.FromBytes(qOTResult[k][s], numberOfInvocations);
-                qColumn.Xor(mask);
+                BitArray qColumn = mask;
+                if (s == 1)
+                    qColumn.Xor(BitArray.FromBytes(qOTResult[k][0], numberOfInvocations));
+
                 q.SetColumn((uint)k, qColumn);
             });
 
-            Pair<byte[]>[] maskedOptions = new Pair<byte[]>[numberOfInvocations];
+            byte[][][] maskedOptions = new byte[numberOfInvocations][][];
             Parallel.For(0, numberOfInvocations, i =>
             {
                 uint invocationIndex = _invocationCounter + (uint)i;
-                maskedOptions[i] = new Pair<byte[]>();
+                maskedOptions[i] = new byte[2][];
                 BitArray qRow = q.GetRow((uint)i);
                 for (int j = 0; j < 2; ++j)
                 {
@@ -269,7 +278,7 @@ namespace CompactMPC.ObliviousTransfer
                 }
             });
 
-            await CommunicationTools.WriteOptionsAsync(_channel, maskedOptions, numberOfMessageBytes);
+            await CommunicationTools.WriteOptionsAsync(_channel, maskedOptions, 2, numberOfInvocations, numberOfMessageBytes);
         }
 
     }
@@ -280,7 +289,8 @@ namespace CompactMPC.ObliviousTransfer
     /// symmetric cryptography via a random oracle instantiation.
     /// </summary>
     /// <remarks>
-    /// Reference: Ishai, Yuval, Joe Kilian, Kobbi Nissim, and Erez Petrank. "Extending oblivious transfers efficiently". 2003. https://link.springer.com/content/pdf/10.1007/978-3-540-45146-4_9.pdf
+    /// References: Yuval Ishai, Joe Kilian, Kobbi Nissim and Erez Petrank: Extending Oblivious Transfers Efficiently. 2003. https://link.springer.com/content/pdf/10.1007/978-3-540-45146-4_9.pdf
+    /// and Gilad Asharov, Yehuda Lindell, Thomas Schneider and Michael Zohner: More Efficient Oblivious Transfer and Extensions for Faster Secure Computation. 2013. Section 5.3. https://thomaschneider.de/papers/ALSZ13.pdf
     /// </remarks>
     public class ExtendedObliviousTransfer : GeneralizedObliviousTransfer
     {
