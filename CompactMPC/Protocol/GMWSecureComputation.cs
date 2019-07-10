@@ -13,13 +13,13 @@ namespace CompactMPC.Protocol
     public class GMWSecureComputation : ISecureComputation
     {
         private IMultiPartyNetworkSession _multiPartySession;
-        private IPairwiseMultiplicationScheme _multiplicationScheme;
+        private IMultiplicativeSharing _multiplicativeSharing;
         private CryptoContext _cryptoContext;
         
-        public GMWSecureComputation(IMultiPartyNetworkSession multiPartySession, IPairwiseMultiplicationScheme multiplicationScheme, CryptoContext cryptoContext)
+        public GMWSecureComputation(IMultiPartyNetworkSession multiPartySession, IMultiplicativeSharing multiplicativeSharing, CryptoContext cryptoContext)
         {
             _multiPartySession = multiPartySession;
-            _multiplicationScheme = multiplicationScheme;
+            _multiplicativeSharing = multiplicativeSharing;
             _cryptoContext = cryptoContext;
         }
 
@@ -41,7 +41,7 @@ namespace CompactMPC.Protocol
                 );
             }
             
-            GMWBooleanCircuitEvaluator evaluator = new GMWBooleanCircuitEvaluator(_multiPartySession, _multiplicationScheme);
+            GMWBooleanCircuitEvaluator evaluator = new GMWBooleanCircuitEvaluator(_multiPartySession, _multiplicativeSharing);
 
             BitArray maskedInputs = await MaskInputs(inputMapping, localInputValues);
 
@@ -75,8 +75,6 @@ namespace CompactMPC.Protocol
                     nameof(localInputValues)
                 );
             }
-
-            // Task<Bit>[] inputTasks = new Task<Bit>[inputMapping.NumberOfInputs];
 
             BitArray localSharesOfInput = new BitArray(inputMapping.NumberOfInputs);
 
@@ -132,8 +130,6 @@ namespace CompactMPC.Protocol
                 }
             }
             
-            // BitArray localSharesOfOutput = new BitArray((await Task.WhenAll(outputTasks)).Select(share => share.Value).ToArray());
-
             foreach (ITwoPartyNetworkSession session in _multiPartySession.RemotePartySessions)
             {
                 List<int> remoteOutputIds = outputIds[session.RemoteParty.Id];
@@ -159,12 +155,6 @@ namespace CompactMPC.Protocol
                     BitArray remoteSharesOfLocalOutput = BitArray.FromBytes(await session.Channel.ReadMessageAsync(), localOutputIds.Count);
                     localOutputValues.Xor(remoteSharesOfLocalOutput);
                 }
-
-                /*
-                BitArray[] remoteSharesOfLocalOutputs = await Task.WhenAll(Session.RemoteParties.Select(remoteParty => Session.GetChannel(remoteParty.Id).ReadMessageAsync().ContinueWith(task => BitArrayHelper.FromBytes(task.Result, localOutputIds.Count))));
-                foreach (BitArray remoteSharesOfLocalOutput in remoteSharesOfLocalOutputs)
-                    localOutputValues = localOutputValues.Xor(remoteSharesOfLocalOutput);
-                */
             }
 
             return localOutputValues;

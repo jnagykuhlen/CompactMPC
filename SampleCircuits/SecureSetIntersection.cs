@@ -12,9 +12,10 @@ namespace CompactMPC.SampleCircuits
     /// <summary>
     /// Circuit which computes the intersection of sets given in a binary word representation.
     /// </summary>
-    /// 
+    /// <remarks></remarks>
     /// In addition to the intersection result, a counter giving the cardinality of the intersection
     /// is also calculated.
+    /// </remarks>
     public class SecureSetIntersection
     {
         private SecureWord _intersection;

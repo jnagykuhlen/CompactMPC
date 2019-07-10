@@ -8,7 +8,6 @@ namespace CompactMPC.ObliviousTransfer
 {
     /// <summary>
     /// A random oracle as canonically defined.
-    /// </summary>
     /// 
     /// As per the canonical definition of the random oracle, it produces a random but deterministic output
     /// for each unique query it is invoked on, i.e., the output is unpredictably random over different queries
@@ -21,16 +20,16 @@ namespace CompactMPC.ObliviousTransfer
     /// Naturally, a true random oracle cannot be implemented so the outputs of all implementations of
     /// RandomOracle will not be perfectly random but computationally indistinguishable from true randomness
     /// by the usual cryptographic standards.
+    /// </summary>
     public abstract class RandomOracle
     {
         /// <summary>
         /// Supplies the response of the random oracle to the given query.
-        /// </summary>
         /// 
         /// As per the canonical definition of the random oracle, it produces a random but deterministic output
         /// for each unique query, i.e., the output is unpredictably random over different queries but
         /// providing the same query will always yield the same output sequence.
-        /// 
+        /// </summary>
         /// <param name="query">The query for the random oracle.</param>
         /// <returns></returns>
         public abstract IEnumerable<byte> Invoke(byte[] query);

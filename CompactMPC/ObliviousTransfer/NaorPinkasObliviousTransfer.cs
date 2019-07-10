@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,11 +12,14 @@ using CompactMPC.Buffers;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    // note(lumip): the implementation does not seem to actually follow any construction given in
-    // [Moni Naor and Benny Pinkas: Computationally Secure Oblivious Transfer. 2005.]
-    // so what is the exact reference here?
-    // looks like
-    // [Moni Naor and Benny Pinkas: Efficient oblivious transfer protocols 2001.]
+    /// <summary>
+    /// 1-out-of-4 Oblivious Transfer implementation following a protocol by Naor and Pinkas.
+    /// </summary>
+    /// <remarks>
+    /// Reference: Moni Naor and Benny Pinkas: Efficient oblivious transfer protocols 2001. https://dl.acm.org/citation.cfm?id=365502
+    /// Further implementation details: Seung Geol Choi et al.: Secure Multi-Party Computation of Boolean Circuits with Applications
+    /// to Privacy in On-Line Marketplaces. https://link.springer.com/chapter/10.1007/978-3-642-27954-6_26
+    /// </remarks>
     public class NaorPinkasObliviousTransfer : GeneralizedObliviousTransfer
     {
         private SecurityParameters _parameters;
@@ -40,28 +41,15 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        public override async Task SendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
-        {
-            // note(lumip): common argument verification code.. wrap into a common method in a base class?
-            if (options.Length != numberOfInvocations)
-                throw new ArgumentException("Provided options must match the specified number of invocations.", nameof(options));
-            
-            for (int j = 0; j < options.Length; ++j)
-            {
-                foreach (byte[] message in options[j])
-                {
-                    if (message.Length != numberOfMessageBytes)
-                        throw new ArgumentException("Length of provided options does not match the specified message length.", nameof(options));
-                }
-            }
-            
+        protected override async Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        {   
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
             
             Quadruple<BigInteger> listOfCs = new Quadruple<BigInteger>();
             Quadruple<BigInteger> listOfExponents = new Quadruple<BigInteger>();
-            
+
             Parallel.For(0, 4, i =>
             {
                 BigInteger exponent;
@@ -70,8 +58,9 @@ namespace CompactMPC.ObliviousTransfer
             });
 
             BigInteger alpha = listOfExponents[0];
-            // note(lumip): sender should probably verify that the all generated elements are different!
-            //  otherwise the receiver could recover two or more of the sent values
+            // note(lumip): we discussed a possible vulnerability of two or more group elements would be similar but 
+            //   decided against checking for that since the probability of that occuring is negligible small for
+            //   the relevant group sizes.
 
 #if DEBUG
             stopwatch.Stop();
@@ -79,19 +68,21 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            await WriteGroupElements(channel, listOfCs);
+            Task writeCsTask = WriteGroupElements(channel, listOfCs);
+            Task<BigInteger[]> readDsTask = ReadGroupElements(channel, numberOfInvocations);
+
+            Quadruple<BigInteger> listOfExponentiatedCs = new Quadruple<BigInteger>();
+            Parallel.For(1, 4, i =>
+            {
+                listOfExponentiatedCs[i] = BigInteger.ModPow(listOfCs[i], alpha, _parameters.P);
+            });
+
+            await Task.WhenAll(writeCsTask, readDsTask);
+            BigInteger[] listOfDs = readDsTask.Result;
 
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Sender] Sending values for c took {0} ms.", stopwatch.ElapsedMilliseconds);
-            stopwatch.Restart();
-#endif
-
-            BigInteger[] listOfDs = await ReadGroupElements(channel, numberOfInvocations);
-
-#if DEBUG
-            stopwatch.Stop();
-            Console.WriteLine("[Sender] Reading d took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Sender] Precomputing exponentations, sending c and reading d took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
@@ -99,13 +90,25 @@ namespace CompactMPC.ObliviousTransfer
             Parallel.For(0, numberOfInvocations, j =>
             {
                 maskedOptions[j] = new Quadruple<byte[]>();
+                BigInteger exponentiatedD = BigInteger.ModPow(listOfDs[j], alpha, _parameters.P);
+                BigInteger inverseExponentiatedD = Invert(exponentiatedD);
+
                 Parallel.For(0, 4, i =>
                 {
-                    BigInteger baseD = listOfDs[j];
+                    BigInteger e = exponentiatedD;
                     if (i > 0)
-                        baseD = listOfCs[i] * Invert(baseD);
+                        e = (listOfExponentiatedCs[i] * inverseExponentiatedD) % _parameters.P;
 
-                    BigInteger e = BigInteger.ModPow(baseD, alpha, _parameters.P);
+                    // note(lumip): the protocol as proposed by Naor and Pinkas includes a random value
+                    //  to be incorporated in the random oracle query to ensure that the same query does
+                    //  not occur several times. This is partly because the envision several receivers
+                    //  over which the same Cs are used. Since we are having seperate sets of Cs for each
+                    //  sender-receiver pair, the requirement of unique queries is satisified just using
+                    //  the index j of the OT invocation and we can save a bit of bandwidth.
+
+                    // todo: think about whether we want to use a static set of Cs for each sender for all
+                    //  connection to reduce the required amount of computation per OT. Would require to
+                    //  maintain state in this class and negate the points made in the note above.
                     maskedOptions[j][i] = MaskOption(options[j][i], e, j, i);
                 });
             });
@@ -124,11 +127,8 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        public override async Task<byte[][]> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        protected override async Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
-            if (selectionIndices.Length != numberOfInvocations)
-                throw new ArgumentException("Provided selection indices must match the specified number of invocations.", nameof(selectionIndices));
-
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
@@ -151,19 +151,28 @@ namespace CompactMPC.ObliviousTransfer
                     listOfDs[j] = (listOfCs[selectionIndices[j]] * Invert(listOfDs[j])) % _parameters.P;
             });
 
-            await WriteGroupElements(channel, listOfDs);
-
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Receiver] Generating and writing d took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Receiver] Generating and d took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
-            Quadruple<byte[]>[] maskedOptions = await ReadOptions(channel, numberOfInvocations, numberOfMessageBytes);
+            Task writeDsTask = WriteGroupElements(channel, listOfDs);
+            Task<Quadruple<byte[]>[]> readMaskedOptionsTask = ReadOptions(channel, numberOfInvocations, numberOfMessageBytes);
+
+            BigInteger[] listOfEs = new BigInteger[numberOfInvocations];
+            Parallel.For(0, numberOfInvocations, j =>
+            {
+                int i = selectionIndices[j];
+                listOfEs[j] = BigInteger.ModPow(listOfCs[0], listOfBetas[j], _parameters.P);
+            });
+
+            await Task.WhenAll(writeDsTask, readMaskedOptionsTask);
+            Quadruple<byte[]>[] maskedOptions = readMaskedOptionsTask.Result;
 
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Receiver] Reading masked options took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Receiver] Computing e, sending d and reading masked options took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
@@ -171,7 +180,7 @@ namespace CompactMPC.ObliviousTransfer
             Parallel.For(0, numberOfInvocations, j =>
             {
                 int i = selectionIndices[j];
-                BigInteger e = BigInteger.ModPow(listOfCs[0], listOfBetas[j], _parameters.P);
+                BigInteger e = listOfEs[j];
                 selectedOptions[j] = MaskOption(maskedOptions[j][i], e, j, i);
             });
 
@@ -190,6 +199,9 @@ namespace CompactMPC.ObliviousTransfer
         /// <returns>A random group element.</returns>
         private BigInteger GenerateGroupElement(out BigInteger exponent)
         {
+            // note(lumip): do not give in to the temptation of replacing the exponent > _parameters.Q part with a
+            //  modulo operation, as that would cause the exponent to be no longer uniformly sampled (which could
+            //  have an impact on security)
             do
             {
                 exponent = _randomNumberGenerator.GetBigInteger(_parameters.ExponentSize);
@@ -279,15 +291,15 @@ namespace CompactMPC.ObliviousTransfer
         /// <summary>
         /// Masks an option (i.e., a sender input message).
         /// </summary>
-        /// 
+        /// <remarks>
         /// The option is XOR-masked with the output of a random oracle queried with the
         /// concatentation of the binary representations of the given groupElement, invocationIndex and optionIndex.
-        /// 
+        /// </remarks>
         /// <param name="option">The sender input/option to be masked.</param>
-        /// <param name="groupElement">The group element that contributes receiver choice to the query.</param>
+        /// <param name="groupElement">The group element that acts as "key" in the query to the random oracle.</param>
         /// <param name="invocationIndex">The index of the OT invocation this options belongs to.</param>
         /// <param name="optionIndex">The index of the option.</param>
-        /// <returns></returns>
+        /// <returns>The masked option.</returns>
         private byte[] MaskOption(byte[] option, BigInteger groupElement,  int invocationIndex, int optionIndex)
         {
             byte[] query = BufferBuilder.From(groupElement.ToByteArray()).With(invocationIndex).With(optionIndex).Create();

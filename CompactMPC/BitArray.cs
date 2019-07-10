@@ -29,8 +29,6 @@ namespace CompactMPC
             return RequiredBytes(numberOfBits, ElementsPerByte);
         }
 
-        // note(lumip): it seems to me like all these would be nicer if they would return the result
-        //  instead of inplace manipulation. Is there a specific design reason for the current way?
         public void Or(BitArray other)
         {
             if (other.Length != Length)
