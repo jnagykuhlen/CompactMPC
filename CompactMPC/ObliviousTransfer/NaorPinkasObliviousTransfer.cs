@@ -56,11 +56,11 @@ namespace CompactMPC.ObliviousTransfer
                 listOfCs[i] = GenerateGroupElement(out exponent);
                 listOfExponents[i] = exponent;
             });
+            // note(lumip): we discussed a possible vulnerability arising when two or more group elements
+            //  are similar but decided against checking for that since the probability of it occuring is
+            //   negligible small for the relevant group sizes.
 
             BigInteger alpha = listOfExponents[0];
-            // note(lumip): we discussed a possible vulnerability of two or more group elements would be similar but 
-            //   decided against checking for that since the probability of that occuring is negligible small for
-            //   the relevant group sizes.
 
 #if DEBUG
             stopwatch.Stop();
