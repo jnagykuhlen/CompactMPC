@@ -121,10 +121,11 @@ namespace CompactMPC.ObliviousTransfer
             if (_seededRandomOracles == null)
                 await ExecuteBaseOTAsync();
 
-            // draw random bit matrix t
+            // note(lumip): we need a random bit matrix t as per the construction
+            //  of Ishai et al. and we use the trick of Asharov et al. and populate it with the random
+            //  expansion of the base OT seeds, i.e., t_k = H(seed_0). Since these are calculated later,
+            //  we only set up the matrix structure here.
             BitMatrix tTransposed = new BitMatrix((uint)_securityParameter, (uint)numberOfInvocations);
-
-            Console.WriteLine("[Receiver] selection indices {0}", selectionIndices.ToBinaryString());
 
             // perform _securityParams many 1-out-of-2 OTs with numberOfInvocations bits message length
             // by extending the _securityParams many 1-out-of-2 OTs with _securityParams bits message length
@@ -218,7 +219,7 @@ namespace CompactMPC.ObliviousTransfer
             int requiredBytes = BitArray.RequiredBytes(_securityParameter);
             byte[][] seeds = await _baseOT.ReceiveAsync(_channel, s, 2, _securityParameter, requiredBytes);
             _invocationCounter = 0;
-            
+
             // initializing a random oracle based on each seed
             _seededRandomOracles = new IEnumerable<byte>[_securityParameter];
             Parallel.For(0, _securityParameter, k =>
@@ -272,12 +273,12 @@ namespace CompactMPC.ObliviousTransfer
                     Debug.Assert(options[i][j].Length == numberOfMessageBytes);
                     if (j == 1)
                         qRow.Xor(_randomChoices);
-                    Console.WriteLine("[Sender] qRow {0} {1}: {2}", i, j, qRow.ToBinaryString());
                     byte[] query = BufferBuilder.From(qRow.ToBytes()).With((int)invocationIndex).With(j).Create();
                     maskedOptions[i][j] = _randomOracle.Mask(options[i][j], query);
                 }
             });
 
+            _invocationCounter += (uint)numberOfInvocations;
             await CommunicationTools.WriteOptionsAsync(_channel, maskedOptions, 2, numberOfInvocations, numberOfMessageBytes);
         }
 
@@ -294,7 +295,6 @@ namespace CompactMPC.ObliviousTransfer
     /// </remarks>
     public class ExtendedObliviousTransfer : GeneralizedObliviousTransfer
     {
-        // todo: consider optimizations due to Schneider et al. https://thomaschneider.de/papers/ALSZ13.pdf section 5.3
         private IMessageChannel _channel; // only used to check sanity of arguments for receive/send
         private ExtendedObliviousTransferSender _senderBehavior;
         private ExtendedObliviousTransferReceiver _receiverBehavior;
