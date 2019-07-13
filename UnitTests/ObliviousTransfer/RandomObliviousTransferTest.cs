@@ -10,7 +10,7 @@ using CompactMPC.ObliviousTransfer;
 using CompactMPC.Networking;
 using CompactMPC.UnitTests.Util;
 
-namespace CompactMPC.UnitTests
+namespace CompactMPC.UnitTests.ObliviousTransfer
 {
     [TestClass]
     public class RandomObliviousTransferTest
