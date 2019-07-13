@@ -176,6 +176,13 @@ namespace CompactMPC.ObliviousTransfer
             return results;
         }
 
+        /// <summary>
+        /// Random 1-out-of-2 OT (R-OT). The R-OT functionality is exactly the same as OT, except that the sender gets two random messages as outputs [Asharov et al.]
+        /// </summary>
+        /// <param name="selectionIndices"></param>
+        /// <param name="numberOfInvocations"></param>
+        /// <param name="numberOfMessageBytes"></param>
+        /// <returns></returns>
         public async Task<byte[][]> ExecuteRandomAsync(BitArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
             Debug.Assert(selectionIndices.Length == numberOfInvocations);
@@ -233,6 +240,90 @@ namespace CompactMPC.ObliviousTransfer
                 results[i] = _randomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
             });
             _invocationCounter += (uint)numberOfInvocations;
+            return results;
+        }
+
+        /// <summary>
+        /// Correlated  OT  (C-OT), that receives a correlation string ∆ and chooses the sender’s inputs uniformly under the constraint that their XOR equals ∆. [Asharov et al.]
+        /// </summary>
+        /// <param name="correlationStrings"></param>
+        /// <param name="numberOfInvocations"></param>
+        /// <param name="numberOfMessageBytes"></param>
+        /// <returns></returns>
+        public async Task<byte[][]> ExecuteCorrelatedAsync(BitArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            Debug.Assert(selectionIndices.Length == numberOfInvocations);
+
+            if (_seededRandomOracles == null)
+                await ExecuteBaseOTAsync();
+
+            // note(lumip): we need a random bit matrix t as per the construction
+            //  of Ishai et al. and we use the trick of Asharov et al. and populate it with the random
+            //  expansion of the base OT seeds, i.e., t_k = H(seed_0). Since these are calculated later,
+            //  we only set up the matrix structure here.
+            BitMatrix tTransposed = new BitMatrix((uint)_securityParameter, (uint)numberOfInvocations);
+
+            // perform _securityParams many 1-out-of-2 OTs with numberOfInvocations bits message length
+            // by extending the _securityParams many 1-out-of-2 OTs with _securityParams bits message length
+            // (using the seeded random oracles)
+            // the purpose of these OTs is to offer to the _sender_ either a column of t or the column xor'ed with
+            // the selection bits of the receiver
+
+            // todo(lumip): should try-catch in case random oracle runs out
+            //  and ideally performs new base OTs and repeat
+            int numberOfRandomBytes = BitArray.RequiredBytes(numberOfInvocations);
+            byte[][][] sendBuffer = new byte[_securityParameter][][];
+            Parallel.For(0, _securityParameter, k =>
+            {
+                BitArray tColumn = BitArray.FromBytes(
+                    _seededRandomOracles[k][0].Take(numberOfRandomBytes).ToArray(),
+                    numberOfInvocations
+                );
+                tTransposed.SetRow((uint)k, tColumn);
+
+                BitArray mask = BitArray.FromBytes(
+                    _seededRandomOracles[k][1].Take(numberOfRandomBytes).ToArray(),
+                    numberOfInvocations
+                );
+
+                BitArray maskedSecondOption = tColumn ^ mask ^ selectionIndices;
+                sendBuffer[k] = new byte[1][] { maskedSecondOption.ToBytes() };
+            });
+
+            await CommunicationTools.WriteOptionsAsync(_channel, sendBuffer, 1, _securityParameter, numberOfRandomBytes);
+
+            // note(lumip): could precompute the masks for the response to have only cheap Xor after
+            //  waiting for the message, but not sure if it really is a significant performance issue
+
+            // retrieve the masked options from the sender and unmask the one indicated by the
+            //  corresponding selection indices
+            byte[][][] maskedOptions = await CommunicationTools.ReadOptionsAsync(_channel, 1, numberOfInvocations, numberOfMessageBytes);
+            Debug.Assert(maskedOptions.Length == numberOfInvocations);
+
+            byte[][] results = new byte[numberOfInvocations][];
+            Parallel.For(0, numberOfInvocations, i =>
+            {
+                Debug.Assert(maskedOptions[i].Length == 1);
+                Debug.Assert(maskedOptions[i][0].Length == numberOfMessageBytes);
+
+                uint invocationIndex = _invocationCounter + (uint)i;
+                int s = Convert.ToInt32(selectionIndices[i].Value);
+
+                Debug.Assert(s >= 0 && s <= 1);
+
+                byte[] query = tTransposed.GetColumn((uint)i).ToBytes();
+
+                if (s == 0)
+                {
+                    results[i] = _randomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
+                }
+                else
+                {
+                    results[i] = _randomOracle.Mask(maskedOptions[i][0], query);
+                }
+            });
+            _invocationCounter += (uint)numberOfInvocations;
+
             return results;
         }
 
@@ -342,6 +433,13 @@ namespace CompactMPC.ObliviousTransfer
             await CommunicationTools.WriteOptionsAsync(_channel, maskedOptions, 2, numberOfInvocations, numberOfMessageBytes);
         }
 
+        /// <summary>
+        /// Random 1-out-of-2 OT (R-OT). The R-OT functionality is exactly the same as OT, except that the sender gets two random messages as outputs [Asharov et al.]
+        /// </summary>
+        /// <param name="selectionIndices"></param>
+        /// <param name="numberOfInvocations"></param>
+        /// <param name="numberOfMessageBytes"></param>
+        /// <returns></returns>
         public async Task<Pair<byte[]>[]> ExecuteRandomAsync(int numberOfInvocations, int numberOfMessageBytes)
         {
             if (_seededRandomOracles == null)
@@ -392,7 +490,89 @@ namespace CompactMPC.ObliviousTransfer
             return options;
         }
 
+        /// <summary>
+        /// Correlated  OT  (C-OT), that receives a correlation string ∆ and chooses the sender’s inputs uniformly under the constraint that their XOR equals ∆. [Asharov et al.]
+        /// </summary>
+        /// <param name="correlationStrings"></param>
+        /// <param name="numberOfInvocations"></param>
+        /// <param name="numberOfMessageBytes"></param>
+        /// <returns></returns>
+        public async Task<Pair<byte[]>[]> ExecuteCorrelatedAsync(byte[][] correlationStrings, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            Debug.Assert(correlationStrings.Length == numberOfInvocations);
+
+            if (_seededRandomOracles == null)
+                await ExecuteBaseOTAsync();
+
+            int numberOfRandomBytes = BitArray.RequiredBytes(numberOfInvocations);
+
+            BitMatrix q = new BitMatrix((uint)numberOfInvocations, (uint)_securityParameter);
+
+            // note(lumip): could precompute the masks for the response to have only cheap Xor after
+            //  waiting for the message, but not sure if it really is a significant performance issue
+
+            // todo(lumip): should try-catch in case random oracle runs out
+            //  and ideally performs new base OTs and repeat
+            byte[][][] qOTResult = await CommunicationTools.ReadOptionsAsync(_channel, 1, _securityParameter, numberOfRandomBytes);
+
+            Debug.Assert(qOTResult.Length == _securityParameter);
+
+            Parallel.For(0, _securityParameter, k =>
+            {
+                Debug.Assert(qOTResult[k].Length == 1);
+                Debug.Assert(qOTResult[k][0].Length == numberOfRandomBytes);
+
+                BitArray mask = BitArray.FromBytes(
+                    _seededRandomOracles[k].Take(numberOfRandomBytes).ToArray(),
+                    numberOfInvocations
+                );
+                int s = Convert.ToInt32(_randomChoices[k].Value);
+
+                BitArray qColumn = mask;
+                if (s == 1)
+                    qColumn.Xor(BitArray.FromBytes(qOTResult[k][0], numberOfInvocations));
+
+                q.SetColumn((uint)k, qColumn);
+            });
+
+            // todo(lumip): this part is really ugly right now due to bitarray <-> byte[] conversions. nicefy!
+            int numberOfMessageBits = 8 * numberOfMessageBytes;
+            Pair<byte[]>[] options = new Pair<byte[]>[numberOfInvocations];
+            Pair<BitArray>[] optionsBitArray = new Pair<BitArray>[numberOfInvocations];
+            byte[][][] maskedOptions = new byte[numberOfInvocations][][];
+            Parallel.For(0, numberOfInvocations, i =>
+            {
+                Debug.Assert(correlationStrings[i].Length == numberOfMessageBytes);
+
+                uint invocationIndex = _invocationCounter + (uint)i;
+                options[i] = new Pair<byte[]>();
+                optionsBitArray[i] = new Pair<BitArray>();
+
+                BitArray qRow = q.GetRow((uint)i);
+
+                byte[] query = qRow.ToBytes(); // todo: should add invocation index?
+                options[i][0] = _randomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
+                optionsBitArray[i][0] = BitArray.FromBytes(options[i][0], numberOfMessageBits);
+
+                optionsBitArray[i][1] = BitArray.FromBytes(correlationStrings[i], numberOfMessageBits) ^ optionsBitArray[i][0];
+                options[i][1] = optionsBitArray[i][1].ToBytes();
+
+                query = (qRow ^ _randomChoices).ToBytes();
+
+                maskedOptions[i] = new[] { _randomOracle.Mask(options[i][1], query) };
+                Debug.Assert(maskedOptions[i][0].Length == numberOfMessageBytes);
+
+            });
+
+            _invocationCounter += (uint)numberOfInvocations;
+            await CommunicationTools.WriteOptionsAsync(_channel, maskedOptions, 1, numberOfInvocations, numberOfMessageBytes);
+
+            return options;
+        }
+
     }
+
+    // TODO(lumip): put _necessary_ debug assertions everywhere
 
     /// <summary>
     /// Implementation of the OT extension protocol that enables extending a small number of expensive oblivious transfer
@@ -451,6 +631,20 @@ namespace CompactMPC.ObliviousTransfer
             Debug.Assert(selectionBits.Length == numberOfInvocations);
 
             return _receiverBehavior.ExecuteRandomAsync(selectionBits, numberOfInvocations, numberOfMessageBytes);
+        }
+
+        public Task<Pair<byte[]>[]> GeneralizedCorrelatedSendAsync(byte[][] correlationStrings, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            // todo: random OT extension doesn't fit the current interface at all. refactor interfaces and then remove the following assertions!
+            return _senderBehavior.ExecuteCorrelatedAsync(correlationStrings ,numberOfInvocations, numberOfMessageBytes);
+        }
+
+        public Task<byte[][]> GeneralizedCorrelatedReceiveAsync(BitArray selectionBits, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            // todo: random OT extension doesn't fit the current interface at all. refactor interfaces and then remove the following assertions!
+            Debug.Assert(selectionBits.Length == numberOfInvocations);
+
+            return _receiverBehavior.ExecuteCorrelatedAsync(selectionBits, numberOfInvocations, numberOfMessageBytes);
         }
     }
 }
