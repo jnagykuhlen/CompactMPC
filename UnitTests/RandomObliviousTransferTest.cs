@@ -46,8 +46,8 @@ namespace CompactMPC.UnitTests
                     expected,
                     receiverResult[i],
                     "Incorrect message content {0} (should be {1}).",
-                    BitArray.FromBytes(receiverResult[i], NumberOfMessageBytes).ToBinaryString(),
-                    BitArray.FromBytes(expected, NumberOfMessageBytes).ToBinaryString()
+                    BitArray.FromBytes(receiverResult[i], 8 * NumberOfMessageBytes).ToBinaryString(),
+                    BitArray.FromBytes(expected, 8 * NumberOfMessageBytes).ToBinaryString()
                 );
             }
         }
@@ -87,8 +87,8 @@ namespace CompactMPC.UnitTests
                         expected,
                         receiverResult[i],
                         "Incorrect message content {0} (should be {1}).",
-                        BitArray.FromBytes(receiverResult[i], NumberOfMessageBytes).ToBinaryString(),
-                        BitArray.FromBytes(expected, NumberOfMessageBytes).ToBinaryString()
+                        BitArray.FromBytes(receiverResult[i], 8 * NumberOfMessageBytes).ToBinaryString(),
+                        BitArray.FromBytes(expected, 8 * NumberOfMessageBytes).ToBinaryString()
                     );
                 }
             }
