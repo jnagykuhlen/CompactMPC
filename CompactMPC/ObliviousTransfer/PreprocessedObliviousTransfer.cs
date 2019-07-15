@@ -9,7 +9,7 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    public class PreprocessedObliviousTransfer : IObliviousTransfer
+    public class PreprocessedObliviousTransfer : IBitObliviousTransfer
     {
         private PreprocessedSenderBatch _senderBatch;
         private PreprocessedReceiverBatch _receiverBatch;

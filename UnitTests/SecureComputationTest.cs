@@ -78,7 +78,7 @@ namespace CompactMPC.UnitTests
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
-                    IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                    IBitObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                         new SecurityParameters(47, 23, 4, 1, 1),
                         cryptoContext
                     );

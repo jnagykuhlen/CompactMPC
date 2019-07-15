@@ -10,7 +10,7 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    public abstract class GeneralizedObliviousTransfer : IObliviousTransfer, IGeneralizedObliviousTransfer
+    public abstract class GeneralizedObliviousTransfer : IBitObliviousTransfer, IGeneralizedObliviousTransfer
     {
         public Task SendAsync(IMessageChannel channel, BitQuadrupleArray options, int numberOfInvocations)
         {

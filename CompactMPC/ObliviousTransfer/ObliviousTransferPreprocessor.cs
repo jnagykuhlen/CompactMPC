@@ -12,10 +12,10 @@ namespace CompactMPC.ObliviousTransfer
 {
     public class ObliviousTransferPreprocessor
     {
-        private IObliviousTransfer _obliviousTransfer;
+        private IBitObliviousTransfer _obliviousTransfer;
         private RandomNumberGenerator _randomNumberGenerator;
 
-        public ObliviousTransferPreprocessor(IObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
+        public ObliviousTransferPreprocessor(IBitObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
         {
             if (obliviousTransfer == null)
                 throw new ArgumentNullException(nameof(obliviousTransfer));
