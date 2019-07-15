@@ -535,10 +535,7 @@ namespace CompactMPC.ObliviousTransfer
                 q.SetColumn((uint)k, qColumn);
             });
 
-            // todo(lumip): this part is really ugly right now due to bitarray <-> byte[] conversions. nicefy!
-            int numberOfMessageBits = 8 * numberOfMessageBytes;
             Pair<byte[]>[] options = new Pair<byte[]>[numberOfInvocations];
-            Pair<BitArray>[] optionsBitArray = new Pair<BitArray>[numberOfInvocations];
             byte[][][] maskedOptions = new byte[numberOfInvocations][][];
             Parallel.For(0, numberOfInvocations, i =>
             {
@@ -546,16 +543,13 @@ namespace CompactMPC.ObliviousTransfer
 
                 uint invocationIndex = _invocationCounter + (uint)i;
                 options[i] = new Pair<byte[]>();
-                optionsBitArray[i] = new Pair<BitArray>();
 
                 BitArray qRow = q.GetRow((uint)i);
 
                 byte[] query = qRow.ToBytes(); // todo: should add invocation index?
                 options[i][0] = _randomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
-                optionsBitArray[i][0] = BitArray.FromBytes(options[i][0], numberOfMessageBits);
 
-                optionsBitArray[i][1] = BitArray.FromBytes(correlationStrings[i], numberOfMessageBits) ^ optionsBitArray[i][0];
-                options[i][1] = optionsBitArray[i][1].ToBytes();
+                options[i][1] = BitArray.Xor(correlationStrings[i], options[i][0]);
 
                 query = (qRow ^ _randomChoices).ToBytes();
 
