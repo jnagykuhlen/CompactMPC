@@ -9,10 +9,12 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    public class InsecureObliviousTransfer : GeneralizedObliviousTransfer
+    public class InsecureObliviousTransfer : IStatelessTwoChoicesObliviousTransfer
     {
-        protected override Task GeneralizedSendAsync(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
+
+        public Task SendAsync(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
+            // todo: argument sanitization
             byte[] packedOptions = new byte[numberOfOptions * numberOfInvocations * numberOfMessageBytes];
             for (int i = 0; i < numberOfInvocations; ++i)
             {
@@ -23,8 +25,9 @@ namespace CompactMPC.ObliviousTransfer
             return channel.WriteMessageAsync(packedOptions);
         }
 
-        protected override async Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
+        public async Task<byte[][]> ReceiveAsync(IMessageChannel channel, int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
+            // todo: argument sanitization
             byte[] packedOptions = await channel.ReadMessageAsync();
             if (packedOptions.Length != numberOfOptions * numberOfInvocations * numberOfMessageBytes)
                 throw new DesynchronizationException("Received incorrect number of options.");
@@ -37,6 +40,21 @@ namespace CompactMPC.ObliviousTransfer
             }
 
             return selectedMessages;
+        }
+
+        public Task SendAsync(IMessageChannel channel, Pair<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            return SendAsync(channel, options.Select(pair => pair.ToArray()).ToArray(), 2, numberOfInvocations, numberOfMessageBytes);
+        }
+
+        public Task<byte[][]> ReceiveAsync(IMessageChannel channel, BitArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            return ReceiveAsync(channel, selectionIndices.ToPairIndexArray(), numberOfInvocations, numberOfMessageBytes);
+        }
+
+        public Task<byte[][]> ReceiveAsync(IMessageChannel channel, PairIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            return ReceiveAsync(channel, selectionIndices.ToArray(), 2, numberOfInvocations, numberOfMessageBytes);
         }
     }
 }

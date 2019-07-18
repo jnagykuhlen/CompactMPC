@@ -49,25 +49,19 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
 
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer baseOT = new InsecureObliviousTransfer();
-
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {
-                    IGeneralizedObliviousTransfer obliviousTransfer = new ExtendedObliviousTransfer(
-                        baseOT,
-                        8,
-                        session.Channel,
-                        cryptoContext
-                    );
+                    ITwoChoicesObliviousTransferChannel baseOT = new StatelessTwoChoiceObliviousObliviousTransferChannelDecorator(new InsecureObliviousTransfer(), session.Channel);
+                    ITwoChoicesObliviousTransferChannel obliviousTransfer = new TwoChoicesExtendedObliviousTransferChannel(baseOT, 8, cryptoContext);
 
                     if (session.LocalParty.Id == 0)
                     {
-                        obliviousTransfer.SendAsync(session.Channel, options, numberOfInvocations, 6).Wait();
+                        obliviousTransfer.SendAsync(options, numberOfInvocations, 6).Wait();
                     }
                     else
                     {
                         PairIndexArray indices = new PairIndexArray(new[] { 0, 1, 0 });
-                        byte[][] results = obliviousTransfer.ReceiveAsync(session.Channel, indices, numberOfInvocations, 6).Result;
+                        byte[][] results = obliviousTransfer.ReceiveAsync(indices, numberOfInvocations, 6).Result;
 
                         Assert.IsNotNull(results, "Result is null.");
                         Assert.AreEqual(numberOfInvocations, results.Length, "Result does not match the correct number of invocations.");
@@ -101,21 +95,15 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
 
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer baseOT = new InsecureObliviousTransfer();
-
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {
-                    IGeneralizedObliviousTransfer obliviousTransfer = new ExtendedObliviousTransfer(
-                        baseOT,
-                        8,
-                        session.Channel,
-                        cryptoContext
-                    );
+                    ITwoChoicesObliviousTransferChannel baseOT = new StatelessTwoChoiceObliviousObliviousTransferChannelDecorator(new InsecureObliviousTransfer(), session.Channel);
+                    ITwoChoicesObliviousTransferChannel obliviousTransfer = new TwoChoicesExtendedObliviousTransferChannel(baseOT, 8, cryptoContext);
 
                     if (session.LocalParty.Id == 0)
                     {
                         for (int i = 0; i < 2; ++i)
-                            obliviousTransfer.SendAsync(session.Channel, options, numberOfInvocations, 6).Wait();
+                            obliviousTransfer.SendAsync(options, numberOfInvocations, 6).Wait();
                     }
                     else
                     {
@@ -123,7 +111,7 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
                         for (int i = 0; i < 2; ++i)
                         {
                             PairIndexArray indices = allIndices[i];
-                            byte[][] results = obliviousTransfer.ReceiveAsync(session.Channel, indices, numberOfInvocations, 6).Result;
+                            byte[][] results = obliviousTransfer.ReceiveAsync(indices, numberOfInvocations, 6).Result;
 
                             Assert.IsNotNull(results, "Result is null.");
                             Assert.AreEqual(numberOfInvocations, results.Length, "Result does not match the correct number of invocations.");

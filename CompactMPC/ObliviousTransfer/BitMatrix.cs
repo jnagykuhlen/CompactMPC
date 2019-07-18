@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    internal class BitMatrix
+    public class BitMatrix
     {
         private BitArray _values;
 

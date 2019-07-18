@@ -224,7 +224,7 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
 
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer obliviousTransfer = new InsecureObliviousTransfer();
+                InsecureObliviousTransfer obliviousTransfer = new InsecureObliviousTransfer();
 
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {
@@ -269,7 +269,7 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
 
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer obliviousTransfer = new InsecureObliviousTransfer();
+                InsecureObliviousTransfer obliviousTransfer = new InsecureObliviousTransfer();
 
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {

@@ -98,17 +98,12 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
         {
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer baseOT = new InsecureObliviousTransfer();
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {
-                    ExtendedObliviousTransfer obliviousTransfer = new ExtendedObliviousTransfer(
-                        baseOT,
-                        8,
-                        session.Channel,
-                        cryptoContext
-                    );
+                    ITwoChoicesObliviousTransferChannel baseOT = new StatelessTwoChoiceObliviousObliviousTransferChannelDecorator(new InsecureObliviousTransfer(), session.Channel);
+                    ITwoChoicesRandomObliviousTransferChannel obliviousTransfer = new TwoChoicesRandomExtendedObliviousTransferChannel(baseOT, 8, cryptoContext);
 
-                    return obliviousTransfer.GeneralizedRandomReceiveAsync(selectionBits, selectionBits.Length, NumberOfMessageBytes).Result;
+                    return obliviousTransfer.ReceiveAsync(selectionBits, selectionBits.Length, NumberOfMessageBytes).Result;
                 }
             }
         }
@@ -117,16 +112,12 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
         {
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer baseOT = new InsecureObliviousTransfer();
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {
-                    ExtendedObliviousTransfer obliviousTransfer = new ExtendedObliviousTransfer(
-                        baseOT,
-                        8,
-                        session.Channel,
-                        cryptoContext
-                    );
-                    return obliviousTransfer.GeneralizedRandomSendAsync(numberOfInvocations, NumberOfMessageBytes).Result;
+                    ITwoChoicesObliviousTransferChannel baseOT = new StatelessTwoChoiceObliviousObliviousTransferChannelDecorator(new InsecureObliviousTransfer(), session.Channel);
+                    ITwoChoicesRandomObliviousTransferChannel obliviousTransfer = new TwoChoicesRandomExtendedObliviousTransferChannel(baseOT, 8, cryptoContext);
+
+                    return obliviousTransfer.SendAsync(numberOfInvocations, NumberOfMessageBytes).Result;
                 }
             }
         }
@@ -135,19 +126,14 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
         {
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer baseOT = new InsecureObliviousTransfer();
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {
-                    ExtendedObliviousTransfer obliviousTransfer = new ExtendedObliviousTransfer(
-                        baseOT,
-                        8,
-                        session.Channel,
-                        cryptoContext
-                    );
+                    ITwoChoicesObliviousTransferChannel baseOT = new StatelessTwoChoiceObliviousObliviousTransferChannelDecorator(new InsecureObliviousTransfer(), session.Channel);
+                    ITwoChoicesRandomObliviousTransferChannel obliviousTransfer = new TwoChoicesRandomExtendedObliviousTransferChannel(baseOT, 8, cryptoContext);
 
-                    byte[][] firstRoundResults = obliviousTransfer.GeneralizedRandomReceiveAsync(
+                    byte[][] firstRoundResults = obliviousTransfer.ReceiveAsync(
                         firstRoundSelectionBits, firstRoundSelectionBits.Length, NumberOfMessageBytes).Result;
-                    byte[][] secondRoundResults = obliviousTransfer.GeneralizedRandomReceiveAsync(
+                    byte[][] secondRoundResults = obliviousTransfer.ReceiveAsync(
                         secondRoundSelectionBits, secondRoundSelectionBits.Length, NumberOfMessageBytes).Result;
                     return new Pair<byte[][]>(firstRoundResults, secondRoundResults);
                 }
@@ -158,18 +144,14 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
         {
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer baseOT = new InsecureObliviousTransfer();
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {
-                    ExtendedObliviousTransfer obliviousTransfer = new ExtendedObliviousTransfer(
-                        baseOT,
-                        8,
-                        session.Channel,
-                        cryptoContext
-                    );
-                    Pair<byte[]>[] firstRoundResults = obliviousTransfer.GeneralizedRandomSendAsync(
+                    ITwoChoicesObliviousTransferChannel baseOT = new StatelessTwoChoiceObliviousObliviousTransferChannelDecorator(new InsecureObliviousTransfer(), session.Channel);
+                    ITwoChoicesRandomObliviousTransferChannel obliviousTransfer = new TwoChoicesRandomExtendedObliviousTransferChannel(baseOT, 8, cryptoContext);
+
+                    Pair<byte[]>[] firstRoundResults = obliviousTransfer.SendAsync(
                         numberOfInvocations, NumberOfMessageBytes).Result;
-                    Pair<byte[]>[] secondRoundResults = obliviousTransfer.GeneralizedRandomSendAsync(
+                    Pair<byte[]>[] secondRoundResults = obliviousTransfer.SendAsync(
                         numberOfInvocations, NumberOfMessageBytes).Result;
                     return new Pair<Pair<byte[]>[]>(firstRoundResults, secondRoundResults);
                 }
