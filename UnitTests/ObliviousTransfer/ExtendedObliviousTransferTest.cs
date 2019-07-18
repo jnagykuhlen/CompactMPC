@@ -51,7 +51,7 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
             {
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {
-                    ITwoChoicesObliviousTransferChannel baseOT = new StatelessTwoChoiceObliviousObliviousTransferChannelDecorator(new InsecureObliviousTransfer(), session.Channel);
+                    ITwoChoicesObliviousTransferChannel baseOT = new StatelessTwoChoiceObliviousObliviousTransferChannelAdapter(new InsecureObliviousTransfer(), session.Channel);
                     ITwoChoicesObliviousTransferChannel obliviousTransfer = new TwoChoicesExtendedObliviousTransferChannel(baseOT, 8, cryptoContext);
 
                     if (session.LocalParty.Id == 0)
@@ -97,7 +97,7 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
             {
                 using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
                 {
-                    ITwoChoicesObliviousTransferChannel baseOT = new StatelessTwoChoiceObliviousObliviousTransferChannelDecorator(new InsecureObliviousTransfer(), session.Channel);
+                    ITwoChoicesObliviousTransferChannel baseOT = new StatelessTwoChoiceObliviousObliviousTransferChannelAdapter(new InsecureObliviousTransfer(), session.Channel);
                     ITwoChoicesObliviousTransferChannel obliviousTransfer = new TwoChoicesExtendedObliviousTransferChannel(baseOT, 8, cryptoContext);
 
                     if (session.LocalParty.Id == 0)
