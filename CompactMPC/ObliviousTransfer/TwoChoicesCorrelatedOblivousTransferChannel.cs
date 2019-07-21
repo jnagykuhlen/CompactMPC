@@ -10,6 +10,18 @@ using CompactMPC.Buffers;
 
 namespace CompactMPC.ObliviousTransfer
 {
+    /// <summary>
+    /// Implementation of the 1-out-of-2 Correlated Oblivious Transfer protocol by Asharov et al. based on the OT extension protocol of Ishai et al.
+    /// 
+    /// Provides 1oo2-C-OT on a given channel (i.e., pair of parties) and may maintain
+    /// channel-specific protocol state in-between invocations.
+    /// 
+    /// The C-OT functionality receives a correlation string ∆ and chooses the sender’s inputs uniformly under the constraint that their XOR equals ∆. [Asharov et al.]
+    /// </summary>
+    /// <remarks>
+    /// References: Yuval Ishai, Joe Kilian, Kobbi Nissim and Erez Petrank: Extending Oblivious Transfers Efficiently. 2003. https://link.springer.com/content/pdf/10.1007/978-3-540-45146-4_9.pdf
+    /// and Gilad Asharov, Yehuda Lindell, Thomas Schneider and Michael Zohner: More Efficient Oblivious Transfer and Extensions for Faster Secure Computation. 2013. Section 5.3. https://thomaschneider.de/papers/ALSZ13.pdf
+    /// </remarks>
     public class TwoChoicesCorrelatedExtendedObliviousTransferChannel : TwoChoicesExtendedObliviousTransferChannelBase, ITwoChoicesCorrelatedObliviousTransferChannel
     {
         public TwoChoicesCorrelatedExtendedObliviousTransferChannel(ITwoChoicesObliviousTransferChannel baseOT, int securityParameter, CryptoContext cryptoContext)
@@ -27,6 +39,8 @@ namespace CompactMPC.ObliviousTransfer
             }
 
             BitMatrix q = await ReceiveQMatrix(numberOfInvocations);
+            Debug.Assert(q.Rows == numberOfInvocations);
+            Debug.Assert(q.Cols == SecurityParameter);
 
             Pair<byte[]>[] options = new Pair<byte[]>[numberOfInvocations];
             byte[][][] maskedOptions = new byte[numberOfInvocations][][];
@@ -34,24 +48,24 @@ namespace CompactMPC.ObliviousTransfer
             {
                 Debug.Assert(correlationStrings[i].Length == numberOfMessageBytes);
 
-                uint invocationIndex = _senderState.InvocationCounter + (uint)i;
+                uint invocationIndex = SenderInvocationCounter + (uint)i;
                 options[i] = new Pair<byte[]>();
 
                 BitArray qRow = q.GetRow((uint)i);
 
                 byte[] query = qRow.ToBytes(); // todo: should add invocation index?
-                options[i][0] = _randomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
+                options[i][0] = RandomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
 
                 options[i][1] = BitArray.Xor(correlationStrings[i], options[i][0]);
 
-                query = (qRow ^ _senderState.RandomChoices).ToBytes();
+                query = (qRow ^ SenderChoices).ToBytes();
 
-                maskedOptions[i] = new[] { _randomOracle.Mask(options[i][1], query) };
+                maskedOptions[i] = new[] { RandomOracle.Mask(options[i][1], query) };
                 Debug.Assert(maskedOptions[i][0].Length == numberOfMessageBytes);
 
             });
 
-            _senderState.InvocationCounter += (uint)numberOfInvocations;
+            IncreaseSenderInvocationCount((uint)numberOfInvocations);
             await CommunicationTools.WriteOptionsAsync(Channel, maskedOptions, 1, numberOfInvocations, numberOfMessageBytes);
 
             return options;
@@ -59,6 +73,10 @@ namespace CompactMPC.ObliviousTransfer
 
         protected override async Task<byte[][]> ReceiveMaskedOptionsAsync(BitArray selectionIndices, BitMatrix tTransposed, int numberOfInvocations, int numberOfMessageBytes)
         {
+            Debug.Assert(selectionIndices.Length == numberOfInvocations);
+            Debug.Assert(tTransposed.Rows == SecurityParameter);
+            Debug.Assert(tTransposed.Cols == numberOfInvocations);
+
             // retrieve the masked options from the sender and unmask the one indicated by the
             //  corresponding selection indices
             byte[][][] maskedOptions = await CommunicationTools.ReadOptionsAsync(Channel, 1, numberOfInvocations, numberOfMessageBytes);
@@ -70,20 +88,18 @@ namespace CompactMPC.ObliviousTransfer
                 Debug.Assert(maskedOptions[i].Length == 1);
                 Debug.Assert(maskedOptions[i][0].Length == numberOfMessageBytes);
 
-                uint invocationIndex = _receiverState.InvocationCounter + (uint)i;
+                uint invocationIndex = ReceiverInvocationCounter + (uint)i;
                 int s = Convert.ToInt32(selectionIndices[i].Value);
-
-                Debug.Assert(s >= 0 && s <= 1);
 
                 byte[] query = tTransposed.GetColumn((uint)i).ToBytes();
 
                 if (s == 0)
                 {
-                    results[i] = _randomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
+                    results[i] = RandomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
                 }
                 else
                 {
-                    results[i] = _randomOracle.Mask(maskedOptions[i][0], query);
+                    results[i] = RandomOracle.Mask(maskedOptions[i][0], query);
                 }
             });
             return results;

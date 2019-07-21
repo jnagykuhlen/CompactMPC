@@ -12,10 +12,10 @@ namespace CompactMPC.Protocol
 {
     public class ObliviousTransferMultiplicativeSharing : PairwiseMultiplicativeSharing
     {
-        private IBitObliviousTransfer _obliviousTransfer;
+        private IStatelessFourChoicesBitObliviousTransfer _obliviousTransfer;
         private RandomNumberGenerator _randomNumberGenerator;
 
-        public ObliviousTransferMultiplicativeSharing(IBitObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
+        public ObliviousTransferMultiplicativeSharing(IStatelessFourChoicesBitObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
         {
             _obliviousTransfer = obliviousTransfer;
             _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);

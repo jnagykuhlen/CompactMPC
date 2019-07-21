@@ -80,7 +80,7 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
 
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                IStatelessTwoChoicesObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                     SecurityParameters.CreateDefault768Bit(),
                     cryptoContext
                 );
@@ -128,7 +128,7 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
 
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                IStatelessFourChoicesObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                     SecurityParameters.CreateDefault768Bit(),
                     cryptoContext
                 );
@@ -176,7 +176,7 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
 
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IGeneralizedObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                IStatelessMultiChoicesObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                     SecurityParameters.CreateDefault768Bit(),
                     cryptoContext
                 );

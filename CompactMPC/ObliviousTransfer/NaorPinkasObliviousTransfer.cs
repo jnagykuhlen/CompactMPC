@@ -20,7 +20,7 @@ namespace CompactMPC.ObliviousTransfer
     /// Further implementation details: Seung Geol Choi et al.: Secure Multi-Party Computation of Boolean Circuits with Applications
     /// to Privacy in On-Line Marketplaces. https://link.springer.com/chapter/10.1007/978-3-642-27954-6_26
     /// </remarks>
-    public class NaorPinkasObliviousTransfer : GeneralizedObliviousTransfer, IStatelessTwoChoicesObliviousTransfer
+    public class NaorPinkasObliviousTransfer : StatelessMultiChoicesObliviousTransfer
     {
         private SecurityParameters _parameters;
         private RandomOracle _randomOracle;
@@ -41,7 +41,7 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        protected override async Task GeneralizedSendAsync(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
+        protected override async Task SendAsyncInternal(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -124,7 +124,7 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        protected override async Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
+        protected override async Task<byte[][]> ReceiveAsyncInternal(IMessageChannel channel, int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -280,5 +280,6 @@ namespace CompactMPC.ObliviousTransfer
             byte[] query = BufferBuilder.From(groupElement.ToByteArray()).With(invocationIndex).With(optionIndex).Create();
             return _randomOracle.Mask(option, query);
         }
+        
     }
 }

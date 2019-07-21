@@ -4,6 +4,9 @@ using System.Text;
 
 namespace CompactMPC.ObliviousTransfer
 {
+    /// <summary>
+    /// A two-dimensional storage of bits.
+    /// </summary>
     public class BitMatrix
     {
         private BitArray _values;

@@ -18,39 +18,45 @@ namespace CompactMPC.ObliviousTransfer
         public async Task<Pair<byte[]>[]> SendAsync(int numberOfInvocations, int numberOfMessageBytes)
         {
             BitMatrix q = await ReceiveQMatrix(numberOfInvocations);
+            Debug.Assert(q.Rows == numberOfInvocations);
+            Debug.Assert(q.Cols == SecurityParameter);
 
             Pair<byte[]>[] options = new Pair<byte[]>[numberOfInvocations];
             Parallel.For(0, numberOfInvocations, i =>
             {
-                uint invocationIndex = _senderState.InvocationCounter + (uint)i;
+                uint invocationIndex = SenderInvocationCounter + (uint)i;
                 options[i] = new Pair<byte[]>();
                 BitArray qRow = q.GetRow((uint)i);
                 for (int j = 0; j < 2; ++j)
                 {
                     if (j == 1)
-                        qRow.Xor(_senderState.RandomChoices);
+                        qRow.Xor(SenderChoices);
                     byte[] query = BufferBuilder.From(qRow.ToBytes()).With((int)invocationIndex).With(j).Create();
-                    options[i][j] = _randomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
+                    options[i][j] = RandomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
                 }
             });
-            _senderState.InvocationCounter += (uint)numberOfInvocations;
+            IncreaseSenderInvocationCount((uint)numberOfInvocations);
 
             return options;
         }
 
-        protected override async Task<byte[][]> ReceiveMaskedOptionsAsync(BitArray selectionIndices, BitMatrix tTransposed, int numberOfInvocations, int numberOfMessageBytes)
+        protected override Task<byte[][]> ReceiveMaskedOptionsAsync(BitArray selectionIndices, BitMatrix tTransposed, int numberOfInvocations, int numberOfMessageBytes)
         {
+            Debug.Assert(selectionIndices.Length == numberOfInvocations);
+            Debug.Assert(tTransposed.Rows == SecurityParameter);
+            Debug.Assert(tTransposed.Cols == numberOfInvocations);
+            
             byte[][] results = new byte[numberOfInvocations][];
             Parallel.For(0, numberOfInvocations, i =>
             {
-                uint invocationIndex = _receiverState.InvocationCounter + (uint)i;
+                uint invocationIndex = ReceiverInvocationCounter + (uint)i;
                 int s = Convert.ToInt32(selectionIndices[i].Value);
 
                 byte[] query = BufferBuilder.From(tTransposed.GetColumn((uint)i).ToBytes()).With((int)invocationIndex).With(s).Create();
-                results[i] = _randomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
+                results[i] = RandomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
             });
 
-            return results;
+            return Task.FromResult(results);
         }
     }
 }

@@ -78,11 +78,14 @@ namespace CompactMPC.UnitTests
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
-                    IBitObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
-                        new SecurityParameters(47, 23, 4, 1, 1),
-                        cryptoContext
+                    IStatelessFourChoicesBitObliviousTransfer obliviousTransfer = obliviousTransfer =
+                        new StatelessFourChoicesBitObliviousTransferChannelAdapter(
+                            new NaorPinkasObliviousTransfer(
+                                new SecurityParameters(47, 23, 4, 1, 1),
+                                cryptoContext
+                            )
                     );
-
+                    
                     IMultiplicativeSharing multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(
                         obliviousTransfer,
                         cryptoContext
