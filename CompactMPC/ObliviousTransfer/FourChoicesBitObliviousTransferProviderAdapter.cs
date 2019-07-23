@@ -8,22 +8,22 @@ using CompactMPC.Networking;
 namespace CompactMPC.ObliviousTransfer
 {
     /// <summary>
-    /// Implements a 1-out-of-4 bit Oblivious Transfer channel provider using any 1-out-of-4 OT channel 
+    /// Implements a 1-out-of-N bit Oblivious Transfer channel provider using any 1-out-of-N OT channel 
     /// implementation for arbitrary message lengths and wrapping the channels it returns into
     /// <see cref="FourChoicesBitObliviousTransferChannelAdapter"/>.
     /// </summary>
-    public class FourChoicesBitObliviousTransferProviderAdapter : IFourChoicesBitObliviousTransferProvider
+    public class MultiChoicesBitObliviousTransferProviderAdapter : IMultiChoicesBitObliviousTransferProvider
     {
-        private IFourChoicesObliviousTransferProvider _otProvider;
+        private IMultiChoicesObliviousTransferProvider _otProvider;
 
-        public FourChoicesBitObliviousTransferProviderAdapter(IFourChoicesObliviousTransferProvider otProvider)
+        public MultiChoicesBitObliviousTransferProviderAdapter(IMultiChoicesObliviousTransferProvider otProvider)
         {
             _otProvider = otProvider;
         }
 
-        public IFourChoicesBitObliviousTransferChannel CreateChannel(IMessageChannel channel)
+        public IMultiChoicesBitObliviousTransferChannel CreateChannel(IMessageChannel channel)
         {
-            return new FourChoicesBitObliviousTransferChannelAdapter(_otProvider.CreateChannel(channel));
+            return new MultiChoicesBitObliviousTransferChannelAdapter(_otProvider.CreateChannel(channel));
         }
     }
 }

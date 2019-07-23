@@ -10,7 +10,7 @@ namespace CompactMPC.ObliviousTransfer
     /// </summary>
     public class StatelessMultiChoicesObliviousTransferProvider : IMultiChoicesObliviousTransferProvider
     {
-        // todo(lumip): this is exactly the same code as for 1oo4, 1ooN, except for the method signatures below..
+        // todo(lumip): this is exactly the same code as for 1oo2, except for the method signatures below..
         //  how to avoid this duplication??
         private IStatelessMultiChoicesObliviousTransfer _statelessOT;
 

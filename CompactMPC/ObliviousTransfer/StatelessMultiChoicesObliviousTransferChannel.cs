@@ -7,11 +7,11 @@ using CompactMPC.Networking;
 namespace CompactMPC.ObliviousTransfer
 {
     /// <summary>
-    /// A wrapper turning a stateless 1-out-of-2 OT implementation into an OT channel.
+    /// A wrapper turning a stateless 1-out-of-N OT implementation into an OT channel.
     /// </summary>
     public class StatelessMultiChoicesObliviousTransferChannel : IMultiChoicesObliviousTransferChannel
     {
-        // todo(lumip): this is exactly the same code as for 1oo4, 1ooN, except for the method signatures below..
+        // todo(lumip): this is exactly the same code as for 1oo2, except for the method signatures below..
         //  how to avoid this duplication??
 
         private IStatelessMultiChoicesObliviousTransfer _statelessOT;
@@ -36,6 +36,16 @@ namespace CompactMPC.ObliviousTransfer
         public Task<byte[][]> ReceiveAsync(int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes)
         {
             return _statelessOT.ReceiveAsync(Channel, selectionIndices, numberOfOptions, numberOfInvocations, numberOfMessageBytes);
+        }
+
+        public Task SendAsync(Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            return _statelessOT.SendAsync(Channel, options, numberOfInvocations, numberOfMessageBytes);
+        }
+
+        public Task<byte[][]> ReceiveAsync(QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            return _statelessOT.ReceiveAsync(Channel, selectionIndices, numberOfInvocations, numberOfMessageBytes);
         }
     }
 }

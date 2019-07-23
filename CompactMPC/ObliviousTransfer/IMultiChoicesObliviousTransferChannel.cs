@@ -17,6 +17,11 @@ namespace CompactMPC.ObliviousTransfer
         Task SendAsync(byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes);
         Task<byte[][]> ReceiveAsync(int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes);
 
+        #region Four Choices Specialization
+        Task SendAsync(Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes);
+        Task<byte[][]> ReceiveAsync(QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes);
+        #endregion
+
         /// <summary>
         /// The network channel the OT operates on, uniquely identifying the pair of parties involved in the OT.
         /// </summary>

@@ -78,9 +78,9 @@ namespace CompactMPC.UnitTests
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
-                    IFourChoicesBitObliviousTransferProvider obliviousTransfer =
-                        new FourChoicesBitObliviousTransferProviderAdapter(
-                            new StatelessFourChoicesObliviousTransferProvider(
+                    IMultiChoicesBitObliviousTransferProvider obliviousTransfer =
+                        new MultiChoicesBitObliviousTransferProviderAdapter(
+                            new StatelessMultiChoicesObliviousTransferProvider(
                                 new NaorPinkasObliviousTransfer(
                                     new SecurityParameters(47, 23, 4, 1, 1),
                                     cryptoContext

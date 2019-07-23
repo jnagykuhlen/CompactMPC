@@ -12,10 +12,10 @@ namespace CompactMPC.Protocol
 {
     public class ObliviousTransferMultiplicativeSharing : PairwiseMultiplicativeSharing
     {
-        private IFourChoicesBitObliviousTransferProvider _obliviousTransferProvider;
+        private IMultiChoicesBitObliviousTransferProvider _obliviousTransferProvider;
         private RandomNumberGenerator _randomNumberGenerator;
 
-        public ObliviousTransferMultiplicativeSharing(IFourChoicesBitObliviousTransferProvider obliviousTransferProvider, CryptoContext cryptoContext)
+        public ObliviousTransferMultiplicativeSharing(IMultiChoicesBitObliviousTransferProvider obliviousTransferProvider, CryptoContext cryptoContext)
         {
             _obliviousTransferProvider = obliviousTransferProvider;
             _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
@@ -35,7 +35,7 @@ namespace CompactMPC.Protocol
             }
         }
 
-        private async Task<BitArray> ComputeSenderSharesAsync(IFourChoicesBitObliviousTransferChannel ot, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
+        private async Task<BitArray> ComputeSenderSharesAsync(IMultiChoicesBitObliviousTransferChannel ot, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
         {
             BitArray randomShares = _randomNumberGenerator.GetBits(numberOfInvocations);
             BitQuadrupleArray options = new BitQuadrupleArray(numberOfInvocations);
@@ -54,7 +54,7 @@ namespace CompactMPC.Protocol
             return randomShares;
         }
 
-        private Task<BitArray> ComputeReceiverSharesAsync(IFourChoicesBitObliviousTransferChannel ot, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
+        private Task<BitArray> ComputeReceiverSharesAsync(IMultiChoicesBitObliviousTransferChannel ot, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
         {
             QuadrupleIndexArray selectionIndices = new QuadrupleIndexArray(numberOfInvocations);
             for (int i = 0; i < numberOfInvocations; ++i)

@@ -17,7 +17,7 @@ namespace CompactMPC.ObliviousTransfer
     /// that is implemented by subclasses. These should provide overrides for the static SendAsyncInternal and ReceiveAsyncInternal
     /// methods, which are invoked by SendAsync and ReceiveAsync after the arguments have been checked for consistency.
     /// </summary>
-    public abstract class StatelessMultiChoicesObliviousTransfer : IStatelessMultiChoicesObliviousTransfer, IStatelessFourChoicesObliviousTransfer, IStatelessTwoChoicesObliviousTransfer
+    public abstract class StatelessMultiChoicesObliviousTransfer : IStatelessMultiChoicesObliviousTransfer, IStatelessTwoChoicesObliviousTransfer
     {
         protected abstract Task SendAsyncInternal(IMessageChannel channel, byte[][][] options, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes);
         protected abstract Task<byte[][]> ReceiveAsyncInternal(IMessageChannel channel, int[] selectionIndices, int numberOfOptions, int numberOfInvocations, int numberOfMessageBytes);

@@ -128,7 +128,7 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
 
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                IStatelessFourChoicesObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                IStatelessMultiChoicesObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                     SecurityParameters.CreateDefault768Bit(),
                     cryptoContext
                 );
