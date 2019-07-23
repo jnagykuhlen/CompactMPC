@@ -10,7 +10,7 @@ namespace CompactMPC.ObliviousTransfer
     /// <summary>
     /// Implements a 1-out-of-N bit Oblivious Transfer channel provider using any 1-out-of-N OT channel 
     /// implementation for arbitrary message lengths and wrapping the channels it returns into
-    /// <see cref="FourChoicesBitObliviousTransferChannelAdapter"/>.
+    /// <see cref="MultiChoicesBitObliviousTransferChannelAdapter"/>.
     /// </summary>
     public class MultiChoicesBitObliviousTransferProviderAdapter : IMultiChoicesBitObliviousTransferProvider
     {
