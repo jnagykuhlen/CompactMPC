@@ -12,12 +12,12 @@ namespace CompactMPC.Protocol
 {
     public class ObliviousTransferMultiplicativeSharing : PairwiseMultiplicativeSharing
     {
-        private IStatelessFourChoicesBitObliviousTransfer _obliviousTransfer;
+        private IFourChoicesBitObliviousTransferProvider _obliviousTransferProvider;
         private RandomNumberGenerator _randomNumberGenerator;
 
-        public ObliviousTransferMultiplicativeSharing(IStatelessFourChoicesBitObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
+        public ObliviousTransferMultiplicativeSharing(IFourChoicesBitObliviousTransferProvider obliviousTransferProvider, CryptoContext cryptoContext)
         {
-            _obliviousTransfer = obliviousTransfer;
+            _obliviousTransferProvider = obliviousTransferProvider;
             _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
         }
 
@@ -27,15 +27,15 @@ namespace CompactMPC.Protocol
             // compute share of x1 * y2 + x2 * y1
             if (session.RemoteParty.Id < session.LocalParty.Id)
             {
-                return ComputeSenderSharesAsync(session.Channel, leftShares, rightShares, numberOfInvocations);
+                return ComputeSenderSharesAsync(_obliviousTransferProvider.CreateChannel(session.Channel), leftShares, rightShares, numberOfInvocations);
             }
             else
             {
-                return ComputeReceiverSharesAsync(session.Channel, leftShares, rightShares, numberOfInvocations);
+                return ComputeReceiverSharesAsync(_obliviousTransferProvider.CreateChannel(session.Channel), leftShares, rightShares, numberOfInvocations);
             }
         }
 
-        private async Task<BitArray> ComputeSenderSharesAsync(IMessageChannel channel, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
+        private async Task<BitArray> ComputeSenderSharesAsync(IFourChoicesBitObliviousTransferChannel ot, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
         {
             BitArray randomShares = _randomNumberGenerator.GetBits(numberOfInvocations);
             BitQuadrupleArray options = new BitQuadrupleArray(numberOfInvocations);
@@ -50,17 +50,17 @@ namespace CompactMPC.Protocol
                 );
             }
 
-            await _obliviousTransfer.SendAsync(channel, options, numberOfInvocations);
+            await ot.SendAsync(options, numberOfInvocations);
             return randomShares;
         }
 
-        private Task<BitArray> ComputeReceiverSharesAsync(IMessageChannel channel, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
+        private Task<BitArray> ComputeReceiverSharesAsync(IFourChoicesBitObliviousTransferChannel ot, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
         {
             QuadrupleIndexArray selectionIndices = new QuadrupleIndexArray(numberOfInvocations);
             for (int i = 0; i < numberOfInvocations; ++i)
                 selectionIndices[i] = 2 * (byte)leftShares[i] + (byte)rightShares[i];
 
-            return _obliviousTransfer.ReceiveAsync(channel, selectionIndices, numberOfInvocations);
+            return ot.ReceiveAsync(selectionIndices, numberOfInvocations);
         }
 
         protected override bool IncludesLocalTerms

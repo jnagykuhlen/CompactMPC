@@ -63,12 +63,14 @@ namespace CompactMPC.Application
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
-                    IStatelessFourChoicesBitObliviousTransfer obliviousTransfer =
-                        new StatelessFourChoicesBitObliviousTransferChannelAdapter(
-                            new NaorPinkasObliviousTransfer(
-                                SecurityParameters.CreateDefault768Bit(),
-                                cryptoContext
-                            )
+                    IFourChoicesBitObliviousTransferProvider obliviousTransfer =
+                        new FourChoicesBitObliviousTransferProviderAdapter(
+                            new StatelessFourChoicesObliviousTransferProvider(
+                                new NaorPinkasObliviousTransfer(
+                                    SecurityParameters.CreateDefault768Bit(),
+                                    cryptoContext
+                                )
+                        )
                     );
 
                     IMultiplicativeSharing multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(

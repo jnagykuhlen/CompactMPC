@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
@@ -15,5 +16,10 @@ namespace CompactMPC.ObliviousTransfer
     {
         Task SendAsync(Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes);
         Task<byte[][]> ReceiveAsync(QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes);
+
+        /// <summary>
+        /// The network channel the OT operates on, uniquely identifying the pair of parties involved in the OT.
+        /// </summary>
+        IMessageChannel Channel { get; }
     }
 }
