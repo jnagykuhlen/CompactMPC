@@ -31,32 +31,31 @@ namespace CompactMPC.ObliviousTransfer
         protected int SecurityParameter { get; private set; }
         protected RandomOracle RandomOracle { get; private set; }
 
+
+        /// <summary>
+        /// Internal encapsulation of the persistent state for the sender role.
+        /// </summary>
         private struct SenderState
         {
             public IEnumerable<byte>[] SeededRandomOracles;
             public BitArray RandomChoices;
-            public uint InvocationCounter;
         };
         private SenderState _senderState;
-
+        
+        /// <summary>
+        /// Internal encapsulation of the persistent state for the receiver role.
+        /// </summary>
         private struct ReceiverState
         {
             public Pair<IEnumerable<byte>>[] SeededRandomOracles;
-            public uint InvocationCounter;
         }
         private ReceiverState _receiverState;
 
-        protected void IncreaseSenderInvocationCount(uint numberOfInvocations)
-        {
-            _senderState.InvocationCounter += numberOfInvocations;
-        }
-
+        // Accessors to sender and receiver state properties for subclasses
         protected IEnumerable<byte>[] SenderOracles { get { return _senderState.SeededRandomOracles; } }
         protected BitArray SenderChoices { get { return _senderState.RandomChoices.Clone(); } }
-        protected uint SenderInvocationCounter { get { return _senderState.InvocationCounter; } }
 
         protected Pair<IEnumerable<byte>>[] ReceiverOracles { get { return _receiverState.SeededRandomOracles; } }
-        protected uint ReceiverInvocationCounter {  get { return _receiverState.InvocationCounter; } }
 
         public IMessageChannel Channel { get { return _baseOT.Channel;  } }
         protected RandomNumberGenerator RandomNumberGenerator { get; private set; }
@@ -87,7 +86,6 @@ namespace CompactMPC.ObliviousTransfer
             int requiredBytes = BitArray.RequiredBytes(SecurityParameter);
             byte[][] seeds = await _baseOT.ReceiveAsync(_senderState.RandomChoices, SecurityParameter, requiredBytes);
             Debug.Assert(seeds.Length == SecurityParameter);
-            _senderState.InvocationCounter = 0;
 
             // initializing a random oracle based on each seed
             _senderState.SeededRandomOracles = new IEnumerable<byte>[SecurityParameter];
@@ -131,7 +129,6 @@ namespace CompactMPC.ObliviousTransfer
                     RandomOracle.Invoke(seeds[k][1])
                 );
             };
-            _receiverState.InvocationCounter = 0;
 
             await sendTask;
         }
@@ -184,10 +181,7 @@ namespace CompactMPC.ObliviousTransfer
 
             await CommunicationTools.WriteOptionsAsync(Channel, sendBuffer, 1, SecurityParameter, numberOfRandomBytes);
 
-            byte[][] results = await ReceiveMaskedOptionsAsync(selectionIndices, tTransposed, numberOfInvocations, numberOfMessageBytes);
-            
-            _receiverState.InvocationCounter += (uint)numberOfInvocations;
-            return results;
+            return await ReceiveMaskedOptionsAsync(selectionIndices, tTransposed, numberOfInvocations, numberOfMessageBytes);
         }
 
         /// <summary>

@@ -40,11 +40,10 @@ namespace CompactMPC.ObliviousTransfer
             byte[][] results = new byte[numberOfInvocations][];
             Parallel.For(0, numberOfInvocations, i =>
             {
-                uint invocationIndex = ReceiverInvocationCounter + (uint)i;
                 int s = Convert.ToInt32(selectionIndices[i].Value);
 
                 Debug.Assert(maskedOptions[i][s].Length == numberOfMessageBytes);
-                byte[] query = BufferBuilder.From(tTransposed.GetColumn((uint)i).ToBytes()).With((int)invocationIndex).With(s).Create();
+                byte[] query = tTransposed.GetColumn((uint)i).ToBytes();
                 results[i] = RandomOracle.Mask(maskedOptions[i][s], query);
             });
             return results;
@@ -71,7 +70,6 @@ namespace CompactMPC.ObliviousTransfer
             byte[][][] maskedOptions = new byte[numberOfInvocations][][];
             Parallel.For(0, numberOfInvocations, i =>
             {
-                uint invocationIndex = SenderInvocationCounter + (uint)i;
                 maskedOptions[i] = new byte[2][];
                 BitArray qRow = q.GetRow((uint)i);
                 for (int j = 0; j < 2; ++j)
@@ -79,12 +77,11 @@ namespace CompactMPC.ObliviousTransfer
                     Debug.Assert(options[i][j].Length == numberOfMessageBytes);
                     if (j == 1)
                         qRow.Xor(SenderChoices);
-                    byte[] query = BufferBuilder.From(qRow.ToBytes()).With((int)invocationIndex).With(j).Create();
+                    byte[] query = qRow.ToBytes();
                     maskedOptions[i][j] = RandomOracle.Mask(options[i][j], query);
                 }
             });
 
-            IncreaseSenderInvocationCount((uint)numberOfInvocations);
             await CommunicationTools.WriteOptionsAsync(Channel, maskedOptions, 2, numberOfInvocations, numberOfMessageBytes);
         }
     }

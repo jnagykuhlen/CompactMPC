@@ -24,18 +24,16 @@ namespace CompactMPC.ObliviousTransfer
             Pair<byte[]>[] options = new Pair<byte[]>[numberOfInvocations];
             Parallel.For(0, numberOfInvocations, i =>
             {
-                uint invocationIndex = SenderInvocationCounter + (uint)i;
                 options[i] = new Pair<byte[]>();
                 BitArray qRow = q.GetRow((uint)i);
                 for (int j = 0; j < 2; ++j)
                 {
                     if (j == 1)
                         qRow.Xor(SenderChoices);
-                    byte[] query = BufferBuilder.From(qRow.ToBytes()).With((int)invocationIndex).With(j).Create();
+                    byte[] query = qRow.ToBytes();
                     options[i][j] = RandomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
                 }
             });
-            IncreaseSenderInvocationCount((uint)numberOfInvocations);
 
             return options;
         }
@@ -49,10 +47,9 @@ namespace CompactMPC.ObliviousTransfer
             byte[][] results = new byte[numberOfInvocations][];
             Parallel.For(0, numberOfInvocations, i =>
             {
-                uint invocationIndex = ReceiverInvocationCounter + (uint)i;
                 int s = Convert.ToInt32(selectionIndices[i].Value);
 
-                byte[] query = BufferBuilder.From(tTransposed.GetColumn((uint)i).ToBytes()).With((int)invocationIndex).With(s).Create();
+                byte[] query = tTransposed.GetColumn((uint)i).ToBytes();
                 results[i] = RandomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
             });
 
