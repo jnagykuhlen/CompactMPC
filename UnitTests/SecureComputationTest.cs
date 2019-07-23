@@ -85,8 +85,8 @@ namespace CompactMPC.UnitTests
                                     new SecurityParameters(47, 23, 4, 1, 1),
                                     cryptoContext
                                 )
-                        )
-                    );
+                            )
+                        );
 
                     IMultiplicativeSharing multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(
                         obliviousTransfer,

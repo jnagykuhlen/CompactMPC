@@ -70,8 +70,8 @@ namespace CompactMPC.Application
                                     SecurityParameters.CreateDefault768Bit(),
                                     cryptoContext
                                 )
-                        )
-                    );
+                            )
+                        );
 
                     IMultiplicativeSharing multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(
                         obliviousTransfer,
