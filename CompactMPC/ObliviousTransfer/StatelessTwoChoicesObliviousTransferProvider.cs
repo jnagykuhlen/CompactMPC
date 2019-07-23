@@ -8,9 +8,9 @@ namespace CompactMPC.ObliviousTransfer
     /// <summary>
     /// A 1-out-of-2 OT channel provider that deals out channels for a stateless OT implementation.
     /// </summary>
-    public class StatelessTwoChoicesObliviousTransferProvider : ITwoChoicesObliviousTransferProvider
+    public class StatelessTwoChoicesObliviousTransferProvider : IObliviousTransferProvider<ITwoChoicesObliviousTransferChannel>
     {
-        // todo(lumip): this is exactly the same code as for 1oo4, 1ooN, except for the method signatures below..
+        // todo(lumip): this is exactly the same code as for 1ooN, except for the method signatures below..
         //  how to avoid this duplication??
 
         private IStatelessTwoChoicesObliviousTransfer _statelessOT;

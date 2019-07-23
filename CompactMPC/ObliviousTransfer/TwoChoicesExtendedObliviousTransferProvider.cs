@@ -5,13 +5,13 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    public class TwoChoicesExtendedObliviousTransferProvider : ITwoChoicesObliviousTransferProvider
+    public class TwoChoicesExtendedObliviousTransferProvider : IObliviousTransferProvider<ITwoChoicesObliviousTransferChannel>
     {
-        private ITwoChoicesObliviousTransferProvider _baseOT;
+        private IObliviousTransferProvider<ITwoChoicesObliviousTransferChannel> _baseOT;
         private int _securityParameter;
         private CryptoContext _cryptoContext;
 
-        public TwoChoicesExtendedObliviousTransferProvider(ITwoChoicesObliviousTransferProvider baseOT, int securityParameter, CryptoContext cryptoContext)
+        public TwoChoicesExtendedObliviousTransferProvider(IObliviousTransferProvider<ITwoChoicesObliviousTransferChannel> baseOT, int securityParameter, CryptoContext cryptoContext)
         {
             _baseOT = baseOT;
             _securityParameter = securityParameter;
