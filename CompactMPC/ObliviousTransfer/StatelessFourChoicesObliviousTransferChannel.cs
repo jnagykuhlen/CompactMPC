@@ -9,7 +9,7 @@ namespace CompactMPC.ObliviousTransfer
     /// <summary>
     /// A wrapper turning a stateless 1-out-of-4 OT implementation into an OT channel.
     /// </summary>
-    public class StatelessFourChoicesObliviousObliviousTransferChannel : IFourChoicesObliviousTransferChannel
+    public class StatelessFourChoicesObliviousTransferChannel : IFourChoicesObliviousTransferChannel
     {
         // todo(lumip): this is exactly the same code as for 1oo2, 1ooN, except for the method signatures below..
         //  how to avoid this duplication??
@@ -17,7 +17,7 @@ namespace CompactMPC.ObliviousTransfer
         private IStatelessFourChoicesObliviousTransfer _statelessOT;
         public IMessageChannel Channel { get; private set; }
 
-        public StatelessFourChoicesObliviousObliviousTransferChannel(IStatelessFourChoicesObliviousTransfer statelessOT, IMessageChannel channel)
+        public StatelessFourChoicesObliviousTransferChannel(IStatelessFourChoicesObliviousTransfer statelessOT, IMessageChannel channel)
         {
             if (statelessOT == null)
                 throw new ArgumentNullException(nameof(statelessOT));

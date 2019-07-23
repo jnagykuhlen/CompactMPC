@@ -80,6 +80,5 @@ namespace CompactMPC.ObliviousTransfer
         {
             return ReceiveAsync(channel, selectionIndices.ToArray(), 4, numberOfInvocations, numberOfMessageBytes);
         }
-
     }
 }

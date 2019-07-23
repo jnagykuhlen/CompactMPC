@@ -24,7 +24,7 @@ namespace CompactMPC.ObliviousTransfer
 
         public IFourChoicesObliviousTransferChannel CreateChannel(IMessageChannel channel)
         {
-            return new StatelessFourChoicesObliviousObliviousTransferChannel(_statelessOT, channel);
+            return new StatelessFourChoicesObliviousTransferChannel(_statelessOT, channel);
         }
     }
 }
