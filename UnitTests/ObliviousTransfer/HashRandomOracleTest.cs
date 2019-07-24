@@ -3,6 +3,7 @@ using System.Text;
 using System.Linq;
 using System.Collections;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -27,6 +28,50 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
                 byte[] secondResponse = oracle.Invoke(secondQuery).Take(10).ToArray();
 
                 CollectionAssert.AreNotEqual(firstResponse, secondResponse);
+            }
+        }
+
+        [TestMethod]
+        public void TestThreadsafe()
+        {
+            using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
+            {
+                RandomOracle oracle = new HashRandomOracle(cryptoContext.HashAlgorithm);
+
+                byte[] query = new[] { (byte)0x34, (byte)0x2f, (byte)0xab, (byte)0x25, (byte)0x33 };
+                byte[] expected = oracle.Invoke(query).Take(20).ToArray();
+
+                int count = 1000;
+                Parallel.For(0, 2, i =>
+                {
+                    for (int j = 0; j < count; ++j)
+                    {
+                        byte[] result = oracle.Invoke(query).Take(20).ToArray();
+                        CollectionAssert.AreEqual(expected, result);
+                    }
+                });
+            }
+        }
+
+        [TestMethod]
+        public void TestThreadsafeMultipleInstancesSameHash()
+        {
+            using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
+            {
+                RandomOracle[] oracle = new[] { new HashRandomOracle(cryptoContext.HashAlgorithm), new HashRandomOracle(cryptoContext.HashAlgorithm) };
+
+                byte[] query = new[] { (byte)0x34, (byte)0x2f, (byte)0xab, (byte)0x25, (byte)0x33 };
+                byte[] expected = oracle[0].Invoke(query).Take(20).ToArray();
+
+                int count = 1000;
+                Parallel.For(0, 2, i =>
+                {
+                    for (int j = 0; j < count; ++j)
+                    {
+                        byte[] result = oracle[i].Invoke(query).Take(20).ToArray();
+                        CollectionAssert.AreEqual(expected, result);
+                    }
+                });
             }
         }
     }

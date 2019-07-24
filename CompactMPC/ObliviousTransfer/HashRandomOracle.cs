@@ -11,7 +11,6 @@ namespace CompactMPC.ObliviousTransfer
     public class HashRandomOracle : RandomOracle
     {
         private HashAlgorithm _hashAlgorithm;
-        private object _hashAlgorithmLock;
 
         public HashRandomOracle(HashAlgorithm hashAlgorithm)
         {
@@ -19,13 +18,12 @@ namespace CompactMPC.ObliviousTransfer
                 throw new ArgumentNullException(nameof(hashAlgorithm));
 
             _hashAlgorithm = hashAlgorithm;
-            _hashAlgorithmLock = new object();
         }
 
         public override IEnumerable<byte> Invoke(byte[] query)
         {
             byte[] seed;
-            lock (_hashAlgorithmLock)
+            lock (_hashAlgorithm)
             {
                 seed = _hashAlgorithm.ComputeHash(query);
             }
@@ -42,7 +40,7 @@ namespace CompactMPC.ObliviousTransfer
                     stream.Position = 0;
 
                     byte[] block;
-                    lock (_hashAlgorithmLock)
+                    lock (_hashAlgorithm)
                     {
                         block = _hashAlgorithm.ComputeHash(stream);
                     }
