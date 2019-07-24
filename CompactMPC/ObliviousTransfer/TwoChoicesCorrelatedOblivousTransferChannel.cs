@@ -44,8 +44,7 @@ namespace CompactMPC.ObliviousTransfer
 
             Pair<byte[]>[] options = new Pair<byte[]>[numberOfInvocations];
             byte[][][] maskedOptions = new byte[numberOfInvocations][][];
-            //Parallel.For(0, numberOfInvocations, i =>
-            for (int i = 0; i < numberOfInvocations; ++i)
+            Parallel.For(0, numberOfInvocations, i =>
             {
                 Debug.Assert(correlationStrings[i].Length == numberOfMessageBytes);
 
@@ -63,7 +62,7 @@ namespace CompactMPC.ObliviousTransfer
                 maskedOptions[i] = new[] { RandomOracle.Mask(options[i][1], query) };
                 Debug.Assert(maskedOptions[i][0].Length == numberOfMessageBytes);
 
-            }//);
+            });
 
             await CommunicationTools.WriteOptionsAsync(Channel, maskedOptions, 1, numberOfInvocations, numberOfMessageBytes);
 
@@ -82,8 +81,7 @@ namespace CompactMPC.ObliviousTransfer
             Debug.Assert(maskedOptions.Length == numberOfInvocations);
 
             byte[][] results = new byte[numberOfInvocations][];
-            //Parallel.For(0, numberOfInvocations, i =>
-            for (int i = 0; i < numberOfInvocations; ++i)
+            Parallel.For(0, numberOfInvocations, i =>
             {
                 Debug.Assert(maskedOptions[i].Length == 1);
                 Debug.Assert(maskedOptions[i][0].Length == numberOfMessageBytes);
@@ -100,7 +98,7 @@ namespace CompactMPC.ObliviousTransfer
                 {
                     results[i] = RandomOracle.Mask(maskedOptions[i][0], query);
                 }
-            }//);
+            });
             return results;
         }
     }

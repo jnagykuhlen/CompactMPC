@@ -38,15 +38,14 @@ namespace CompactMPC.ObliviousTransfer
             Debug.Assert(maskedOptions.Length == numberOfInvocations);
 
             byte[][] results = new byte[numberOfInvocations][];
-            //Parallel.For(0, numberOfInvocations, i =>
-            for (int i = 0; i < numberOfInvocations; ++i)
+            Parallel.For(0, numberOfInvocations, i =>
             {
                 int s = Convert.ToInt32(selectionIndices[i].Value);
 
                 Debug.Assert(maskedOptions[i][s].Length == numberOfMessageBytes);
                 byte[] query = tTransposed.GetColumn((uint)i).ToBytes();
                 results[i] = RandomOracle.Mask(maskedOptions[i][s], query);
-            }//);
+            });
             return results;
         }
 
@@ -69,8 +68,7 @@ namespace CompactMPC.ObliviousTransfer
             Debug.Assert(q.Cols == SecurityParameter);
 
             byte[][][] maskedOptions = new byte[numberOfInvocations][][];
-            //Parallel.For(0, numberOfInvocations, i =>
-            for (int i = 0; i < numberOfInvocations; ++i)
+            Parallel.For(0, numberOfInvocations, i =>
             {
                 maskedOptions[i] = new byte[2][];
                 BitArray qRow = q.GetRow((uint)i);
@@ -82,7 +80,7 @@ namespace CompactMPC.ObliviousTransfer
                     byte[] query = qRow.ToBytes();
                     maskedOptions[i][j] = RandomOracle.Mask(options[i][j], query);
                 }
-            }//);
+            });
 
             await CommunicationTools.WriteOptionsAsync(Channel, maskedOptions, 2, numberOfInvocations, numberOfMessageBytes);
         }
