@@ -63,13 +63,17 @@ namespace CompactMPC.Application
             {
                 using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
                 {
-                    IObliviousTransferProvider<IMultiChoicesBitObliviousTransferChannel> obliviousTransfer =
-                        new MultiChoicesBitObliviousTransferProviderAdapter(
-                            new StatelessMultiChoicesObliviousTransferProvider(
-                                new NaorPinkasObliviousTransfer(
-                                    SecurityParameters.CreateDefault768Bit(),
-                                    cryptoContext
-                                )
+                    IObliviousTransferProvider<ITwoChoicesCorrelatedBitObliviousTransferChannel> obliviousTransfer =
+                        new TwoChoicesCorrelatedBitObliviousTransferProviderAdapter(
+                            new TwoChoicesCorrelatedExtendedObliviousTransferProvider(
+                                new StatelessTwoChoicesObliviousTransferProvider(
+                                    new NaorPinkasObliviousTransfer(
+                                        SecurityParameters.CreateDefault768Bit(),
+                                        cryptoContext
+                                    )
+                                ),
+                                80,
+                                cryptoContext
                             )
                         );
 

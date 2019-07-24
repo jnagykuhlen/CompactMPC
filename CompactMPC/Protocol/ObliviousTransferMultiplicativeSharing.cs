@@ -12,10 +12,10 @@ namespace CompactMPC.Protocol
 {
     public class ObliviousTransferMultiplicativeSharing : PairwiseMultiplicativeSharing
     {
-        private IObliviousTransferProvider<IMultiChoicesBitObliviousTransferChannel> _obliviousTransferProvider;
+        private IObliviousTransferProvider<ITwoChoicesCorrelatedBitObliviousTransferChannel> _obliviousTransferProvider;
         private RandomNumberGenerator _randomNumberGenerator;
 
-        public ObliviousTransferMultiplicativeSharing(IObliviousTransferProvider<IMultiChoicesBitObliviousTransferChannel> obliviousTransferProvider, CryptoContext cryptoContext)
+        public ObliviousTransferMultiplicativeSharing(IObliviousTransferProvider<ITwoChoicesCorrelatedBitObliviousTransferChannel> obliviousTransferProvider, CryptoContext cryptoContext)
         {
             _obliviousTransferProvider = obliviousTransferProvider;
             _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
@@ -35,32 +35,24 @@ namespace CompactMPC.Protocol
             }
         }
 
-        private async Task<BitArray> ComputeSenderSharesAsync(IMultiChoicesBitObliviousTransferChannel ot, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
+        private async Task<BitArray> ComputeSenderSharesAsync(ITwoChoicesCorrelatedBitObliviousTransferChannel ot, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
         {
-            BitArray randomShares = _randomNumberGenerator.GetBits(numberOfInvocations);
-            BitQuadrupleArray options = new BitQuadrupleArray(numberOfInvocations);
+            // todo(lumip): can't currently execute receive and send in parallel, even though they are independent, due to limitations of the message channels
+            Pair<Bit>[] correlatedShared = await ot.SendAsync(leftShares, numberOfInvocations);
+            BitArray c = await ot.ReceiveAsync(rightShares, numberOfInvocations);
 
-            for (int i = 0; i < numberOfInvocations; ++i)
-            {
-                options[i] = new BitQuadruple(
-                    randomShares[i],                                     // 00
-                    randomShares[i] ^ leftShares[i],                     // 01
-                    randomShares[i] ^ rightShares[i],                    // 10
-                    randomShares[i] ^ leftShares[i] ^ rightShares[i]     // 11
-                );
-            }
-
-            await ot.SendAsync(options, numberOfInvocations);
-            return randomShares;
+            BitArray r = new BitArray(correlatedShared.Select(pair => pair[0]).ToArray());
+            return r ^ c;
         }
 
-        private Task<BitArray> ComputeReceiverSharesAsync(IMultiChoicesBitObliviousTransferChannel ot, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
+        private async Task<BitArray> ComputeReceiverSharesAsync(ITwoChoicesCorrelatedBitObliviousTransferChannel ot, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
         {
-            QuadrupleIndexArray selectionIndices = new QuadrupleIndexArray(numberOfInvocations);
-            for (int i = 0; i < numberOfInvocations; ++i)
-                selectionIndices[i] = 2 * (byte)leftShares[i] + (byte)rightShares[i];
+            // todo(lumip): can't currently execute receive and send in parallel, even though they are independent, due to limitations of the message channels
+            BitArray c = await ot.ReceiveAsync(rightShares, numberOfInvocations);
+            Pair<Bit>[] correlatedShared = await ot.SendAsync(leftShares, numberOfInvocations);
 
-            return ot.ReceiveAsync(selectionIndices, numberOfInvocations);
+            BitArray r = new BitArray(correlatedShared.Select(pair => pair[0]).ToArray());
+            return r ^ c;
         }
 
         protected override bool IncludesLocalTerms
