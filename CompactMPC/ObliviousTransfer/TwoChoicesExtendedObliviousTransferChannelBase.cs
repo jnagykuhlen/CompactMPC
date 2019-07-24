@@ -29,10 +29,7 @@ namespace CompactMPC.ObliviousTransfer
         private ITwoChoicesObliviousTransferChannel _baseOT;
 
         protected int SecurityParameter { get; private set; }
-        //protected RandomOracle RandomOracle { get { return new HashRandomOracle(_cryptoContext.GetHashAlgorithm()); } }
         protected RandomOracle RandomOracle { get; private set; }
-
-        private HashAlgorithm _hash;
 
 
         /// <summary>
@@ -66,8 +63,7 @@ namespace CompactMPC.ObliviousTransfer
         public TwoChoicesExtendedObliviousTransferChannelBase(ITwoChoicesObliviousTransferChannel baseOT, int securityParameter, CryptoContext cryptoContext)
         {
             RandomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
-            _hash = cryptoContext.GetHashAlgorithm();
-            RandomOracle = new HashRandomOracle(_hash);
+            RandomOracle = new HashRandomOracle(cryptoContext.HashAlgorithm);
             SecurityParameter = securityParameter;
             _baseOT = baseOT;
             _senderState = new SenderState();
@@ -251,11 +247,6 @@ namespace CompactMPC.ObliviousTransfer
                 q.SetColumn((uint)k, qColumn);
             });
             return q;
-        }
-
-        ~TwoChoicesExtendedObliviousTransferChannelBase()
-        {
-            _hash.Dispose();
         }
     }
 }

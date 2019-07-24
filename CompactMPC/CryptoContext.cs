@@ -53,11 +53,5 @@ namespace CompactMPC
                 return _hashAlgorithm;
             }
         }
-
-        public HashAlgorithm GetHashAlgorithm()
-        {
-            // todo(lumip): this is hardcoded for now.. how to make this more adaptable?
-            return SHA1.Create();
-        }
     }
 }
