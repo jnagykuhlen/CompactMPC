@@ -29,7 +29,10 @@ namespace CompactMPC.ObliviousTransfer
         private ITwoChoicesObliviousTransferChannel _baseOT;
 
         protected int SecurityParameter { get; private set; }
+        //protected RandomOracle RandomOracle { get { return new HashRandomOracle(_cryptoContext.GetHashAlgorithm()); } }
         protected RandomOracle RandomOracle { get; private set; }
+
+        private HashAlgorithm _hash;
 
 
         /// <summary>
@@ -63,7 +66,8 @@ namespace CompactMPC.ObliviousTransfer
         public TwoChoicesExtendedObliviousTransferChannelBase(ITwoChoicesObliviousTransferChannel baseOT, int securityParameter, CryptoContext cryptoContext)
         {
             RandomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
-            RandomOracle = new HashRandomOracle(cryptoContext.HashAlgorithm);
+            _hash = cryptoContext.GetHashAlgorithm();
+            RandomOracle = new HashRandomOracle(_hash);
             SecurityParameter = securityParameter;
             _baseOT = baseOT;
             _senderState = new SenderState();
@@ -162,7 +166,8 @@ namespace CompactMPC.ObliviousTransfer
             //  and ideally performs new base OTs and repeat
             int numberOfRandomBytes = BitArray.RequiredBytes(numberOfInvocations);
             byte[][][] sendBuffer = new byte[SecurityParameter][][];
-            Parallel.For(0, SecurityParameter, k =>
+            //Parallel.For(0, SecurityParameter, k =>
+            for (int k = 0; k < SecurityParameter; ++k)
             {
                 BitArray tColumn = BitArray.FromBytes(
                     _receiverState.SeededRandomOracles[k][0].Take(numberOfRandomBytes).ToArray(),
@@ -177,7 +182,7 @@ namespace CompactMPC.ObliviousTransfer
 
                 BitArray maskedSecondOption = tColumn ^ mask ^ selectionIndices;
                 sendBuffer[k] = new byte[1][] { maskedSecondOption.ToBytes() };
-            });
+            }//);
 
             await CommunicationTools.WriteOptionsAsync(Channel, sendBuffer, 1, SecurityParameter, numberOfRandomBytes);
 
@@ -228,7 +233,8 @@ namespace CompactMPC.ObliviousTransfer
 
             PairIndexArray randomChoiceInts = _senderState.RandomChoices.ToPairIndexArray();
 
-            Parallel.For(0, SecurityParameter, k =>
+            //Parallel.For(0, SecurityParameter, k =>
+            for (int k = 0; k < SecurityParameter; ++k)
             {
                 Debug.Assert(qOTResult[k].Length == 1);
                 Debug.Assert(qOTResult[k][0].Length == numberOfRandomBytes);
@@ -244,8 +250,13 @@ namespace CompactMPC.ObliviousTransfer
                     qColumn.Xor(BitArray.FromBytes(qOTResult[k][0], numberOfInvocations));
 
                 q.SetColumn((uint)k, qColumn);
-            });
+            }//);
             return q;
+        }
+
+        ~TwoChoicesExtendedObliviousTransferChannelBase()
+        {
+            _hash.Dispose();
         }
     }
 }

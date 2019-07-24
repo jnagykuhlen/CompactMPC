@@ -22,7 +22,8 @@ namespace CompactMPC.ObliviousTransfer
             Debug.Assert(q.Cols == SecurityParameter);
 
             Pair<byte[]>[] options = new Pair<byte[]>[numberOfInvocations];
-            Parallel.For(0, numberOfInvocations, i =>
+            //Parallel.For(0, numberOfInvocations, i =>
+            for (int i = 0; i < numberOfInvocations; ++i)
             {
                 options[i] = new Pair<byte[]>();
                 BitArray qRow = q.GetRow((uint)i);
@@ -33,7 +34,7 @@ namespace CompactMPC.ObliviousTransfer
                     byte[] query = qRow.ToBytes();
                     options[i][j] = RandomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
                 }
-            });
+            }//);
 
             return options;
         }
@@ -45,13 +46,14 @@ namespace CompactMPC.ObliviousTransfer
             Debug.Assert(tTransposed.Cols == numberOfInvocations);
             
             byte[][] results = new byte[numberOfInvocations][];
-            Parallel.For(0, numberOfInvocations, i =>
+            //Parallel.For(0, numberOfInvocations, i =>
+            for (int i = 0; i < numberOfInvocations; ++i)
             {
                 int s = Convert.ToInt32(selectionIndices[i].Value);
 
                 byte[] query = tTransposed.GetColumn((uint)i).ToBytes();
                 results[i] = RandomOracle.Invoke(query).Take(numberOfMessageBytes).ToArray();
-            });
+            }//);
 
             return Task.FromResult(results);
         }
