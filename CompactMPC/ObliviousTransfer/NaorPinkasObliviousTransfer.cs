@@ -56,6 +56,9 @@ namespace CompactMPC.ObliviousTransfer
                 listOfCs[i] = GenerateGroupElement(out exponent);
                 listOfExponents[i] = exponent;
             });
+            // note(lumip): we discussed a possible vulnerability arising when two or more group elements
+            //  are similar but decided against checking for that since the probability of it occuring is
+            //   negligible small for the relevant group sizes.
 
             BigInteger alpha = listOfExponents[0];
 
@@ -189,6 +192,11 @@ namespace CompactMPC.ObliviousTransfer
             return selectedOptions;
         }
 
+        /// <summary>
+        /// Returns a random element from the group as well as the corresponding exponent for the group generator.
+        /// </summary>
+        /// <param name="exponent">The exponent with which the returned group element can be obtained from the group generator.</param>
+        /// <returns>A random group element.</returns>
         private BigInteger GenerateGroupElement(out BigInteger exponent)
         {
             // note(lumip): do not give in to the temptation of replacing the exponent > _parameters.Q part with a
@@ -203,11 +211,22 @@ namespace CompactMPC.ObliviousTransfer
             return BigInteger.ModPow(_parameters.G, exponent, _parameters.P);
         }
 
+        /// <summary>
+        /// Multiplicatively inverts a group element.
+        /// </summary>
+        /// <param name="groupElement">The group element to be inverted.</param>
+        /// <returns>The multiplicative inverse of the argument in the group.</returns>
         private BigInteger Invert(BigInteger groupElement)
         {
             return BigInteger.ModPow(groupElement, _parameters.Q - 1, _parameters.P);
         }
 
+        /// <summary>
+        /// Asynchronously writes a list of group elements (BigInteger) to a message channel.
+        /// </summary>
+        /// <param name="channel">The network message channel.</param>
+        /// <param name="groupElements">The list of group elements to write/send.</param>
+        /// <returns></returns>
         private Task WriteGroupElements(IMessageChannel channel, IReadOnlyList<BigInteger> groupElements)
         {
             MessageComposer message = new MessageComposer(2 * groupElements.Count);
@@ -221,6 +240,12 @@ namespace CompactMPC.ObliviousTransfer
             return channel.WriteMessageAsync(message.Compose());
         }
 
+        /// <summary>
+        /// Asynchronously reads a specified number of group elements from a message channel.
+        /// </summary>
+        /// <param name="channel">The network message channel.</param>
+        /// <param name="numberOfGroupElements">Number of group elements to read/receive.</param>
+        /// <returns></returns>
         private async Task<BigInteger[]> ReadGroupElements(IMessageChannel channel, int numberOfGroupElements)
         {
             MessageDecomposer message = new MessageDecomposer(await channel.ReadMessageAsync());
