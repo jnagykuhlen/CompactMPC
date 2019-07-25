@@ -10,9 +10,9 @@ namespace CompactMPC
     public sealed class CryptoContext : IDisposable
     {
         private RandomNumberGenerator _randomNumberGenerator;
-        private HashAlgorithm _hashAlgorithm;
+        private ThreadsafeHashAlgorithm _hashAlgorithm;
 
-        public CryptoContext(RandomNumberGenerator randomNumberGenerator, HashAlgorithm hashAlgorithm)
+        public CryptoContext(RandomNumberGenerator randomNumberGenerator, ThreadsafeHashAlgorithm hashAlgorithm)
         {
             if (randomNumberGenerator == null)
                 throw new ArgumentNullException(nameof(randomNumberGenerator));
@@ -28,7 +28,7 @@ namespace CompactMPC
         {
             return new CryptoContext(
                 RandomNumberGenerator.Create(),
-                SHA1.Create()
+                new ThreadsafeSHA256()
             );
         }
 
@@ -46,7 +46,7 @@ namespace CompactMPC
             }
         }
 
-        public HashAlgorithm HashAlgorithm
+        public ThreadsafeHashAlgorithm HashAlgorithm
         {
             get
             {
