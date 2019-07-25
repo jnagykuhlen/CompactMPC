@@ -29,7 +29,7 @@ namespace CompactMPC.ObliviousTransfer
         public NaorPinkasObliviousTransfer(SecurityParameters parameters, CryptoContext cryptoContext)
         {
             _parameters = parameters;
-            _randomOracle = new HashRandomOracle(cryptoContext.HashAlgorithm);
+            _randomOracle = new HashRandomOracle(cryptoContext.HashAlgorithmProvider.CreateHashAlgorithm());
             _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
 #if DEBUG
             Console.WriteLine("Security parameters:");
