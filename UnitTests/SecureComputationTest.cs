@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
+using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;

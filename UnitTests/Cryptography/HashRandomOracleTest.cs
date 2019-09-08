@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Text;
 using System.Linq;
-using System.Collections;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using CompactMPC.ObliviousTransfer;
+using CompactMPC.Cryptography;
 
-namespace CompactMPC.UnitTests.ObliviousTransfer
+namespace CompactMPC.UnitTests.Cryptography
 {
     [TestClass]
     public class HashRandomOracleTest
@@ -18,7 +17,7 @@ namespace CompactMPC.UnitTests.ObliviousTransfer
         {
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
             {
-                RandomOracle oracle = new HashRandomOracle(cryptoContext.HashAlgorithm);
+                RandomOracle oracle = new HashRandomOracle(cryptoContext.HashAlgorithmProvider.Create());
 
                 byte[] firstQuery = { 235, 12, 13, 72, 138, 13, 62, 13, 39, 147, 198, 173, 23, 87, 27, 99 };
                 byte[] secondQuery = { 84, 23, 123, 85, 62, 28, 54, 98, 187, 238, 18, 5, 78, 1, 78, 243 };

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using CompactMPC.ObliviousTransfer;
+using CompactMPC.Cryptography;
 
-namespace CompactMPC.UnitTests.ObliviousTransfer
+namespace CompactMPC.UnitTests.Cryptography
 {
     [TestClass]
     public class RandomOracleTest

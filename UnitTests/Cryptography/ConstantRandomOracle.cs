@@ -4,9 +4,9 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using CompactMPC.ObliviousTransfer;
+using CompactMPC.Cryptography;
 
-namespace CompactMPC.UnitTests.ObliviousTransfer
+namespace CompactMPC.UnitTests.Cryptography
 {
     public class ConstantRandomOracle : RandomOracle
     {

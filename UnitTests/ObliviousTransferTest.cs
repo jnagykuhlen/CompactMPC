@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Networking;
+using CompactMPC.Cryptography;
 using CompactMPC.UnitTests.Util;
 
 namespace CompactMPC.UnitTests

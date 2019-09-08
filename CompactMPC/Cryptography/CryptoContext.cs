@@ -5,37 +5,36 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 
-namespace CompactMPC
+namespace CompactMPC.Cryptography
 {
     public sealed class CryptoContext : IDisposable
     {
         private RandomNumberGenerator _randomNumberGenerator;
-        private HashAlgorithm _hashAlgorithm;
+        private IHashAlgorithmProvider _hashAlgorithmProvider;
 
-        public CryptoContext(RandomNumberGenerator randomNumberGenerator, HashAlgorithm hashAlgorithm)
+        public CryptoContext(RandomNumberGenerator randomNumberGenerator, IHashAlgorithmProvider hashAlgorithmProvider)
         {
             if (randomNumberGenerator == null)
                 throw new ArgumentNullException(nameof(randomNumberGenerator));
 
-            if (hashAlgorithm == null)
-                throw new ArgumentNullException(nameof(hashAlgorithm));
+            if (hashAlgorithmProvider == null)
+                throw new ArgumentNullException(nameof(hashAlgorithmProvider));
 
             _randomNumberGenerator = randomNumberGenerator;
-            _hashAlgorithm = hashAlgorithm;
+            _hashAlgorithmProvider = hashAlgorithmProvider;
         }
 
         public static CryptoContext CreateDefault()
         {
             return new CryptoContext(
                 RandomNumberGenerator.Create(),
-                SHA1.Create()
+                new SHA256HashAlgorithmProvider()
             );
         }
 
         public void Dispose()
         {
             _randomNumberGenerator.Dispose();
-            _hashAlgorithm.Dispose();
         }
 
         public RandomNumberGenerator RandomNumberGenerator
@@ -46,11 +45,11 @@ namespace CompactMPC
             }
         }
 
-        public HashAlgorithm HashAlgorithm
+        public IHashAlgorithmProvider HashAlgorithmProvider
         {
             get
             {
-                return _hashAlgorithm;
+                return _hashAlgorithmProvider;
             }
         }
     }

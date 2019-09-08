@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 
 using CompactMPC.Networking;
+using CompactMPC.Cryptography;
 
 namespace CompactMPC.ObliviousTransfer
 {

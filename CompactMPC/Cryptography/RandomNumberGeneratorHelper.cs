@@ -6,7 +6,7 @@ using System.Text;
 using System.Numerics;
 using System.Security.Cryptography;
 
-namespace CompactMPC
+namespace CompactMPC.Cryptography
 {
     public static class RandomNumberGeneratorHelper
     {

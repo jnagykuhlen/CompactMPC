@@ -9,6 +9,7 @@ using System.Diagnostics;
 
 using CompactMPC.Networking;
 using CompactMPC.Buffers;
+using CompactMPC.Cryptography;
 
 namespace CompactMPC.ObliviousTransfer
 {
@@ -23,14 +24,14 @@ namespace CompactMPC.ObliviousTransfer
     public class NaorPinkasObliviousTransfer : GeneralizedObliviousTransfer
     {
         private SecurityParameters _parameters;
-        private RandomOracle _randomOracle;
         private RandomNumberGenerator _randomNumberGenerator;
+        private IHashAlgorithmProvider _hashAlgorithmProvider;
         
         public NaorPinkasObliviousTransfer(SecurityParameters parameters, CryptoContext cryptoContext)
         {
             _parameters = parameters;
-            _randomOracle = new HashRandomOracle(cryptoContext.HashAlgorithm);
             _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
+            _hashAlgorithmProvider = cryptoContext.HashAlgorithmProvider;
 #if DEBUG
             Console.WriteLine("Security parameters:");
             Console.WriteLine("p = {0}", _parameters.P);
@@ -268,17 +269,21 @@ namespace CompactMPC.ObliviousTransfer
         /// </summary>
         /// <remarks>
         /// The option is XOR-masked with the output of a random oracle queried with the
-        /// concatentation of the binary representations of the given groupElement, invocationIndex and optionIndex.
+        /// concatenation of the binary representations of the given groupElement, invocationIndex and optionIndex.
         /// </remarks>
         /// <param name="option">The sender input/option to be masked.</param>
         /// <param name="groupElement">The group element that acts as "key" in the query to the random oracle.</param>
-        /// <param name="invocationIndex">The index of the OT invocation this options belongs to.</param>
+        /// <param name="invocationIndex">The index of the OT invocation this option belongs to.</param>
         /// <param name="optionIndex">The index of the option.</param>
         /// <returns>The masked option.</returns>
         private byte[] MaskOption(byte[] option, BigInteger groupElement,  int invocationIndex, int optionIndex)
         {
-            byte[] query = BufferBuilder.From(groupElement.ToByteArray()).With(invocationIndex).With(optionIndex).Create();
-            return _randomOracle.Mask(option, query);
+            using (HashAlgorithm hashAlgorithm = _hashAlgorithmProvider.Create())
+            {
+                RandomOracle randomOracle = new HashRandomOracle(hashAlgorithm);
+                byte[] query = BufferBuilder.From(groupElement.ToByteArray()).With(invocationIndex).With(optionIndex).Create();
+                return randomOracle.Mask(option, query);
+            }
         }
     }
 }

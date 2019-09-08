@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Networking;
+using CompactMPC.Cryptography;
 using CompactMPC.Protocol.Internal;
 
 namespace CompactMPC.Protocol

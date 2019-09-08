@@ -6,12 +6,11 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 
-namespace CompactMPC.ObliviousTransfer
+namespace CompactMPC.Cryptography
 {
     public class HashRandomOracle : RandomOracle
     {
         private HashAlgorithm _hashAlgorithm;
-        private object _hashAlgorithmLock;
 
         public HashRandomOracle(HashAlgorithm hashAlgorithm)
         {
@@ -19,16 +18,11 @@ namespace CompactMPC.ObliviousTransfer
                 throw new ArgumentNullException(nameof(hashAlgorithm));
 
             _hashAlgorithm = hashAlgorithm;
-            _hashAlgorithmLock = new object();
         }
 
         public override IEnumerable<byte> Invoke(byte[] query)
         {
-            byte[] seed;
-            lock (_hashAlgorithmLock)
-            {
-                seed = _hashAlgorithm.ComputeHash(query);
-            }
+            byte[] seed = _hashAlgorithm.ComputeHash(query);
 
             using (MemoryStream stream = new MemoryStream(seed.Length + 4))
             {
@@ -41,11 +35,7 @@ namespace CompactMPC.ObliviousTransfer
                     stream.Write(BitConverter.GetBytes(counter), 0, 4);
                     stream.Position = 0;
 
-                    byte[] block;
-                    lock (_hashAlgorithmLock)
-                    {
-                        block = _hashAlgorithm.ComputeHash(stream);
-                    }
+                    byte[] block = _hashAlgorithm.ComputeHash(stream);
 
                     foreach (byte blockByte in block)
                         yield return blockByte;

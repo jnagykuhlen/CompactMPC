@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Net;
 
+using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.Protocol;
 using CompactMPC.ObliviousTransfer;
