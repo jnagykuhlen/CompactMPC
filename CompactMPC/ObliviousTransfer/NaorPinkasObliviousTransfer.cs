@@ -25,13 +25,13 @@ namespace CompactMPC.ObliviousTransfer
     {
         private SecurityParameters _parameters;
         private RandomNumberGenerator _randomNumberGenerator;
-        private IHashAlgorithmProvider _hashAlgorithmProvider;
+        private IRandomOracleProvider _randomOracleProvider;
         
         public NaorPinkasObliviousTransfer(SecurityParameters parameters, CryptoContext cryptoContext)
         {
             _parameters = parameters;
             _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
-            _hashAlgorithmProvider = cryptoContext.HashAlgorithmProvider;
+            _randomOracleProvider = new HashRandomOracleProvider(cryptoContext.HashAlgorithmProvider);
 #if DEBUG
             Console.WriteLine("Security parameters:");
             Console.WriteLine("p = {0}", _parameters.P);
@@ -97,14 +97,14 @@ namespace CompactMPC.ObliviousTransfer
                     if (i > 0)
                         e = (listOfExponentiatedCs[i] * inverseExponentiatedD) % _parameters.P;
 
-                    // note(lumip): the protocol as proposed by Naor and Pinkas includes a random value
+                    // note(lumip): The protocol as proposed by Naor and Pinkas includes a random value
                     //  to be incorporated in the random oracle query to ensure that the same query does
-                    //  not occur several times. This is partly because the envision several receivers
+                    //  not occur several times. This is partly because they envision several receivers
                     //  over which the same Cs are used. Since we are having seperate sets of Cs for each
                     //  sender-receiver pair, the requirement of unique queries is satisified just using
                     //  the index j of the OT invocation and we can save a bit of bandwidth.
 
-                    // todo: think about whether we want to use a static set of Cs for each sender for all
+                    // todo: Think about whether we want to use a static set of Cs for each sender for all
                     //  connection to reduce the required amount of computation per OT. Would require to
                     //  maintain state in this class and negate the points made in the note above.
                     maskedOptions[j][i] = MaskOption(options[j][i], e, j, i);
@@ -192,9 +192,9 @@ namespace CompactMPC.ObliviousTransfer
 
         private BigInteger GenerateGroupElement(out BigInteger exponent)
         {
-            // note(lumip): do not give in to the temptation of replacing the exponent > _parameters.Q part with a
+            // note(lumip): Do not give in to the temptation of replacing the exponent > _parameters.Q part with a
             //  modulo operation, as that would cause the exponent to be no longer uniformly sampled (which could
-            //  have an impact on security)
+            //  have an impact on security).
             do
             {
                 exponent = _randomNumberGenerator.GetBigInteger(_parameters.ExponentSize);
@@ -278,9 +278,8 @@ namespace CompactMPC.ObliviousTransfer
         /// <returns>The masked option.</returns>
         private byte[] MaskOption(byte[] option, BigInteger groupElement,  int invocationIndex, int optionIndex)
         {
-            using (HashAlgorithm hashAlgorithm = _hashAlgorithmProvider.Create())
+            using (RandomOracle randomOracle = _randomOracleProvider.Create())
             {
-                RandomOracle randomOracle = new HashRandomOracle(hashAlgorithm);
                 byte[] query = BufferBuilder.From(groupElement.ToByteArray()).With(invocationIndex).With(optionIndex).Create();
                 return randomOracle.Mask(option, query);
             }

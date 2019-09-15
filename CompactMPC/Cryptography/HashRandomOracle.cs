@@ -12,12 +12,12 @@ namespace CompactMPC.Cryptography
     {
         private HashAlgorithm _hashAlgorithm;
 
-        public HashRandomOracle(HashAlgorithm hashAlgorithm)
+        public HashRandomOracle(IHashAlgorithmProvider hashAlgorithmProvider)
         {
-            if (hashAlgorithm == null)
-                throw new ArgumentNullException(nameof(hashAlgorithm));
+            if (hashAlgorithmProvider == null)
+                throw new ArgumentNullException(nameof(hashAlgorithmProvider));
 
-            _hashAlgorithm = hashAlgorithm;
+            _hashAlgorithm = hashAlgorithmProvider.Create();
         }
 
         public override IEnumerable<byte> Invoke(byte[] query)
@@ -45,6 +45,11 @@ namespace CompactMPC.Cryptography
             }
 
             throw new InvalidOperationException("Random oracle cannot provide more data since the counter has reached its maximum value.");
+        }
+
+        public override void Dispose()
+        {
+            _hashAlgorithm.Dispose();
         }
     }
 }

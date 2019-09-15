@@ -8,7 +8,7 @@ using CompactMPC.Cryptography;
 
 namespace CompactMPC.UnitTests.Cryptography
 {
-    public class ConstantRandomOracle : RandomOracle
+    public class ConstantRandomOracle : RandomOracle, IDisposable
     {
         private byte[] _invokeResponse;
 
@@ -16,10 +16,12 @@ namespace CompactMPC.UnitTests.Cryptography
         {
             _invokeResponse = invokeResponse;
         }
-        
+
         public override IEnumerable<byte> Invoke(byte[] query)
         {
             return _invokeResponse;
         }
+
+        public override void Dispose() { }
     }
 }

@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Cryptography
 {
-    public abstract class RandomOracle
+    public abstract class RandomOracle : IDisposable
     {
-        public abstract IEnumerable<byte> Invoke(byte[] query);
-        
         public byte[] Mask(byte[] message, byte[] query)
         {
             byte[] result = new byte[message.Length];
@@ -22,9 +20,12 @@ namespace CompactMPC.Cryptography
             }
 
             if (index < message.Length)
-                throw new ArgumentException("Random oracle invokation does not provide enough data to mask the given message.", nameof(query));
+                throw new ArgumentException("Random oracle invocation does not provide enough data to mask the given message.", nameof(query));
             
             return result;
         }
+
+        public abstract IEnumerable<byte> Invoke(byte[] query);
+        public abstract void Dispose();
     }
 }
