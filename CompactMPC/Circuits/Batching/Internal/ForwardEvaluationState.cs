@@ -9,13 +9,13 @@ namespace CompactMPC.Circuits.Batching.Internal
     public class ForwardEvaluationState<T>
     {
         private T[] _output;
-        private Dictionary<ForwardGate, T> _firstInputValueByGate;
+        private Dictionary<ForwardGate, T> _cachedInputValueByGate;
         private Queue<GateEvaluation<T>> _delayedAndGateEvaluations;
 
         public ForwardEvaluationState(int numberOfOutputGates)
         {
             _output = new T[numberOfOutputGates];
-            _firstInputValueByGate = new Dictionary<ForwardGate, T>();
+            _cachedInputValueByGate = new Dictionary<ForwardGate, T>();
             _delayedAndGateEvaluations = new Queue<GateEvaluation<T>>();
         }
         
@@ -28,7 +28,7 @@ namespace CompactMPC.Circuits.Batching.Internal
         {
             try
             {
-                _firstInputValueByGate.Add(gate, value);
+                _cachedInputValueByGate.Add(gate, value);
             }
             catch (ArgumentException exception)
             {
@@ -39,9 +39,9 @@ namespace CompactMPC.Circuits.Batching.Internal
         public Optional<T> ReadInputValueFromCache(ForwardGate gate)
         {
             T value;
-            if (_firstInputValueByGate.TryGetValue(gate, out value))
+            if (_cachedInputValueByGate.TryGetValue(gate, out value))
             {
-                _firstInputValueByGate.Remove(gate);
+                _cachedInputValueByGate.Remove(gate);
                 return Optional<T>.FromValue(value);
             }
 
