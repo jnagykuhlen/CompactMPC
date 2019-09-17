@@ -38,21 +38,5 @@ namespace CompactMPC.Circuits.Internal
                 yield return _rightInputGate;
             }
         }
-
-        public Gate LeftInputGate
-        {
-            get
-            {
-                return _leftInputGate;
-            }
-        }
-
-        public Gate RightInputGate
-        {
-            get
-            {
-                return _rightInputGate;
-            }
-        }
     }
 }
