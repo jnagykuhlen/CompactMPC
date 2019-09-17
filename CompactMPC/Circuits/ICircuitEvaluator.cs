@@ -18,28 +18,22 @@ namespace CompactMPC.Circuits
         /// </summary>
         /// <param name="leftValue">Value assigned to the left input wire.</param>
         /// <param name="rightValue">Value assigned to the right input value.</param>
-        /// <param name="gateContext">Information on the identity of the currently evaluated gate.</param>
-        /// <param name="circuitContext">Information on the number of gates in the evaluated circuit.</param>
         /// <returns>Logical AND applied to the two input values.</returns>
-        T EvaluateAndGate(T leftValue, T rightValue, GateContext gateContext, CircuitContext circuitContext);
+        T EvaluateAndGate(T leftValue, T rightValue);
 
         /// <summary>
         /// Evaluates an XOR gate given the values assigned to its left and right input wire.
         /// </summary>
         /// <param name="leftValue">Value assigned to the left input wire.</param>
         /// <param name="rightValue">Value assigned to the right input value.</param>
-        /// <param name="gateContext">Information on the identity of the currently evaluated gate.</param>
-        /// <param name="circuitContext">Information on the number of gates in the evaluated circuit.</param>
         /// <returns>Logical XOR applied to the two input values.</returns>
-        T EvaluateXorGate(T leftValue, T rightValue, GateContext gateContext, CircuitContext circuitContext);
+        T EvaluateXorGate(T leftValue, T rightValue);
 
         /// <summary>
         /// Evaluates a NOT gate given the value assigned to its input wire.
         /// </summary>
         /// <param name="value">Value assigned to the input wire.</param>
-        /// <param name="gateContext">Information on the identity of the currently evaluated gate.</param>
-        /// <param name="circuitContext">Information on the number of gates in the evaluated circuit.</param>
         /// <returns>Logical NOT applied to the input value.</returns>
-        T EvaluateNotGate(T value, GateContext gateContext, CircuitContext circuitContext);
+        T EvaluateNotGate(T value);
     }
 }

@@ -31,21 +31,21 @@ namespace CompactMPC.Circuits
 
         public T GetGateEvaluationValue(Gate gate)
         {
-            Optional<T> gateEvaluationValue = _gateEvaluationValues[gate.Context.CircuitUniqueId];
+            Optional<T> gateEvaluationValue = _gateEvaluationValues[gate.Id];
             if (!gateEvaluationValue.IsPresent)
-                throw new InvalidOperationException(String.Format("Gate with id {0} was not evaluated yet.", gate.Context.CircuitUniqueId));
+                throw new InvalidOperationException(String.Format("Gate with id {0} was not evaluated yet.", gate.Id));
 
             return gateEvaluationValue.Value;
         }
 
         public void SetGateEvaluationValue(Gate gate, T value)
         {
-            _gateEvaluationValues[gate.Context.CircuitUniqueId] = Optional<T>.FromValue(value);
+            _gateEvaluationValues[gate.Id] = Optional<T>.FromValue(value);
         }
 
         public bool IsGateEvaluated(Gate gate)
         {
-            return _gateEvaluationValues[gate.Context.CircuitUniqueId].IsPresent;
+            return _gateEvaluationValues[gate.Id].IsPresent;
         }
 
         public T[] Output

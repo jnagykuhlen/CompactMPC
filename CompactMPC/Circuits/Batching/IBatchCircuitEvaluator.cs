@@ -8,8 +8,8 @@ namespace CompactMPC.Circuits.Batching
 {
     public interface IBatchCircuitEvaluator<T>
     {
-        T[] EvaluateAndGateBatch(GateEvaluationInput<T>[] evaluationInputs, CircuitContext circuitContext);
-        T EvaluateXorGate(T leftValue, T rightValue, GateContext gateContext, CircuitContext circuitContext);
-        T EvaluateNotGate(T value, GateContext gateContext, CircuitContext circuitContext);
+        T[] EvaluateAndGateBatch(GateEvaluationInput<T>[] evaluationInputs);
+        T EvaluateXorGate(T leftValue, T rightValue);
+        T EvaluateNotGate(T value);
     }
 }

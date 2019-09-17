@@ -11,8 +11,8 @@ namespace CompactMPC.Circuits.Internal
         private Gate _leftInputGate;
         private Gate _rightInputGate;
 
-        public AndGate(GateContext context, Gate leftInputGate, Gate rightInputGate)
-             : base(context)
+        public AndGate(int id, Gate leftInputGate, Gate rightInputGate)
+             : base(id)
         {
             _leftInputGate = leftInputGate;
             _rightInputGate = rightInputGate;
@@ -20,14 +20,11 @@ namespace CompactMPC.Circuits.Internal
         
         public override void Evaluate<T>(
             ICircuitEvaluator<T> evaluator,
-            EvaluationState<T> evaluationState,
-            CircuitContext circuitContext)
+            EvaluationState<T> evaluationState)
         {
             T value = evaluator.EvaluateAndGate(
                 evaluationState.GetGateEvaluationValue(_leftInputGate),
-                evaluationState.GetGateEvaluationValue(_rightInputGate),
-                Context,
-                circuitContext
+                evaluationState.GetGateEvaluationValue(_rightInputGate)
             );
 
             evaluationState.SetGateEvaluationValue(this, value);

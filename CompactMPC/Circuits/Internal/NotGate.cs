@@ -10,21 +10,18 @@ namespace CompactMPC.Circuits.Internal
     {
         private Gate _inputGate;
 
-        public NotGate(GateContext context, Gate inputGate)
-             : base(context)
+        public NotGate(int id, Gate inputGate)
+             : base(id)
         {
             _inputGate = inputGate;
         }
 
         public override void Evaluate<T>(
             ICircuitEvaluator<T> evaluator,
-            EvaluationState<T> evaluationState,
-            CircuitContext circuitContext)
+            EvaluationState<T> evaluationState)
         {
             T value = evaluator.EvaluateNotGate(
-                evaluationState.GetGateEvaluationValue(_inputGate),
-                Context,
-                circuitContext
+                evaluationState.GetGateEvaluationValue(_inputGate)
             );
 
             evaluationState.SetGateEvaluationValue(this, value);

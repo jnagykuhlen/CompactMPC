@@ -43,7 +43,7 @@ namespace CompactMPC.Circuits
                     EvaluateSubtree(inputGate, evaluator, evaluationState);
             }
 
-            gate.Evaluate(evaluator, evaluationState, _context);
+            gate.Evaluate(evaluator, evaluationState);
         }
 
         public IReadOnlyList<OutputGate> OutputGates

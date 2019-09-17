@@ -8,15 +8,19 @@ namespace CompactMPC.Circuits.Internal
 {
     public class InputGate : Gate
     {
-        public InputGate(GateContext context)
-             : base(context) { }
+        private int _inputIndex;
+
+        public InputGate(int id, int inputIndex)
+             : base(id)
+        {
+            _inputIndex = inputIndex;
+        }
 
         public override void Evaluate<T>(
             ICircuitEvaluator<T> evaluator,
-            EvaluationState<T> evaluationState,
-            CircuitContext circuitContext)
+            EvaluationState<T> evaluationState)
         {
-            evaluationState.SetGateEvaluationValue(this, evaluationState.GetInput(Context.TypeUniqueId));
+            evaluationState.SetGateEvaluationValue(this, evaluationState.GetInput(_inputIndex));
         }
 
         public override IEnumerable<Gate> InputGates

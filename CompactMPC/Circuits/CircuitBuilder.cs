@@ -16,11 +16,11 @@ namespace CompactMPC.Circuits
     public class CircuitBuilder
     {
         private int _nextGateId;
-        private int _nextAndGateId;
-        private int _nextXorGateId;
-        private int _nextNotGateId;
-        private int _nextInputGateId;
-        private int _nextOutputGateId;
+        private int _numberOfAndGates;
+        private int _numberOfXorGates;
+        private int _numberOfNotGates;
+        private int _nextInputIndex;
+        private int _nextOutputIndex;
         private List<OutputGate> _outputGates;
 
         /// <summary>
@@ -29,9 +29,11 @@ namespace CompactMPC.Circuits
         public CircuitBuilder()
         {
             _nextGateId = 0;
-            _nextAndGateId = 0;
-            _nextXorGateId = 0;
-            _nextNotGateId = 0;
+            _numberOfAndGates = 0;
+            _numberOfXorGates = 0;
+            _numberOfNotGates = 0;
+            _nextInputIndex = 0;
+            _nextOutputIndex = 0;
             _outputGates = new List<OutputGate>();
         }
 
@@ -51,8 +53,10 @@ namespace CompactMPC.Circuits
 
             if (rightInput == Wire.One)
                 return leftInput;
+
+            _numberOfAndGates++;
             
-            return Wire.FromGate(new AndGate(RequestGateContext(ref _nextAndGateId), leftInput.Gate, rightInput.Gate));
+            return Wire.FromGate(new AndGate(_nextGateId++, leftInput.Gate, rightInput.Gate));
         }
 
         /// <summary>
@@ -74,8 +78,10 @@ namespace CompactMPC.Circuits
 
             if (rightInput == Wire.One)
                 return Not(leftInput);
+
+            _numberOfXorGates++;
             
-            return Wire.FromGate(new XorGate(RequestGateContext(ref _nextXorGateId), leftInput.Gate, rightInput.Gate));
+            return Wire.FromGate(new XorGate(_nextGateId++, leftInput.Gate, rightInput.Gate));
         }
 
         /// <summary>
@@ -102,8 +108,10 @@ namespace CompactMPC.Circuits
 
             if (input == Wire.One)
                 return Wire.Zero;
+
+            _numberOfNotGates++;
             
-            return Wire.FromGate(new NotGate(RequestGateContext(ref _nextNotGateId), input.Gate));
+            return Wire.FromGate(new NotGate(_nextGateId++, input.Gate));
         }
 
         /// <summary>
@@ -112,7 +120,7 @@ namespace CompactMPC.Circuits
         /// <returns>Input wire.</returns>
         public Wire Input()
         {
-            return Wire.FromGate(new InputGate(RequestGateContext(ref _nextInputGateId)));
+            return Wire.FromGate(new InputGate(_nextGateId++, _nextInputIndex++));
         }
 
         /// <summary>
@@ -124,22 +132,17 @@ namespace CompactMPC.Circuits
             if (wire == Wire.Zero || wire == Wire.One)
                 throw new ArgumentException("Constant wires are not allowed as output.");
 
-            _outputGates.Add(new OutputGate(RequestGateContext(ref _nextOutputGateId), wire.Gate));
-        }
-
-        private GateContext RequestGateContext(ref int nextTypeUniqueId)
-        {
-            return new GateContext(_nextGateId++, nextTypeUniqueId++);
+            _outputGates.Add(new OutputGate(_nextGateId++, wire.Gate, _nextOutputIndex++));
         }
 
         public Circuit CreateCircuit()
         {
             CircuitContext circuitContext = new CircuitContext(
-                _nextAndGateId,
-                _nextXorGateId,
-                _nextNotGateId,
-                _nextInputGateId,
-                _nextOutputGateId
+                _numberOfAndGates,
+                _numberOfXorGates,
+                _numberOfNotGates,
+                _nextInputIndex,
+                _nextOutputIndex
             );
             
             return new Circuit(_outputGates, circuitContext);

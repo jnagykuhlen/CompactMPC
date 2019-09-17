@@ -8,17 +8,10 @@ namespace CompactMPC.Circuits.Batching.Internal
 {
     public class ForwardNotGate : ForwardGate
     {
-        private GateContext _context;
-
-        public ForwardNotGate(GateContext context)
+        public override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
         {
-            _context = context;
-        }
-
-        public override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext)
-        {
-            T outputValue = evaluator.EvaluateNotGate(value, _context, circuitContext);
-            SendOutputValue(outputValue, evaluator, evaluationState, circuitContext);
+            T outputValue = evaluator.EvaluateNotGate(value);
+            SendOutputValue(outputValue, evaluator, evaluationState);
         }
     }
 }

@@ -21,12 +21,12 @@ namespace CompactMPC.Protocol.Internal
             _multiplicativeSharing = multiplicativeSharing;
         }
 
-        public Task<Bit>[] EvaluateAndGateBatch(GateEvaluationInput<Task<Bit>>[] evaluationInputs, CircuitContext circuitContext)
+        public Task<Bit>[] EvaluateAndGateBatch(GateEvaluationInput<Task<Bit>>[] evaluationInputs)
         {
-            return EvaluateAndGateBatchAsync(evaluationInputs, circuitContext).ToSubTasks(bits => bits.ToArray(), evaluationInputs.Length);
+            return EvaluateAndGateBatchAsync(evaluationInputs).ToSubTasks(bits => bits.ToArray(), evaluationInputs.Length);
         }
 
-        private async Task<BitArray> EvaluateAndGateBatchAsync(GateEvaluationInput<Task<Bit>>[] evaluationInputs, CircuitContext circuitContext)
+        private async Task<BitArray> EvaluateAndGateBatchAsync(GateEvaluationInput<Task<Bit>>[] evaluationInputs)
         {
             int numberOfInvocations = evaluationInputs.Length;
 
@@ -38,25 +38,17 @@ namespace CompactMPC.Protocol.Internal
                 rightShares[i] = await evaluationInputs[i].RightValue.ConfigureAwait(false);
             }
 
-            BitArray multiplicativeShares = await _multiplicativeSharing.ComputeMultiplicativeSharesAsync(_session, leftShares, rightShares, numberOfInvocations);
-#if DEBUG
-            Console.WriteLine(
-                "Evaluated AND gates {0} of {1} total.",
-                String.Join(", ", evaluationInputs.Select(input => input.Context.TypeUniqueId + 1)),
-                circuitContext.NumberOfAndGates
-            );
-#endif
-            return multiplicativeShares;
+            return await _multiplicativeSharing.ComputeMultiplicativeSharesAsync(_session, leftShares, rightShares, numberOfInvocations);
         }
 
-        public async Task<Bit> EvaluateXorGate(Task<Bit> leftValue, Task<Bit> rightValue, GateContext gateContext, CircuitContext circuitContext)
+        public async Task<Bit> EvaluateXorGate(Task<Bit> leftValue, Task<Bit> rightValue)
         {
             Bit leftShare = await leftValue.ConfigureAwait(false);
             Bit rightShare = await rightValue.ConfigureAwait(false);
             return leftShare ^ rightShare;
         }
 
-        public async Task<Bit> EvaluateNotGate(Task<Bit> value, GateContext gateContext, CircuitContext circuitContext)
+        public async Task<Bit> EvaluateNotGate(Task<Bit> value)
         {
             Bit share = await value.ConfigureAwait(false);
             if (_session.LocalParty.IsFirstParty())

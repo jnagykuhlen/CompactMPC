@@ -21,25 +21,25 @@ namespace CompactMPC.Circuits.Batching.Internal
             return inputGates;
         }
 
-        public ForwardGate EvaluateAndGate(ForwardGate leftInputGate, ForwardGate rightInputGate, GateContext gateContext, CircuitContext circuitContext)
+        public ForwardGate EvaluateAndGate(ForwardGate leftInputGate, ForwardGate rightInputGate)
         {
-            ForwardGate gate = new ForwardAndGate(gateContext);
+            ForwardGate gate = new ForwardAndGate();
             leftInputGate.AddSuccessor(gate);
             rightInputGate.AddSuccessor(gate);
             return gate;
         }
 
-        public ForwardGate EvaluateXorGate(ForwardGate leftInputGate, ForwardGate rightInputGate, GateContext gateContext, CircuitContext circuitContext)
+        public ForwardGate EvaluateXorGate(ForwardGate leftInputGate, ForwardGate rightInputGate)
         {
-            ForwardGate gate = new ForwardXorGate(gateContext);
+            ForwardGate gate = new ForwardXorGate();
             leftInputGate.AddSuccessor(gate);
             rightInputGate.AddSuccessor(gate);
             return gate;
         }
 
-        public ForwardGate EvaluateNotGate(ForwardGate inputGate, GateContext gateContext, CircuitContext circuitContext)
+        public ForwardGate EvaluateNotGate(ForwardGate inputGate)
         {
-            ForwardGate gate = new ForwardNotGate(gateContext);
+            ForwardGate gate = new ForwardNotGate();
             inputGate.AddSuccessor(gate);
             return gate;
         }

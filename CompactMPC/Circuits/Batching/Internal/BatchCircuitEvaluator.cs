@@ -15,7 +15,7 @@ namespace CompactMPC.Circuits.Batching.Internal
             _innerEvaluator = innerEvaluator;
         }
         
-        public T[] EvaluateAndGateBatch(GateEvaluationInput<T>[] evaluationInputs, CircuitContext circuitContext)
+        public T[] EvaluateAndGateBatch(GateEvaluationInput<T>[] evaluationInputs)
         {
             T[] outputValues = new T[evaluationInputs.Length];
             for (int i = 0; i < evaluationInputs.Length; ++i)
@@ -23,23 +23,21 @@ namespace CompactMPC.Circuits.Batching.Internal
                 GateEvaluationInput<T> evaluationInput = evaluationInputs[i];
                 outputValues[i] = _innerEvaluator.EvaluateAndGate(
                     evaluationInput.LeftValue,
-                    evaluationInput.RightValue,
-                    evaluationInput.Context,
-                    circuitContext
+                    evaluationInput.RightValue
                 );
             }
 
             return outputValues;
         }
 
-        public T EvaluateXorGate(T leftValue, T rightValue, GateContext gateContext, CircuitContext circuitContext)
+        public T EvaluateXorGate(T leftValue, T rightValue)
         {
-            return _innerEvaluator.EvaluateXorGate(leftValue, rightValue, gateContext, circuitContext);
+            return _innerEvaluator.EvaluateXorGate(leftValue, rightValue);
         }
 
-        public T EvaluateNotGate(T value, GateContext gateContext, CircuitContext circuitContext)
+        public T EvaluateNotGate(T value)
         {
-            return _innerEvaluator.EvaluateNotGate(value, gateContext, circuitContext);
+            return _innerEvaluator.EvaluateNotGate(value);
         }
     }
 }

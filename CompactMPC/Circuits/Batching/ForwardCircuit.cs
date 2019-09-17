@@ -32,19 +32,19 @@ namespace CompactMPC.Circuits.Batching
             ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>(_context.NumberOfOutputGates);
 
             for (int i = 0; i < _inputGates.Length; ++i)
-                _inputGates[i].ReceiveInputValue(input[i], evaluator, evaluationState, _context);
+                _inputGates[i].ReceiveInputValue(input[i], evaluator, evaluationState);
 
             GateEvaluation<T>[] delayedAndGateEvaluations;
             while ((delayedAndGateEvaluations = evaluationState.GetDelayedAndGateEvaluations()).Length > 0)
             {
                 GateEvaluationInput<T>[] evaluationInputs = delayedAndGateEvaluations.Select(evaluation => evaluation.Input).ToArray();
-                T[] evaluationOutputs = evaluator.EvaluateAndGateBatch(evaluationInputs, _context);
+                T[] evaluationOutputs = evaluator.EvaluateAndGateBatch(evaluationInputs);
 
                 if (evaluationOutputs.Length != evaluationInputs.Length)
                     throw new ArgumentException("Batch circuit evaluator must provide exactly one output value for each gate evaluation.", nameof(evaluator));
 
                 for (int i = 0; i < delayedAndGateEvaluations.Length; ++i)
-                    delayedAndGateEvaluations[i].Gate.SendOutputValue(evaluationOutputs[i], evaluator, evaluationState, _context);
+                    delayedAndGateEvaluations[i].Gate.SendOutputValue(evaluationOutputs[i], evaluator, evaluationState);
             }
 
             return evaluationState.Output;

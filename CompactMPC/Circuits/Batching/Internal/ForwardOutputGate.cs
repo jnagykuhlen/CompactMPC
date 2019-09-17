@@ -15,7 +15,7 @@ namespace CompactMPC.Circuits.Batching.Internal
             _outputIndex = outputIndex;
         }
         
-        public override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState, CircuitContext circuitContext)
+        public override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
         {
             evaluationState.SetOutput(_outputIndex, value);
         }

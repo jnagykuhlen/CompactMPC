@@ -8,23 +8,13 @@ namespace CompactMPC.Circuits.Batching
 {
     public class GateEvaluationInput<T>
     {
-        private GateContext _context;
         private T _leftValue;
         private T _rightValue;
 
-        public GateEvaluationInput(GateContext context, T leftValue, T rightValue)
+        public GateEvaluationInput(T leftValue, T rightValue)
         {
-            _context = context;
             _leftValue = leftValue;
             _rightValue = rightValue;
-        }
-
-        public GateContext Context
-        {
-            get
-            {
-                return _context;
-            }
         }
 
         public T LeftValue
