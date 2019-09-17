@@ -39,7 +39,12 @@ namespace CompactMPC
             return _value;
         }
 
-        public bool Value
+        public override string ToString()
+        {
+            return IsSet ? "1" : "0";
+        }
+
+        public bool IsSet
         {
             get
             {

@@ -14,8 +14,8 @@ namespace CompactMPC.UnitTests
         [TestMethod]
         public void TestBit()
         {
-            Assert.IsFalse(Bit.Zero.Value);
-            Assert.IsTrue(Bit.One.Value);
+            Assert.IsFalse(Bit.Zero.IsSet);
+            Assert.IsTrue(Bit.One.IsSet);
             Assert.AreEqual(new Bit(), Bit.Zero);
             Assert.AreEqual(new Bit(false), Bit.Zero);
             Assert.AreEqual(new Bit(true), Bit.One);

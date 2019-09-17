@@ -80,7 +80,7 @@ namespace CompactMPC
         {
             char[] characters = new char[Length];
             for (int i = 0; i < Length; ++i)
-                characters[i] = ReadElement(i).Value ? '1' : '0';
+                characters[i] = ReadElement(i).IsSet ? '1' : '0';
 
             return new string(characters);
         }
