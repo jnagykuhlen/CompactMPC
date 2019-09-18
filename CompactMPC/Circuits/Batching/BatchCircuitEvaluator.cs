@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CompactMPC.Circuits.Batching.Internal
+namespace CompactMPC.Circuits.Batching
 {
     public class BatchCircuitEvaluator<T> : IBatchCircuitEvaluator<T>
     {
