@@ -4,7 +4,7 @@
 
 CompactMPC is a lightweight library for *secure multi-party computation* (MPC), fully written in managed C# code with no native dependencies. It targets .NET Standard 1.3 and can therefore be easily deployed on different operating systems.
 
-MPC is a cryptographic technique for collaboratively computing a function with a number of parties, in a way that the inputs provided by individual participants remain private. This library implements the GMW protocol [1] which is a generic protocol for secure *n*-party computation in the semi-honest setting relying on functions modelled as boolean circuits. The necessary *oblivious transfer* (OT) primitives follow the construction by Naor and Pinkas [2].
+MPC is a cryptographic technique for collaboratively computing a function with a number of parties, in a way that the inputs provided by individual participants remain private. This library implements the GMW protocol [1] which is a generic protocol for secure *n*-party computation in the semi-honest setting relying on functions modelled as boolean circuits. The necessary *oblivious transfer* (OT) primitives follow the construction by Naor and Pinkas [2, 3]. For further details on implementation, also see the work of Choi et al. which focusses on MPC in practical applications [4].
 
 ## Features
 
@@ -30,4 +30,8 @@ This project is published under the [MIT license](/LICENSE).
 
 [1] Oded Goldreich, Silvio Micali, Avi Wigderson: How to Play any Mental Game or A Completeness Theorem for Protocols with Honest Majority. 1987.
 
-[2] Moni Naor and Benny Pinkas: Computationally Secure Oblivious Transfer. 2005.
+[2] Moni Naor and Benny Pinkas: Efficient Oblivious Transfer Protocols. 2001.
+
+[3] Moni Naor and Benny Pinkas: Computationally Secure Oblivious Transfer. 2005.
+
+[4] Seung Geol Choi, Kyung-Wook Hwang, Jonathan Katz, Tal Malkin, Dan Rubenstein: Secure Multi-Party Computation of Boolean Circuits with Applications to Privacy in On-Line Marketplaces. 2012.
