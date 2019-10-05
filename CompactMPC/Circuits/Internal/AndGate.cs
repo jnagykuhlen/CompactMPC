@@ -8,35 +8,23 @@ namespace CompactMPC.Circuits.Internal
 {
     public class AndGate : Gate
     {
-        private Gate _leftInputGate;
-        private Gate _rightInputGate;
+        private Wire _leftInput;
+        private Wire _rightInput;
 
-        public AndGate(int id, Gate leftInputGate, Gate rightInputGate)
-             : base(id)
+        public AndGate(Wire leftInput, Wire rightInput)
         {
-            _leftInputGate = leftInputGate;
-            _rightInputGate = rightInputGate;
+            _leftInput = leftInput;
+            _rightInput = rightInput;
         }
         
-        public override void Evaluate<T>(
+        public override T Evaluate<T>(
             ICircuitEvaluator<T> evaluator,
-            EvaluationState<T> evaluationState)
+            CircuitEvaluation<T> evaluationState)
         {
-            T value = evaluator.EvaluateAndGate(
-                evaluationState.GetGateEvaluationValue(_leftInputGate),
-                evaluationState.GetGateEvaluationValue(_rightInputGate)
+            return evaluator.EvaluateAndGate(
+                evaluationState.GetWireValue(_leftInput),
+                evaluationState.GetWireValue(_rightInput)
             );
-
-            evaluationState.SetGateEvaluationValue(this, value);
-        }
-
-        public override IEnumerable<Gate> InputGates
-        {
-            get
-            {
-                yield return _leftInputGate;
-                yield return _rightInputGate;
-            }
         }
     }
 }

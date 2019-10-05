@@ -10,25 +10,16 @@ namespace CompactMPC.Expressions
 {
     public class SecureWord : SecurePrimitive
     {
-        private SecureWord(CircuitBuilder builder, Wire[] wires)
-            : base(builder, wires) { }
+        private IReadOnlyList<Wire> _wires;
 
-        public SecureWord(CircuitBuilder builder, IEnumerable<Wire> wires)
-            : base(builder, wires.ToArray()) { }
-
-        public static SecureWord FromConstant(CircuitBuilder builder, BitArray bits)
+        public SecureWord(IReadOnlyList<Wire> wires)
         {
-            return new SecureWord(builder, bits.Select(bit => bit.IsSet ? Wire.One : Wire.Zero));
+            _wires = wires;
         }
 
-        public override bool Equals(object obj)
+        public static SecureWord FromConstant(BitArray bits)
         {
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
+            return new SecureWord(bits.Select(bit => bit.IsSet ? Wire.One : Wire.Zero).ToArray());
         }
 
         public SecureWord GetSegment(int startIndex, int length)
@@ -39,7 +30,7 @@ namespace CompactMPC.Expressions
             if (startIndex + length > Length)
                 throw new ArgumentException("Requested segment length exceeds buffer.", nameof(length));
 
-            return new SecureWord(Builder, Wires.Skip(startIndex).Take(length));
+            return new SecureWord(_wires.Skip(startIndex).Take(length).ToArray());
         }
 
         public SecureBoolean IsBitSet(int index)
@@ -47,7 +38,7 @@ namespace CompactMPC.Expressions
             if (index < 0 || index >= Length)
                 throw new ArgumentOutOfRangeException(nameof(index));
 
-            return new SecureBoolean(Builder, Wires[index]);
+            return new SecureBoolean(_wires[index]);
         }
 
         public SecureWord FilterFirst()
@@ -58,15 +49,15 @@ namespace CompactMPC.Expressions
             Wire[] result = new Wire[Length];
             Wire condition = Wire.One;
 
-            result[0] = Wires[0];
+            result[0] = _wires[0];
 
             for (int i = 1; i < result.Length; ++i)
             {
-                condition = Builder.And(condition, Builder.Not(Wires[i - 1]));
-                result[i] = Builder.And(Wires[i], condition);
+                condition = Wire.And(condition, Wire.Not(_wires[i - 1]));
+                result[i] = Wire.And(_wires[i], condition);
             }
 
-            return new SecureWord(Builder, result);
+            return new SecureWord(result);
         }
 
         public static SecureWord And(IEnumerable<SecureWord> values)
@@ -101,90 +92,89 @@ namespace CompactMPC.Expressions
         
         public static SecureWord Multiplex(SecureWord left, SecureWord right, SecureBoolean condition)
         {
-            if (left.Builder != right.Builder || condition.Builder != right.Builder)
-                throw new ArgumentException("Secure words must use the same circuit builder for constructing gates.");
-
             if (left.Length != right.Length)
                 throw new ArgumentException("Secure words must be of same length for multiplexing.");
 
             Wire[] result = new Wire[right.Length];
             for (int i = 0; i < right.Length; ++i)
             {
-                result[i] = right.Builder.Xor(
+                result[i] = Wire.Xor(
                     left.Wires[i],
-                    right.Builder.And(
+                    Wire.And(
                         condition.Wire,
-                        right.Builder.Xor(left.Wires[i], right.Wires[i])
+                        Wire.Xor(left.Wires[i], right.Wires[i])
                     )
                 );
             }
 
-            return new SecureWord(right.Builder, result);
+            return new SecureWord(result);
+        }
+
+        public override bool Equals(object other)
+        {
+            return other is SecureWord && Enumerable.SequenceEqual(_wires, ((SecureWord)other).Wires);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1097976886;
+            foreach (Wire wire in _wires)
+                hashCode = hashCode * -1521134295 + wire.GetHashCode();
+
+            return hashCode;
         }
 
         public static SecureWord operator &(SecureWord left, SecureWord right)
         {
-            if (left.Builder != right.Builder)
-                throw new ArgumentException("Secure words must use the same circuit builder for constructing gates.");
-
             if (left.Length != right.Length)
                 throw new ArgumentException("Secure words must be of same length for bitwise logical conjunction.");
             
             Wire[] result = new Wire[right.Length];
             for (int i = 0; i < result.Length; ++i)
-                result[i] = right.Builder.And(left.Wires[i], right.Wires[i]);
+                result[i] = Wire.And(left.Wires[i], right.Wires[i]);
 
-            return new SecureWord(right.Builder, result);
+            return new SecureWord(result);
         }
 
         public static SecureWord operator ^(SecureWord left, SecureWord right)
         {
-            if (left.Builder != right.Builder)
-                throw new ArgumentException("Secure words must use the same circuit builder for constructing gates.");
-
             if (left.Length != right.Length)
                 throw new ArgumentException("Secure words must be of same length for bitwise logical XOR.");
             
             Wire[] result = new Wire[right.Length];
             for (int i = 0; i < result.Length; ++i)
-                result[i] = right.Builder.Xor(left.Wires[i], right.Wires[i]);
+                result[i] = Wire.Xor(left.Wires[i], right.Wires[i]);
 
-            return new SecureWord(right.Builder, result);
+            return new SecureWord(result);
         }
 
         public static SecureWord operator |(SecureWord left, SecureWord right)
         {
-            if (left.Builder != right.Builder)
-                throw new ArgumentException("Secure words must use the same circuit builder for constructing gates.");
-
             if (left.Length != right.Length)
                 throw new ArgumentException("Secure words must be of same length for bitwise logical disjunction.");
             
             Wire[] result = new Wire[right.Length];
             for (int i = 0; i < result.Length; ++i)
-                result[i] = right.Builder.Or(left.Wires[i], right.Wires[i]);
+                result[i] = Wire.Or(left.Wires[i], right.Wires[i]);
 
-            return new SecureWord(right.Builder, result);
+            return new SecureWord(result);
         }
 
         public static SecureWord operator ~(SecureWord right)
         {
             Wire[] result = new Wire[right.Length];
             for (int i = 0; i < result.Length; ++i)
-                result[i] = right.Builder.Not(right.Wires[i]);
+                result[i] = Wire.Not(right.Wires[i]);
 
-            return new SecureWord(right.Builder, result);
+            return new SecureWord(result);
         }
 
         public static SecureBoolean operator ==(SecureWord left, SecureWord right)
         {
-            if (left.Builder != right.Builder)
-                throw new ArgumentException("Secure words must use the same circuit builder for constructing gates.");
+            Wire result = Enumerable.Zip(left.Wires, right.Wires, (leftWire, rightWire) => Wire.Not(Wire.Xor(leftWire, rightWire)))
+                .AggregateDepthEfficient((x, y) => Wire.And(x, y));
 
-            Wire result = Enumerable.Zip(left.Wires, right.Wires, (leftWire, rightWire) => right.Builder.Not(right.Builder.Xor(leftWire, rightWire)))
-                .AggregateDepthEfficient((x, y) => right.Builder.And(x, y));
-
-            return new SecureBoolean(right.Builder, result);
+            return new SecureBoolean(result);
         }
 
         public static SecureBoolean operator !=(SecureWord left, SecureWord right)
@@ -197,6 +187,14 @@ namespace CompactMPC.Expressions
             get
             {
                 return Wires.Count;
+            }
+        }
+
+        public override IReadOnlyList<Wire> Wires
+        {
+            get
+            {
+                return _wires;
             }
         }
     }

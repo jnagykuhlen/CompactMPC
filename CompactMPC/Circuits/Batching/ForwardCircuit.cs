@@ -13,10 +13,31 @@ namespace CompactMPC.Circuits.Batching
         private ForwardGate[] _inputGates;
         private CircuitContext _context;
 
-        public ForwardCircuit(IEvaluableCircuit circuit)
+        public ForwardCircuit(Wire[] inputWires, Wire[] outputWires)
         {
-            _inputGates = ForwardCircuitBuilder.Build(circuit);
-            _context = circuit.Context;
+            ForwardCircuitBuildingEvaluator evaluator = new ForwardCircuitBuildingEvaluator();
+            CircuitEvaluation<ForwardGate> evaluation = new CircuitEvaluation<ForwardGate>(evaluator);
+
+            _inputGates = new ForwardGate[inputWires.Length];
+            for (int i = 0; i < inputWires.Length; ++i)
+            {
+                _inputGates[i] = new ForwardInputGate();
+                evaluation.AssignInputValue(inputWires[i], _inputGates[i]);
+            }
+
+            for (int i = 0; i < outputWires.Length; ++i)
+            {
+                ForwardGate outputGate = evaluation.GetWireValue(outputWires[i]);
+                outputGate.AddSuccessor(new ForwardOutputGate(i));
+            }
+
+            _context = new CircuitContext(
+                evaluator.NumberOfAndGates,
+                evaluator.NumberOfXorGates,
+                evaluator.NumberOfNotGates,
+                inputWires.Length,
+                outputWires.Length
+            );
         }
         
         public T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] input)
@@ -29,7 +50,7 @@ namespace CompactMPC.Circuits.Batching
             if (input.Length != _inputGates.Length)
                 throw new ArgumentException("Number of provided inputs does not match the number of input gates in the circuit.", nameof(input));
 
-            ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>(_context.NumberOfOutputGates);
+            ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>(_context.NumberOfOutputs);
 
             for (int i = 0; i < _inputGates.Length; ++i)
                 _inputGates[i].ReceiveInputValue(input[i], evaluator, evaluationState);

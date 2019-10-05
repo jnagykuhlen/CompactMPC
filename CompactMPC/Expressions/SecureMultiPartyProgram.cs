@@ -18,13 +18,14 @@ namespace CompactMPC.Expressions
             InputPrimitiveDeclaration[] inputDeclaration = InputDeclaration;
             OutputPrimitiveDeclaration[] outputDeclaration = OutputDeclaration;
             
-            CircuitBuilder builder = new CircuitBuilder();
-            SecurePrimitive[] inputPrimitives = InputPrimitives(builder, inputDeclaration);
-            SecurePrimitive[] outputPrimitives = Run(builder, inputPrimitives);
-            OutputPrimitives(builder, outputPrimitives);
-            
+            SecurePrimitive[] inputPrimitives = InputPrimitives(inputDeclaration);
+            SecurePrimitive[] outputPrimitives = Run(inputPrimitives);
+
+            Wire[] inputWires = inputPrimitives.SelectMany(primitive => primitive.Wires).ToArray();
+            Wire[] outputWires = outputPrimitives.SelectMany(primitive => primitive.Wires).ToArray();
+
             BitArray outputBuffer = await secureComputation.EvaluateAsync(
-                new ForwardCircuit(builder.CreateCircuit()),
+                new ForwardCircuit(inputWires, outputWires),
                 CreateInputMapping(inputDeclaration),
                 CreateOutputMapping(outputDeclaration),
                 CreateLocalInputBuffer(inputDeclaration, localInputPrimitives, secureComputation.MultiPartySession.LocalParty.Id)
@@ -108,37 +109,28 @@ namespace CompactMPC.Expressions
             return outputMapping;
         }
 
-        private static SecurePrimitive[] InputPrimitives(CircuitBuilder builder, InputPrimitiveDeclaration[] inputDeclaration)
+        private static SecurePrimitive[] InputPrimitives(InputPrimitiveDeclaration[] inputDeclaration)
         {
             SecurePrimitive[] primitives = new SecurePrimitive[inputDeclaration.Length];
             for (int i = 0; i < primitives.Length; ++i)
             {
                 PrimitiveConverter converter = inputDeclaration[i].Converter;
-                primitives[i] = converter.FromWires(builder, InputWires(builder, converter.NumberOfWires));
+                primitives[i] = converter.FromWires(InputWires(converter.NumberOfWires));
             }
 
             return primitives;
         }
 
-        private static void OutputPrimitives(CircuitBuilder builder, SecurePrimitive[] primitives)
+        private static Wire[] InputWires(int numberOfWires)
         {
-            for (int i = 0; i < primitives.Length; ++i)
-                OutputWires(builder, primitives[i].Wires);
-        }
-
-        private static IEnumerable<Wire> InputWires(CircuitBuilder builder, int numberOfWires)
-        {
+            Wire[] wires = new Wire[numberOfWires];
             for (int i = 0; i < numberOfWires; ++i)
-                yield return builder.Input();
+                wires[i] = Wire.CreateAssignable();
+
+            return wires;
         }
 
-        private static void OutputWires(CircuitBuilder builder, IEnumerable<Wire> wires)
-        {
-            foreach (Wire wire in wires)
-                builder.Output(wire);
-        }
-
-        protected abstract SecurePrimitive[] Run(CircuitBuilder builder, SecurePrimitive[] inputs);
+        protected abstract SecurePrimitive[] Run(SecurePrimitive[] inputs);
         protected abstract InputPrimitiveDeclaration[] InputDeclaration { get; }
         protected abstract OutputPrimitiveDeclaration[] OutputDeclaration { get; }
     }

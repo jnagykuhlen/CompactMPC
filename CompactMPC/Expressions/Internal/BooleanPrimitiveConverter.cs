@@ -10,9 +10,9 @@ namespace CompactMPC.Expressions.Internal
 {
     public class BooleanPrimitiveConverter : PrimitiveConverter
     {
-        public override SecurePrimitive FromWires(CircuitBuilder builder, IEnumerable<Wire> wires)
+        public override SecurePrimitive FromWires(Wire[] wires)
         {
-            return new SecureBoolean(builder, wires.First());
+            return new SecureBoolean(wires.First());
         }
 
         public override void WriteInput(object input, BitArray buffer, int startIndex)

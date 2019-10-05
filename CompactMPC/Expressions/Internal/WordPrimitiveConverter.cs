@@ -19,9 +19,9 @@ namespace CompactMPC.Expressions.Internal
             _numberOfWires = numberOfWires;
         }
 
-        public override SecurePrimitive FromWires(CircuitBuilder builder, IEnumerable<Wire> wires)
+        public override SecurePrimitive FromWires(Wire[] wires)
         {
-            return new SecureWord(builder, wires);
+            return new SecureWord(wires);
         }
 
         public override void WriteInput(object input, BitArray buffer, int startIndex)

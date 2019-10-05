@@ -27,7 +27,7 @@ namespace CompactMPC.Expressions
             return new IntegerPrimitiveConverter(length);
         }
 
-        public abstract SecurePrimitive FromWires(CircuitBuilder builder, IEnumerable<Wire> wires);
+        public abstract SecurePrimitive FromWires(Wire[] wires);
         public abstract void WriteInput(object input, BitArray buffer, int startIndex);
         public abstract object ReadOutput(BitArray buffer, int startIndex);
         public abstract int NumberOfWires { get; }

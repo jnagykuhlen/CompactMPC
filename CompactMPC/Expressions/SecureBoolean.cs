@@ -10,51 +10,54 @@ namespace CompactMPC.Expressions
 {
     public class SecureBoolean : SecurePrimitive
     {
+        public static readonly SecureBoolean False = new SecureBoolean(Wire.Zero);
+        public static readonly SecureBoolean True = new SecureBoolean(Wire.One);
+
         private Wire _wire;
 
-        public SecureBoolean(CircuitBuilder builder, Wire wire)
-            : base(builder, new[] { wire })
+        public SecureBoolean(Wire wire)
         {
             _wire = wire;
         }
 
-        public static SecureBoolean True(CircuitBuilder builder)
+        public override bool Equals(object other)
         {
-            return new SecureBoolean(builder, Wire.One);
+            return other is SecureBoolean && _wire.Equals(((SecureBoolean)other).Wire);
         }
 
-        public static SecureBoolean False(CircuitBuilder builder)
+        public override int GetHashCode()
         {
-            return new SecureBoolean(builder, Wire.Zero);
+            return _wire.GetHashCode();
         }
-        
+
+        public static SecureBoolean operator ==(SecureBoolean left, SecureBoolean right)
+        {
+            return new SecureBoolean(Wire.Not(Wire.Xor(left.Wire, right.Wire)));
+        }
+
+        public static SecureBoolean operator !=(SecureBoolean left, SecureBoolean right)
+        {
+            return new SecureBoolean(Wire.Xor(left.Wire, right.Wire));
+        }
+
         public static SecureBoolean operator &(SecureBoolean left, SecureBoolean right)
         {
-            if (left.Builder != right.Builder)
-                throw new ArgumentException("Secure booleans must use the same circuit builder for constructing gates.");
-            
-            return new SecureBoolean(right.Builder, right.Builder.And(left.Wire, right.Wire));
+            return new SecureBoolean(Wire.And(left.Wire, right.Wire));
         }
 
         public static SecureBoolean operator ^(SecureBoolean left, SecureBoolean right)
         {
-            if (left.Builder != right.Builder)
-                throw new ArgumentException("Secure booleans must use the same circuit builder for constructing gates.");
-            
-            return new SecureBoolean(right.Builder, right.Builder.Xor(left.Wire, right.Wire));
+            return new SecureBoolean(Wire.Xor(left.Wire, right.Wire));
         }
 
         public static SecureBoolean operator |(SecureBoolean left, SecureBoolean right)
         {
-            if (left.Builder != right.Builder)
-                throw new ArgumentException("Secure booleans must use the same circuit builder for constructing gates.");
-
-            return new SecureBoolean(right.Builder, right.Builder.Or(left.Wire, right.Wire));
+            return new SecureBoolean(Wire.Or(left.Wire, right.Wire));
         }
 
         public static SecureBoolean operator !(SecureBoolean right)
         {
-            return new SecureBoolean(right.Builder, right.Builder.Not(right.Wire));
+            return new SecureBoolean(Wire.Not(right.Wire));
         }
         
         public static bool operator true(SecureBoolean right)
@@ -72,6 +75,14 @@ namespace CompactMPC.Expressions
             get
             {
                 return _wire;
+            }
+        }
+
+        public override IReadOnlyList<Wire> Wires
+        {
+            get
+            {
+                return new[] { _wire };
             }
         }
     }

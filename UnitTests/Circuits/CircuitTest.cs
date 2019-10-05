@@ -27,8 +27,12 @@ namespace CompactMPC.UnitTests.Circuits
 
             Bit[] sequentialInput = inputs.SelectMany(bits => bits).ToArray();
 
+            /*
             CircuitBuilder builder = new CircuitBuilder();
             (new SetIntersectionCircuitRecorder(inputs.Length, inputs[0].Length)).Record(builder);
+            */
+
+            new SecureSetIntersection();
 
             Circuit circuit = builder.CreateCircuit();
             ForwardCircuit forwardCircuit = new ForwardCircuit(circuit);

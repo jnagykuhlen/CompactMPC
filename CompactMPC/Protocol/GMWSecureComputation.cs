@@ -26,7 +26,7 @@ namespace CompactMPC.Protocol
 
         public async Task<BitArray> EvaluateAsync(IBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
         {
-            if (inputMapping.NumberOfInputs != evaluable.Context.NumberOfInputGates)
+            if (inputMapping.NumberOfInputs != evaluable.Context.NumberOfInputs)
             {
                 throw new ArgumentException(
                     "The number of inputs in input mapping does not match the number of declared inputs in the circuit.",
@@ -34,7 +34,7 @@ namespace CompactMPC.Protocol
                 );
             }
 
-            if (outputMapping.NumberOfOutputs != evaluable.Context.NumberOfOutputGates)
+            if (outputMapping.NumberOfOutputs != evaluable.Context.NumberOfOutputs)
             {
                 throw new ArgumentException(
                     "The number of outputs in output mapping does not match the number of declared outputs in the circuit.",

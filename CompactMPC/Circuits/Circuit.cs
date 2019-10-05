@@ -4,61 +4,54 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using CompactMPC.Circuits.Internal;
-
 namespace CompactMPC.Circuits
 {
     public class Circuit : IEvaluableCircuit
     {
-        private IReadOnlyList<OutputGate> _outputGates;
-        private CircuitContext _context;
+        private Wire[] _inputWires;
+        private Wire[] _outputWires;
 
-        public Circuit(IReadOnlyList<OutputGate> outputGates, CircuitContext context)
+        public Circuit(Wire[] inputWires, Wire[] outputWires)
         {
-            _outputGates = outputGates;
-            _context = context;
+            if (inputWires == null)
+                throw new ArgumentNullException(nameof(inputWires));
+
+            if (outputWires == null)
+                throw new ArgumentNullException(nameof(outputWires));
+
+            _inputWires = inputWires;
+            _outputWires = outputWires;
         }
 
         public T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] input)
         {
-            if (input.Length != _context.NumberOfInputGates)
+            if (input.Length != _inputWires.Length)
                 throw new ArgumentException("Number of provided inputs does not match the number of input gates in the circuit.", nameof(input));
 
-            EvaluationState<T> evaluationState = new EvaluationState<T>(input, _context);
+            CircuitEvaluation<T> evaluation = new CircuitEvaluation<T>(evaluator);
+            for (int i = 0; i < input.Length; ++i)
+                evaluation.AssignInputValue(_inputWires[i], input[i]);
 
-            foreach (OutputGate outputGate in _outputGates)
-                EvaluateSubtree(outputGate, evaluator, evaluationState);
+            T[] output = new T[_outputWires.Length];
+            for (int i = 0; i < output.Length; ++i)
+                output[i] = evaluation.GetWireValue(_outputWires[i]);
 
-            return evaluationState.Output;
-        }
-        
-        private void EvaluateSubtree<T>(
-            Gate gate,
-            ICircuitEvaluator<T> evaluator,
-            EvaluationState<T> evaluationState)
-        {
-            foreach (Gate inputGate in gate.InputGates)
-            {
-                if (!evaluationState.IsGateEvaluated(inputGate))
-                    EvaluateSubtree(inputGate, evaluator, evaluationState);
-            }
-
-            gate.Evaluate(evaluator, evaluationState);
+            return output;
         }
 
-        public IReadOnlyList<OutputGate> OutputGates
+        public IReadOnlyList<Wire> InputWires
         {
             get
             {
-                return _outputGates;
+                return _inputWires;
             }
         }
 
-        public CircuitContext Context
+        public IReadOnlyList<Wire> OutputWires
         {
             get
             {
-                return _context;
+                return _outputWires;
             }
         }
     }

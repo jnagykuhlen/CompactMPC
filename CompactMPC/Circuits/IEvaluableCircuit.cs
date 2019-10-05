@@ -19,10 +19,5 @@ namespace CompactMPC.Circuits
         /// <param name="inputValues">Input values corresponding to each declared input wire.</param>
         /// <returns>Output bits corresponding to each declared output wire.</returns>
         T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] inputValues);
-        
-        /// <summary>
-        /// Gets information on the number of gates in the circuit.
-        /// </summary>
-        CircuitContext Context { get; }
     }
 }

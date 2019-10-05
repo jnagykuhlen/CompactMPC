@@ -6,15 +6,19 @@ using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits.Batching.Internal
 {
-    public class ForwardCircuitBuilder : ICircuitEvaluator<ForwardGate>
+    public class ForwardCircuitBuildingEvaluator : ICircuitEvaluator<ForwardGate>
     {
-        public static ForwardGate[] Build(IEvaluableCircuit circuit)
+        private int _numberOfAndGates;
+        private int _numberOfXorGates;
+        private int _numberOfNotGates;
+
+        public static ForwardGate[] Build(Circuit circuit)
         {
-            ForwardGate[] inputGates = new ForwardGate[circuit.Context.NumberOfInputGates];
+            ForwardGate[] inputGates = new ForwardGate[circuit.InputWires.Count];
             for (int i = 0; i < inputGates.Length; ++i)
                 inputGates[i] = new ForwardInputGate(i);
 
-            ForwardGate[] outputGates = circuit.Evaluate(new ForwardCircuitBuilder(), inputGates);
+            ForwardGate[] outputGates = circuit.Evaluate(new ForwardCircuitBuildingEvaluator(), inputGates);
             for (int i = 0; i < outputGates.Length; ++i)
                 outputGates[i].AddSuccessor(new ForwardOutputGate(i));
 
@@ -26,6 +30,9 @@ namespace CompactMPC.Circuits.Batching.Internal
             ForwardGate gate = new ForwardAndGate();
             leftInputGate.AddSuccessor(gate);
             rightInputGate.AddSuccessor(gate);
+
+            _numberOfAndGates++;
+
             return gate;
         }
 
@@ -34,6 +41,9 @@ namespace CompactMPC.Circuits.Batching.Internal
             ForwardGate gate = new ForwardXorGate();
             leftInputGate.AddSuccessor(gate);
             rightInputGate.AddSuccessor(gate);
+
+            _numberOfXorGates++;
+
             return gate;
         }
 
@@ -41,7 +51,34 @@ namespace CompactMPC.Circuits.Batching.Internal
         {
             ForwardGate gate = new ForwardNotGate();
             inputGate.AddSuccessor(gate);
+
+            _numberOfNotGates++;
+
             return gate;
+        }
+
+        public int NumberOfAndGates
+        {
+            get
+            {
+                return _numberOfAndGates;
+            }
+        }
+
+        public int NumberOfXorGates
+        {
+            get
+            {
+                return _numberOfXorGates;
+            }
+        }
+
+        public int NumberOfNotGates
+        {
+            get
+            {
+                return _numberOfNotGates; 
+            }
         }
     }
 }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using CompactMPC.Circuits.Internal;
+
 namespace CompactMPC.Circuits
 {
     public sealed class Wire
@@ -18,12 +20,56 @@ namespace CompactMPC.Circuits
             _gate = gate;
         }
 
-        public static Wire FromGate(Gate gate)
+        public static Wire CreateAssignable()
         {
-            if (gate == null)
-                throw new ArgumentNullException(nameof(gate));
-            
-            return new Wire(gate);
+            return new Wire(null);
+        }
+
+        public static Wire And(Wire leftInput, Wire rightInput)
+        {
+            if (leftInput == Zero || rightInput == Zero)
+                return Zero;
+
+            if (leftInput == One)
+                return rightInput;
+
+            if (rightInput == One)
+                return leftInput;
+
+            return new Wire(new AndGate(leftInput, rightInput));
+        }
+
+        public static Wire Xor(Wire leftInput, Wire rightInput)
+        {
+            if (leftInput == Zero)
+                return rightInput;
+
+            if (rightInput == Zero)
+                return leftInput;
+
+            if (leftInput == One)
+                return Not(rightInput);
+
+            if (rightInput == One)
+                return Not(leftInput);
+
+            return new Wire(new XorGate(leftInput, rightInput));
+        }
+
+        public static Wire Not(Wire input)
+        {
+            if (input == Zero)
+                return One;
+
+            if (input == One)
+                return Zero;
+
+            return new Wire(new NotGate(input));
+        }
+
+        public static Wire Or(Wire leftInput, Wire rightInput)
+        {
+            return Not(And(Not(leftInput), Not(rightInput)));
         }
 
         public Gate Gate
@@ -31,6 +77,22 @@ namespace CompactMPC.Circuits
             get
             {
                 return _gate;
+            }
+        }
+
+        public bool IsAssignable
+        {
+            get
+            {
+                return !IsConstant && _gate == null;
+            }
+        }
+
+        public bool IsConstant
+        {
+            get
+            {
+                return this == Zero || this == One;
             }
         }
     }

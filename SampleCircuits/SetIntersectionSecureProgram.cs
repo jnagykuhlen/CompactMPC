@@ -19,13 +19,12 @@ namespace CompactMPC.SampleCircuits
         {
             _numberOfParties = numberOfParties;
             _numberOfElements = numberOfElements;
-            _numberOfCounterBits = CounterHelper.RequiredNumberOfBits(numberOfElements);
         }
 
-        protected override SecurePrimitive[] Run(CircuitBuilder builder, SecurePrimitive[] inputs)
+        protected override SecurePrimitive[] Run(SecurePrimitive[] inputs)
         {
             SecureWord[] inputWords = inputs.Cast<SecureWord>().ToArray();
-            SecureSetIntersection setIntersection = new SecureSetIntersection(inputWords, _numberOfCounterBits);
+            SecureSetIntersection setIntersection = new SecureSetIntersection(inputWords);
             
             return new[]
             {

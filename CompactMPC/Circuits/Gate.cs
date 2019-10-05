@@ -8,26 +8,9 @@ namespace CompactMPC.Circuits
 {
     public abstract class Gate
     {
-        private int _id;
-
-        public Gate(int id)
-        {
-            _id = id;
-        }
-        
-        public abstract void Evaluate<T>(
+        public abstract T Evaluate<T>(
             ICircuitEvaluator<T> evaluator,
-            EvaluationState<T> evaluationState
+            CircuitEvaluation<T> evaluationState
         );
-
-        public abstract IEnumerable<Gate> InputGates { get; }
-
-        public int Id
-        {
-            get
-            {
-                return _id;
-            }
-        }
     }
 }
