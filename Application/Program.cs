@@ -1,21 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Linq;
-using System.Text;
-using System.Reflection;
+﻿using System;
 using System.Diagnostics;
 using System.Net;
-
+using System.Numerics;
+using System.Reflection;
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
-using CompactMPC.Protocol;
 using CompactMPC.ObliviousTransfer;
+using CompactMPC.Protocol;
 using CompactMPC.SampleCircuits;
 
 namespace CompactMPC.Application
 {
-    public class Program
+    public static class Program
     {
         private const int NumberOfParties = 3;
         private const int NumberOfElements = 10;
@@ -23,8 +19,7 @@ namespace CompactMPC.Application
 
         public static void Main(string[] args)
         {
-            BitArray[] inputs = new BitArray[]
-            {
+            BitArray[] inputs = {
                 BitArray.FromBinaryString("0111010011"),
                 BitArray.FromBinaryString("1101100010"),
                 BitArray.FromBinaryString("0111110011")
@@ -44,7 +39,7 @@ namespace CompactMPC.Application
             {
                 Console.WriteLine("Starting client...");
 
-                int localPartyId = Int32.Parse(args[0]);
+                int localPartyId = int.Parse(args[0]);
                 RunSecureComputationParty(localPartyId, inputs[localPartyId]);
             }
             else
@@ -60,38 +55,35 @@ namespace CompactMPC.Application
 
         private static void RunSecureComputationParty(int localPartyId, BitArray localInput)
         {
-            using (IMultiPartyNetworkSession session = CreateLocalSession(localPartyId, StartPort, NumberOfParties))
-            {
-                using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
-                {
-                    IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
-                        SecurityParameters.CreateDefault768Bit(),
-                        cryptoContext
-                    );
+            using IMultiPartyNetworkSession session = CreateLocalSession(localPartyId, StartPort, NumberOfParties);
+            using CryptoContext cryptoContext = CryptoContext.CreateDefault();
+            
+            IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                SecurityParameters.CreateDefault768Bit(),
+                cryptoContext
+            );
 
-                    IMultiplicativeSharing multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(
-                        obliviousTransfer,
-                        cryptoContext
-                    );
+            IMultiplicativeSharing multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(
+                obliviousTransfer,
+                cryptoContext
+            );
 
-                    GMWSecureComputation computation = new GMWSecureComputation(session, multiplicativeSharing, cryptoContext);
+            GMWSecureComputation computation = new GMWSecureComputation(session, multiplicativeSharing, cryptoContext);
 
-                    Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-                    SetIntersectionSecureProgram secureProgram = new SetIntersectionSecureProgram(NumberOfParties, NumberOfElements);
-                    object[] outputPrimitives = secureProgram.EvaluateAsync(computation, new[] { localInput }).Result;
-                    BitArray intersection = (BitArray)outputPrimitives[0];
-                    BigInteger count = (BigInteger)outputPrimitives[1];
+            SetIntersectionSecureProgram secureProgram = new SetIntersectionSecureProgram(NumberOfParties, NumberOfElements);
+            object[] outputPrimitives = secureProgram.EvaluateAsync(computation, new object[] { localInput }).Result;
+            BitArray intersection = (BitArray)outputPrimitives[0];
+            BigInteger count = (BigInteger)outputPrimitives[1];
 
-                    stopwatch.Stop();
+            stopwatch.Stop();
 
-                    Console.WriteLine();
-                    Console.WriteLine("Completed protocol as {0} in {1} ms.", session.LocalParty.Name, stopwatch.ElapsedMilliseconds);
-                    Console.WriteLine("  Local input: {0}", localInput.ToBinaryString());
-                    Console.WriteLine("  Computed intersection: {0}", intersection.ToBinaryString());
-                    Console.WriteLine("  Computed number of matches: {0}", count);
-                }
-            }
+            Console.WriteLine();
+            Console.WriteLine($"Completed protocol as {session.LocalParty.Name} in {stopwatch.ElapsedMilliseconds} ms.");
+            Console.WriteLine($"  Local input: {localInput.ToBinaryString()}");
+            Console.WriteLine($"  Computed intersection: {intersection.ToBinaryString()}");
+            Console.WriteLine($"  Computed number of matches: {count}");
         }
 
         private static IMultiPartyNetworkSession CreateLocalSession(int localPartyId, int startPort, int numberOfParties)

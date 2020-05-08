@@ -8,7 +8,10 @@
     <Title>CompactMPC Application</Title>
     <Authors>Jonas Nagy-Kuhlen</Authors>
     <Description>Sample Application for CompactMPC Library</Description>
-    <Copyright>Copyright © 2019 Jonas Nagy-Kuhlen</Copyright> 
+    <Copyright>Copyright © 2019 Jonas Nagy-Kuhlen</Copyright>
+    <LangVersion>8</LangVersion>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>CS8600;CS8602;CS8603</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\CompactMPC\CompactMPC.csproj" />
