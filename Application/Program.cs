@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Linq;
@@ -96,7 +96,7 @@ namespace CompactMPC.Application
 
         private static IMultiPartyNetworkSession CreateLocalSession(int localPartyId, int startPort, int numberOfParties)
         {
-            return TcpMultiPartyNetworkSession.EstablishAsync(new Party(localPartyId), IPAddress.Loopback, StartPort, NumberOfParties).Result;
+            return TcpMultiPartyNetworkSession.EstablishAsync(new Party(localPartyId), IPAddress.Loopback, startPort, numberOfParties).Result;
         }
     }
 }
