@@ -12,7 +12,7 @@
     <IsPackable>false</IsPackable>
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
-    <WarningsAsErrors>CS8600;CS8602;CS8603</WarningsAsErrors>
+    <WarningsAsErrors>CS8600;CS8602;CS8603;CS8625;CS8653</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
