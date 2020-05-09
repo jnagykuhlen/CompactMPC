@@ -58,8 +58,8 @@ namespace CompactMPC.ObliviousTransfer
             BigInteger p = BigInteger.Parse(Regex.Replace(primeHex, @"\s+", ""), NumberStyles.AllowHexSpecifier);
             BigInteger q = (p - 1) / 2;
             BigInteger g = 4;
-            int groupElementSize = 768 / 8;
-            int exponentSize = 256 / 8;
+            const int groupElementSize = 768 / 8;
+            const int exponentSize = 256 / 8;
 
             return new SecurityParameters(p, q, g, groupElementSize, exponentSize);
         }

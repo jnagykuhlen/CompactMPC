@@ -1,6 +1,6 @@
 ﻿namespace CompactMPC
 {
-    public struct BitTriple
+    public readonly struct BitTriple
     {
         private readonly byte _value;
 

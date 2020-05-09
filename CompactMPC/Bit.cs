@@ -1,6 +1,6 @@
 ﻿namespace CompactMPC
 {
-    public struct Bit
+    public readonly struct Bit
     {
         public static readonly Bit Zero = new Bit(0);
         public static readonly Bit One = new Bit(1);
@@ -19,11 +19,8 @@
 
         public override bool Equals(object other)
         {
-            if (other is Bit)
-            {
-                Bit otherBit = (Bit)other;
+            if (other is Bit otherBit)
                 return _value == otherBit._value;
-            }
 
             return false;
         }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Threading.Tasks;
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;

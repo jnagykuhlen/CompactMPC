@@ -77,7 +77,7 @@ namespace CompactMPC.ObliviousTransfer
 
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Sender] Precomputing exponentations, sending c and reading d took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Sender] Precomputing exponentiations, sending c and reading d took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
@@ -114,7 +114,7 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            await WriteOptions(channel, maskedOptions, numberOfInvocations, numberOfMessageBytes);
+            await WriteOptions(channel, maskedOptions, numberOfInvocations);
 
 #if DEBUG
             stopwatch.Stop();
@@ -158,7 +158,6 @@ namespace CompactMPC.ObliviousTransfer
             BigInteger[] listOfEs = new BigInteger[numberOfInvocations];
             Parallel.For(0, numberOfInvocations, j =>
             {
-                int i = selectionIndices[j];
                 listOfEs[j] = BigInteger.ModPow(listOfCs[0], listOfBetas[j], _parameters.P);
             });
 
@@ -234,7 +233,7 @@ namespace CompactMPC.ObliviousTransfer
             return groupElements;
         }
 
-        private Task WriteOptions(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        private Task WriteOptions(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations)
         {
             MessageComposer message = new MessageComposer(4 * numberOfInvocations);
             for (int j = 0; j < numberOfInvocations; ++j)
