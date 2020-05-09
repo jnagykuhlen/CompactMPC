@@ -1,18 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Net;
-using System.Net.Sockets;
-using System.Threading.Tasks;
-
 using CompactMPC.Networking;
 
 namespace CompactMPC.UnitTests.Util
 {
     public static class TestNetworkSession
     {
-        public static int Port = 16741;
+        private const int Port = 16741;
 
         public static IMultiPartyNetworkSession EstablishMultiParty(int localPartyId, int numberOfParties)
         {

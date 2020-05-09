@@ -1,11 +1,5 @@
-﻿using System;
-using System.Text;
-using System.Linq;
-using System.Net;
+﻿using System.Linq;
 using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Cryptography;
@@ -14,13 +8,14 @@ using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
 using CompactMPC.SampleCircuits;
 using CompactMPC.UnitTests.Util;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.UnitTests
 {
     [TestClass]
     public class SecureComputationTest
     {
-        private static readonly BitArray[] Inputs = new string[]
+        private static readonly BitArray[] Inputs = new[]
             {
                 "010101",
                 "110111",

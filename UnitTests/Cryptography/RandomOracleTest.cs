@@ -1,12 +1,5 @@
-﻿using System;
-using System.Text;
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
+﻿using CompactMPC.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using CompactMPC.Cryptography;
 
 namespace CompactMPC.UnitTests.Cryptography
 {

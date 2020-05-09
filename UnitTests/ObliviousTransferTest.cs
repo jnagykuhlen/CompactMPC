@@ -1,15 +1,11 @@
-﻿using System;
-using System.Text;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using System.Net;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using CompactMPC.ObliviousTransfer;
-using CompactMPC.Networking;
 using CompactMPC.Cryptography;
+using CompactMPC.Networking;
+using CompactMPC.ObliviousTransfer;
 using CompactMPC.UnitTests.Util;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.UnitTests
 {
@@ -30,11 +26,11 @@ namespace CompactMPC.UnitTests
         private void RunObliviousTransferParty()
         {
             Quadruple<byte[]>[] options = new Quadruple<byte[]>[3];
-            options = new Quadruple<byte[]>[]
+            options = new[]
             {
                 new Quadruple<byte[]>(TestOptions.Select(s => Encoding.ASCII.GetBytes(s)).ToArray()),
                 new Quadruple<byte[]>(TestOptions.Select(s => Encoding.ASCII.GetBytes(s.ToLower())).ToArray()),
-                new Quadruple<byte[]>(TestOptions.Select(s => Encoding.ASCII.GetBytes(s.ToUpper())).ToArray()),
+                new Quadruple<byte[]>(TestOptions.Select(s => Encoding.ASCII.GetBytes(s.ToUpper())).ToArray())
             };
 
             using (CryptoContext cryptoContext = CryptoContext.CreateDefault())

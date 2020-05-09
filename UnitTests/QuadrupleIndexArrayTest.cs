@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Text;
-using System.Linq;
-using System.Collections;
-using System.Threading.Tasks;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.UnitTests
@@ -14,7 +9,7 @@ namespace CompactMPC.UnitTests
         [TestMethod]
         public void TestByteConversion()
         {
-            QuadrupleIndexArray array = new QuadrupleIndexArray(new int[] { 3, 1, 2, 1, 3, 0, 1 });
+            QuadrupleIndexArray array = new QuadrupleIndexArray(new[] { 3, 1, 2, 1, 3, 0, 1 });
 
             array[2] = 0;
             array[5] = 2;

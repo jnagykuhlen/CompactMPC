@@ -1,14 +1,8 @@
-﻿using System;
-using System.Text;
-using System.Linq;
-using System.Collections;
-using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
+﻿using System.Linq;
 using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.SampleCircuits;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.UnitTests.Circuits
 {
@@ -18,8 +12,7 @@ namespace CompactMPC.UnitTests.Circuits
         [TestMethod]
         public void TestCircuitEvaluation()
         {
-            BitArray[] inputs = new BitArray[]
-            {
+            BitArray[] inputs = {
                 BitArray.FromBinaryString("0111010011"),
                 BitArray.FromBinaryString("1101100010"),
                 BitArray.FromBinaryString("0111110011")
@@ -28,7 +21,7 @@ namespace CompactMPC.UnitTests.Circuits
             Bit[] sequentialInput = inputs.SelectMany(bits => bits).ToArray();
 
             CircuitBuilder builder = new CircuitBuilder();
-            (new SetIntersectionCircuitRecorder(inputs.Length, inputs[0].Length)).Record(builder);
+            new SetIntersectionCircuitRecorder(inputs.Length, inputs[0].Length).Record(builder);
 
             Circuit circuit = builder.CreateCircuit();
             ForwardCircuit forwardCircuit = new ForwardCircuit(circuit);
@@ -56,14 +49,14 @@ namespace CompactMPC.UnitTests.Circuits
                 expectedEvaluationOutput.ToBinaryString()
             );
 
-            int[] expectedBatchSizes = new int[] { 10, 10, 9, 9, 8 };
+            int[] expectedBatchSizes = { 10, 10, 9, 9, 8 };
 
             CollectionAssert.AreEqual(
                 expectedBatchSizes,
                 batchCircuitEvaluator.BatchSizes,
                 "Incorrect batch sizes {0} (should be {1}).",
-                String.Join(", ", batchCircuitEvaluator.BatchSizes),
-                String.Join(", ", expectedBatchSizes)
+                string.Join(", ", batchCircuitEvaluator.BatchSizes),
+                string.Join(", ", expectedBatchSizes)
             );
         }
     }
