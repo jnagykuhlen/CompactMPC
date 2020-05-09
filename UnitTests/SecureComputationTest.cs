@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Cryptography;
@@ -7,6 +6,7 @@ using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
 using CompactMPC.SampleCircuits;
+using CompactMPC.UnitTests.Assertions;
 using CompactMPC.UnitTests.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -15,14 +15,14 @@ namespace CompactMPC.UnitTests
     [TestClass]
     public class SecureComputationTest
     {
-        private static readonly BitArray[] Inputs = new[]
-            {
-                "010101",
-                "110111",
-                "010111",
-                "110011",
-                "110111"
-            }.Select(BitArray.FromBinaryString).ToArray();
+        private static readonly BitArray[] Inputs =
+        {
+            BitArray.FromBinaryString("010101"),
+            BitArray.FromBinaryString("110111"),
+            BitArray.FromBinaryString("010111"),
+            BitArray.FromBinaryString("110011"),
+            BitArray.FromBinaryString("110111")
+        };
 
         [TestMethod]
         public void TestTwoPartySetIntersection()
@@ -67,11 +67,13 @@ namespace CompactMPC.UnitTests
             Task.WaitAll(tasks);
         }
 
-        private static void RunSecureComputationParty(int numberOfParties, int localPartyId, BitArray localInput, BitArray expectedOutput)
+        private static void RunSecureComputationParty(int numberOfParties, int localPartyId, BitArray localInput,
+            BitArray expectedOutput)
         {
-            using IMultiPartyNetworkSession session = TestNetworkSession.EstablishMultiParty(localPartyId, numberOfParties);
+            using IMultiPartyNetworkSession session =
+                TestNetworkSession.EstablishMultiParty(localPartyId, numberOfParties);
             using CryptoContext cryptoContext = CryptoContext.CreateDefault();
-            
+
             IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                 new SecurityParameters(47, 23, 4, 1, 1),
                 cryptoContext
@@ -83,20 +85,21 @@ namespace CompactMPC.UnitTests
             );
 
             GMWSecureComputation computation = new GMWSecureComputation(session, multiplicativeSharing, cryptoContext);
-                    
-            SetIntersectionCircuitRecorder circuitRecorder = new SetIntersectionCircuitRecorder(numberOfParties, localInput.Length);
+
+            SetIntersectionCircuitRecorder circuitRecorder =
+                new SetIntersectionCircuitRecorder(numberOfParties, localInput.Length);
+
             CircuitBuilder circuitBuilder = new CircuitBuilder();
             circuitRecorder.Record(circuitBuilder);
 
             ForwardCircuit circuit = new ForwardCircuit(circuitBuilder.CreateCircuit());
-            BitArray output = computation.EvaluateAsync(circuit, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput).Result;
+            BitArray actualOutput = computation
+                .EvaluateAsync(circuit, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput)
+                .Result;
 
-            CollectionAssert.AreEqual(
+            EnumerableAssert.AreEqual(
                 expectedOutput,
-                output,
-                "Incorrect output {0} (should be {1}).",
-                output.ToBinaryString(),
-                expectedOutput.ToBinaryString()
+                actualOutput
             );
         }
     }

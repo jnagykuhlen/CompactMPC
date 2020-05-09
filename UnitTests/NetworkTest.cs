@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CompactMPC.Networking;
+using CompactMPC.UnitTests.Assertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.UnitTests
@@ -9,51 +11,65 @@ namespace CompactMPC.UnitTests
     [TestClass]
     public class NetworkTest
     {
+        private const int Port = 12674;
+        
         private static readonly Party FirstParty = new Party(0, "First");
         private static readonly Party SecondParty = new Party(1, "Second");
         private static readonly Party ThirdParty = new Party(2, "Third");
-        private const int Port = 12674;
 
         [TestMethod]
         public void TestTcpTwoPartyNetworkSession()
         {
-            Task<TcpTwoPartyNetworkSession> firstSessionTask = TcpTwoPartyNetworkSession.ConnectAsync(FirstParty, IPAddress.Loopback, Port);
-            Task<TcpTwoPartyNetworkSession> secondSessionTask = TcpTwoPartyNetworkSession.AcceptAsync(SecondParty, Port);
+            Task<TcpTwoPartyNetworkSession> firstSessionTask = CreateFirstTwoPartySessionAsync();
+            Task<TcpTwoPartyNetworkSession> secondSessionTask = CreateSecondTwoPartySessionAsync();
 
-            TcpTwoPartyNetworkSession firstSession = firstSessionTask.Result;
-            TcpTwoPartyNetworkSession secondSession = secondSessionTask.Result;
+            using TcpTwoPartyNetworkSession firstSession = firstSessionTask.Result;
+            using TcpTwoPartyNetworkSession secondSession = secondSessionTask.Result;
 
             Assert.AreEqual(FirstParty, firstSession.LocalParty);
             Assert.AreEqual(SecondParty, firstSession.RemoteParty);
             Assert.AreEqual(SecondParty, secondSession.LocalParty);
             Assert.AreEqual(FirstParty, secondSession.RemoteParty);
-
-            firstSession.Dispose();
-            secondSession.Dispose();
         }
 
         [TestMethod]
         public void TestTcpMultiPartyNetworkSession()
         {
-            Task<TcpMultiPartyNetworkSession> firstSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(FirstParty, IPAddress.Loopback, Port, 3);
-            Task<TcpMultiPartyNetworkSession> secondSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(SecondParty, IPAddress.Loopback, Port, 3);
-            Task<TcpMultiPartyNetworkSession> thirdSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(ThirdParty, IPAddress.Loopback, Port, 3);
+            Task<TcpMultiPartyNetworkSession> firstSessionTask = CreateMultiPartySessionAsync(FirstParty, 3);
+            Task<TcpMultiPartyNetworkSession> secondSessionTask = CreateMultiPartySessionAsync(SecondParty, 3);
+            Task<TcpMultiPartyNetworkSession> thirdSessionTask = CreateMultiPartySessionAsync(ThirdParty, 3);
 
-            TcpMultiPartyNetworkSession firstSession = firstSessionTask.Result;
-            TcpMultiPartyNetworkSession secondSession = secondSessionTask.Result;
-            TcpMultiPartyNetworkSession thirdSession = thirdSessionTask.Result;
+            using TcpMultiPartyNetworkSession firstSession = firstSessionTask.Result;
+            using TcpMultiPartyNetworkSession secondSession = secondSessionTask.Result;
+            using TcpMultiPartyNetworkSession thirdSession = thirdSessionTask.Result;
 
             Assert.AreEqual(FirstParty, firstSession.LocalParty);
             Assert.AreEqual(SecondParty, secondSession.LocalParty);
             Assert.AreEqual(ThirdParty, thirdSession.LocalParty);
 
-            CollectionAssert.AreEquivalent(new[] { SecondParty, ThirdParty }, firstSession.RemotePartySessions.Select(session => session.RemoteParty).ToArray());
-            CollectionAssert.AreEquivalent(new[] { FirstParty, ThirdParty }, secondSession.RemotePartySessions.Select(session => session.RemoteParty).ToArray());
-            CollectionAssert.AreEquivalent(new[] { FirstParty, SecondParty }, thirdSession.RemotePartySessions.Select(session => session.RemoteParty).ToArray());
+            EnumerableAssert.AreEquivalent(new[] { SecondParty, ThirdParty }, GetRemoteParties(firstSession));
+            EnumerableAssert.AreEquivalent(new[] { FirstParty, ThirdParty }, GetRemoteParties(secondSession));
+            EnumerableAssert.AreEquivalent(new[] { FirstParty, SecondParty }, GetRemoteParties(thirdSession));
+        }
 
-            firstSessionTask.Dispose();
-            secondSessionTask.Dispose();
-            thirdSession.Dispose();
+        private static Task<TcpTwoPartyNetworkSession> CreateFirstTwoPartySessionAsync()
+        {
+            return TcpTwoPartyNetworkSession.ConnectAsync(FirstParty, IPAddress.Loopback, Port);
+        }
+
+        private static Task<TcpTwoPartyNetworkSession> CreateSecondTwoPartySessionAsync()
+        {
+            return TcpTwoPartyNetworkSession.AcceptAsync(SecondParty, Port);
+        }
+
+        private static Task<TcpMultiPartyNetworkSession> CreateMultiPartySessionAsync(Party party, int numberOfParties)
+        {
+            return TcpMultiPartyNetworkSession.EstablishAsync(party, IPAddress.Loopback, Port, numberOfParties);
+        }
+
+        private static IEnumerable<Party> GetRemoteParties(IMultiPartyNetworkSession multiPartySession)
+        {
+            return multiPartySession.RemotePartySessions.Select(session => session.RemoteParty);
         }
     }
 }
