@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
@@ -21,10 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CompactMPC\CompactMPC.csproj" />
     <ProjectReference Include="..\SampleCircuits\SampleCircuits.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ObliviousTransfer\" />
   </ItemGroup>
 
 </Project>
