@@ -9,14 +9,16 @@ namespace CompactMPC.UnitTests
         [TestMethod]
         public void TestByteConversion()
         {
-            QuadrupleIndexArray array = new QuadrupleIndexArray(new[] { 3, 1, 2, 1, 3, 0, 1 });
+            QuadrupleIndexArray indexArray = new QuadrupleIndexArray(new[] {3, 1, 2, 1, 3, 0, 1})
+            {
+                [2] = 0,
+                [5] = 2
+            };
 
-            array[2] = 0;
-            array[5] = 2;
 
-            byte[] buffer = array.ToBytes();
+            byte[] buffer = indexArray.ToBytes();
 
-            Assert.AreEqual(7, array.Length);
+            Assert.AreEqual(7, indexArray.Length);
             Assert.AreEqual(2, buffer.Length);
             Assert.AreEqual((byte)Convert.ToInt32("01000111", 2), buffer[0]);
             Assert.AreEqual((byte)Convert.ToInt32("00011011", 2), buffer[1]);

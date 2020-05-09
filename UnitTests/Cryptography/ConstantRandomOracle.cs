@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CompactMPC.Cryptography;
 
 namespace CompactMPC.UnitTests.Cryptography
 {
-    public class ConstantRandomOracle : RandomOracle, IDisposable
+    public class ConstantRandomOracle : RandomOracle
     {
         private readonly byte[] _invokeResponse;
 

@@ -23,48 +23,44 @@ namespace CompactMPC.UnitTests
             ).Wait();
         }
 
-        private void RunObliviousTransferParty()
+        private static void RunObliviousTransferParty()
         {
-            Quadruple<byte[]>[] options = new Quadruple<byte[]>[3];
-            options = new[]
+            Quadruple<byte[]>[] options =
             {
                 new Quadruple<byte[]>(TestOptions.Select(s => Encoding.ASCII.GetBytes(s)).ToArray()),
                 new Quadruple<byte[]>(TestOptions.Select(s => Encoding.ASCII.GetBytes(s.ToLower())).ToArray()),
                 new Quadruple<byte[]>(TestOptions.Select(s => Encoding.ASCII.GetBytes(s.ToUpper())).ToArray())
             };
 
-            using (CryptoContext cryptoContext = CryptoContext.CreateDefault())
+            using CryptoContext cryptoContext = CryptoContext.CreateDefault();
+            using ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty();
+
+            IGeneralizedObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                SecurityParameters.CreateDefault768Bit(),
+                cryptoContext
+            );
+
+            if (session.LocalParty.Id == 0)
             {
-                IGeneralizedObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
-                    SecurityParameters.CreateDefault768Bit(),
-                    cryptoContext
-                );
+                obliviousTransfer.SendAsync(session.Channel, options, 3, 6).Wait();
+            }
+            else
+            {
+                QuadrupleIndexArray indices = new QuadrupleIndexArray(new[] { 0, 3, 2 });
+                byte[][] results = obliviousTransfer.ReceiveAsync(session.Channel, indices, 3, 6).Result;
 
-                using (ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty())
+                Assert.IsNotNull(results, "Result is null.");
+                Assert.AreEqual(3, results.Length, "Result does not match the correct number of invocations.");
+
+                for (int j = 0; j < 3; ++j)
                 {
-                    if (session.LocalParty.Id == 0)
-                    {
-                        obliviousTransfer.SendAsync(session.Channel, options, 3, 6).Wait();
-                    }
-                    else
-                    {
-                        QuadrupleIndexArray indices = new QuadrupleIndexArray(new[] { 0, 3, 2 });
-                        byte[][] results = obliviousTransfer.ReceiveAsync(session.Channel, indices, 3, 6).Result;
-
-                        Assert.IsNotNull(results, "Result is null.");
-                        Assert.AreEqual(3, results.Length, "Result does not match the correct number of invocations.");
-
-                        for (int j = 0; j < 3; ++j)
-                        {
-                            CollectionAssert.AreEqual(
-                                results[j],
-                                options[j][indices[j]],
-                                "Incorrect message content {0} (should be {1}).",
-                                Encoding.ASCII.GetString(results[j]),
-                                Encoding.ASCII.GetString(options[j][indices[j]])
-                            );
-                        }
-                    }
+                    CollectionAssert.AreEqual(
+                        results[j],
+                        options[j][indices[j]],
+                        "Incorrect message content {0} (should be {1}).",
+                        Encoding.ASCII.GetString(results[j]),
+                        Encoding.ASCII.GetString(options[j][indices[j]])
+                    );
                 }
             }
         }

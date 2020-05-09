@@ -9,13 +9,16 @@ namespace CompactMPC.UnitTests
         [TestMethod]
         public void TestByteConversion()
         {
-            BitTripleArray array = new BitTripleArray(new[] {
+            BitTripleArray array = new BitTripleArray(new[]
+            {
                 new BitTriple(Bit.Zero, Bit.One, Bit.One),
                 new BitTriple(Bit.One, Bit.One, Bit.Zero),
                 new BitTriple(Bit.One, Bit.Zero, Bit.One)
-            });
+            })
+            {
+                [1] = new BitTriple(Bit.Zero, Bit.One, Bit.Zero)
+            };
 
-            array[1] = new BitTriple(Bit.Zero, Bit.One, Bit.Zero);
 
             byte[] buffer = array.ToBytes();
 

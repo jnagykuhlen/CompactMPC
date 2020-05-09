@@ -16,7 +16,6 @@ namespace CompactMPC.UnitTests
             int secondId = 127;
             byte[] suffix = { 43, 31, 8 };
 
-
             byte[] result = BufferBuilder.From(prefix).With(firstId).With(secondId).With(suffix).Create();
 
             Assert.AreEqual(prefix.Length + suffix.Length + 8, result.Length);
