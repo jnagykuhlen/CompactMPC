@@ -33,12 +33,10 @@ namespace CompactMPC.SampleCircuits
         {
             get
             {
-                return new[]
-                {
-                    new InputPrimitiveDeclaration(PrimitiveConverter.Word(_numberOfElements), 0),
-                    new InputPrimitiveDeclaration(PrimitiveConverter.Word(_numberOfElements), 1),
-                    new InputPrimitiveDeclaration(PrimitiveConverter.Word(_numberOfElements), 2)
-                };
+                return Enumerable
+                    .Range(0, _numberOfParties)
+                    .Select(index => new InputPrimitiveDeclaration(PrimitiveConverter.Word(_numberOfElements), index))
+                    .ToArray();
             }
         }
 
