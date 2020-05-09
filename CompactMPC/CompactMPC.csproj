@@ -9,6 +9,9 @@
     <Authors>Jonas Nagy-Kuhlen</Authors>
     <Description>Lightweight Library for Secure Multi-Party Computation in C#</Description>
     <Copyright>Copyright © 2019 Jonas Nagy-Kuhlen</Copyright>
+    <LangVersion>8</LangVersion>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>CS8600;CS8602;CS8603;CS8625;CS8653</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

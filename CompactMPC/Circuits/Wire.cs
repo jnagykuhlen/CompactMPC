@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits
 {
@@ -11,18 +7,15 @@ namespace CompactMPC.Circuits
         public static readonly Wire Zero = new Wire(null);
         public static readonly Wire One = new Wire(null);
 
-        private Gate _gate;
+        private readonly Gate? _gate;
 
-        private Wire(Gate gate)
+        private Wire(Gate? gate)
         {
             _gate = gate;
         }
 
         public static Wire FromGate(Gate gate)
         {
-            if (gate == null)
-                throw new ArgumentNullException(nameof(gate));
-            
             return new Wire(gate);
         }
 
@@ -30,7 +23,7 @@ namespace CompactMPC.Circuits
         {
             get
             {
-                return _gate;
+                return _gate ?? throw new NotSupportedException("Constant wires are not associated with a gate.");
             }
         }
     }

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC
 {
@@ -10,16 +6,10 @@ namespace CompactMPC
     {
         private const int DefaultInitialCapacity = 4;
 
-        private T _defaultValue;
+        private readonly T _defaultValue;
         private T[] _values;
 
-        public IdMapping()
-            : this(default(T), DefaultInitialCapacity) { }
-
-        public IdMapping(T defaultValue)
-            : this(defaultValue, DefaultInitialCapacity) { }
-
-        public IdMapping(T defaultValue, int initialCapacity)
+        public IdMapping(T defaultValue, int initialCapacity = DefaultInitialCapacity)
         {
             _defaultValue = defaultValue;
             _values = new T[initialCapacity];

@@ -1,8 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC.Expressions
 {
@@ -31,7 +29,7 @@ namespace CompactMPC.Expressions
 
         private static IEnumerable<T> Reduce<T>(IEnumerable<T> values, Func<T, T, T> func)
         {
-            T previous = default(T);
+            T previous = default!;
             bool parity = false;
 
             foreach (T current in values)

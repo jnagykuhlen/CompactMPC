@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CompactMPC
 {
-    public abstract class PackedArray<T> : IReadOnlyList<T>, ICollection<T>, ICollection
+    public abstract class PackedArray<T> : IReadOnlyList<T>, ICollection<T>
     {
         private byte[] _buffer;
         private int _length;
@@ -138,17 +138,12 @@ namespace CompactMPC
             throw new NotSupportedException("Cannot clear array.");
         }
 
-        bool ICollection<T>.Contains(T item)
+        public bool Contains(T item)
         {
             return Enumerable.Contains(this, item);
         }
 
         void ICollection<T>.CopyTo(T[] array, int startIndex)
-        {
-            ((ICollection)this).CopyTo(array, startIndex);
-        }
-
-        void ICollection.CopyTo(Array array, int startIndex)
         {
             for (int i = 0; i < _length; ++i)
                 array.SetValue(this[i], startIndex + i);
@@ -167,30 +162,6 @@ namespace CompactMPC
             get
             {
                 return _length;
-            }
-        }
-
-        int ICollection.Count
-        {
-            get
-            {
-                return _length;
-            }
-        }
-
-        bool ICollection.IsSynchronized
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        object ICollection.SyncRoot
-        {
-            get
-            {
-                return null;
             }
         }
 
