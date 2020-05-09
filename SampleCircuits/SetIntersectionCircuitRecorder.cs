@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using CompactMPC.Circuits;
+﻿using CompactMPC.Circuits;
 using CompactMPC.Expressions;
 using CompactMPC.Protocol;
 
@@ -12,9 +6,9 @@ namespace CompactMPC.SampleCircuits
 {
     public class SetIntersectionCircuitRecorder : ICircuitRecorder
     {
-        private int _numberOfParties;
-        private int _numberOfElements;
-        private int _numberOfCounterBits;
+        private readonly int _numberOfParties;
+        private readonly int _numberOfElements;
+        private readonly int _numberOfCounterBits;
 
         public SetIntersectionCircuitRecorder(int numberOfParties, int numberOfElements)
         {
@@ -35,7 +29,7 @@ namespace CompactMPC.SampleCircuits
             Output(builder, setIntersection.Counter);
         }
 
-        private SecureWord Input(CircuitBuilder builder, int numberOfBits)
+        private static SecureWord Input(CircuitBuilder builder, int numberOfBits)
         {
             Wire[] wires = new Wire[numberOfBits];
             for (int i = 0; i < numberOfBits; ++i)
@@ -44,9 +38,9 @@ namespace CompactMPC.SampleCircuits
             return new SecureWord(builder, wires);
         }
 
-        private void Output(CircuitBuilder builder, SecureWord word)
+        private static void Output(CircuitBuilder builder, SecurePrimitive primitive)
         {
-            foreach (Wire wire in word.Wires)
+            foreach (Wire wire in primitive.Wires)
                 builder.Output(wire);
         }
 
