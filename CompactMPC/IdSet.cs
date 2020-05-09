@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace CompactMPC
 {
-    public struct IdSet
+    public readonly struct IdSet
     {
         public static readonly IdSet None = new IdSet(0u);
         public static readonly IdSet All = new IdSet(~0u);
 
-        private long _bitMask;
+        private readonly long _bitMask;
 
         private IdSet(long bitMask)
         {
@@ -17,32 +17,26 @@ namespace CompactMPC
 
         public static IdSet From(int id)
         {
-            CheckRange(id);
-            return new IdSet(1L << id);
+            return new IdSet(1L << ValidatedId(id));
         }
 
         public static IdSet From(IEnumerable<int> ids)
         {
             long bitMask = 0L;
             foreach (int id in ids)
-            {
-                CheckRange(id);
-                bitMask |= 1L << id;
-            }
+                bitMask |= 1L << ValidatedId(id);
 
             return new IdSet(bitMask);
         }
 
         public IdSet With(int id)
         {
-            CheckRange(id);
-            return new IdSet(_bitMask | (1L << id));
+            return new IdSet(_bitMask | (1L << ValidatedId(id)));
         }
 
         public IdSet Without(int id)
         {
-            CheckRange(id);
-            return new IdSet(_bitMask &= ~(1L << id));
+            return new IdSet(_bitMask & ~(1L << ValidatedId(id)));
         }
 
         public bool Contains(int id)
@@ -57,40 +51,42 @@ namespace CompactMPC
 
         public IdSet UnionWith(IdSet other)
         {
-            other._bitMask |= _bitMask;
-            return other;
+            return new IdSet(_bitMask | other._bitMask);
         }
 
         public IdSet IntersectWith(IdSet other)
         {
-            other._bitMask &= _bitMask;
-            return other;
+            return new IdSet(_bitMask & other._bitMask);
         }
 
         public IdSet Without(IdSet other)
         {
-            other._bitMask = _bitMask & ~other._bitMask;
-            return other;
+            return new IdSet(_bitMask & ~other._bitMask);
         }
 
-        private static void CheckRange(int id)
+        private static int ValidatedId(int id)
         {
             if (id < 0 || id >= 64)
                 throw new ArgumentException("IdSet only supports non-negative identifiers smaller than 64.", nameof(id));
+
+            return id;
         }
 
         public override bool Equals(object other)
         {
-            return other is IdSet && this == (IdSet)other;
+            return other is IdSet otherIdSet && this == otherIdSet;
         }
+        
         public override int GetHashCode()
         {
             return _bitMask.GetHashCode();
         }
+        
         public static bool operator ==(IdSet left, IdSet right)
         {
             return left._bitMask == right._bitMask;
         }
+        
         public static bool operator !=(IdSet left, IdSet right)
         {
             return !(left == right);
