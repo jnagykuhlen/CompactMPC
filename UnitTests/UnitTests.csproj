@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
@@ -10,6 +10,9 @@
     <Description>Unit Tests for CompactMPC Library</Description>
     <Copyright>Copyright © 2019 Jonas Nagy-Kuhlen</Copyright>
     <IsPackable>false</IsPackable>
+    <LangVersion>8</LangVersion>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>CS8600;CS8602;CS8603</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
