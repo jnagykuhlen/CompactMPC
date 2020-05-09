@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-
 using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
     public class PreprocessedObliviousTransfer : IObliviousTransfer
     {
-        private PreprocessedSenderBatch _senderBatch;
-        private PreprocessedReceiverBatch _receiverBatch;
+        private readonly PreprocessedSenderBatch _senderBatch;
+        private readonly PreprocessedReceiverBatch _receiverBatch;
         private int _nextSenderInstanceId;
         private int _nextReceiverInstanceId;
 

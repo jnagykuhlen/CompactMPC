@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC
 {
@@ -72,7 +69,7 @@ namespace CompactMPC
 
         public IdSet Without(IdSet other)
         {
-            other._bitMask = _bitMask & (~other._bitMask);
+            other._bitMask = _bitMask & ~other._bitMask;
             return other;
         }
 

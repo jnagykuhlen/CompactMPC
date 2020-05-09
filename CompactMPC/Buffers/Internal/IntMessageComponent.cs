@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CompactMPC.Buffers.Internal
+﻿namespace CompactMPC.Buffers.Internal
 {
     public class IntMessageComponent : IMessageComponent
     {
-        private int _value;
+        private readonly int _value;
 
         public IntMessageComponent(int value)
         {

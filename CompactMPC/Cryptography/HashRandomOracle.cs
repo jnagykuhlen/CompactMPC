@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
 
 namespace CompactMPC.Cryptography
 {
     public class HashRandomOracle : RandomOracle
     {
-        private HashAlgorithm _hashAlgorithm;
+        private readonly HashAlgorithm _hashAlgorithm;
 
         public HashRandomOracle(IHashAlgorithmProvider hashAlgorithmProvider)
         {
@@ -29,7 +26,7 @@ namespace CompactMPC.Cryptography
                 stream.Write(seed, 0, seed.Length);
 
                 int counter = 0;
-                while (counter < Int32.MaxValue)
+                while (counter < int.MaxValue)
                 {
                     stream.Position = seed.Length;
                     stream.Write(BitConverter.GetBytes(counter), 0, 4);

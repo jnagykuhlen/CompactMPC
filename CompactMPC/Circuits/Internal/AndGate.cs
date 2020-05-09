@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace CompactMPC.Circuits.Internal
 {
     public class AndGate : Gate
     {
-        private Gate _leftInputGate;
-        private Gate _rightInputGate;
+        private readonly Gate _leftInputGate;
+        private readonly Gate _rightInputGate;
 
         public AndGate(int id, Gate leftInputGate, Gate rightInputGate)
              : base(id)

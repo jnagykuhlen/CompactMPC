@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -9,7 +6,7 @@ namespace CompactMPC.Networking
 {
     public class StreamMessageChannel : IMessageChannel
     {
-        private Stream _stream;
+        private readonly Stream _stream;
 
         public StreamMessageChannel(Stream stream)
         {

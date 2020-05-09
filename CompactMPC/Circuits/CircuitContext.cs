@@ -1,22 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CompactMPC.Circuits
+﻿namespace CompactMPC.Circuits
 {
     /// <summary>
     /// Combines information on the number of gates in a boolean circuit.
     /// </summary>
     public class CircuitContext
     {
-        private int _numberOfAndGates;
-        private int _numberOfXorGates;
-        private int _numberOfNotGates;
-        private int _numberOfInputGates;
-        private int _numberOfOutputGates;
+        /// <summary>
+        /// Gets the number of AND gates in the circuit.
+        /// </summary>
+        public int NumberOfAndGates { get; }
 
+        /// <summary>
+        /// Gets the number of XOR gates in the circuit.
+        /// </summary>
+        public int NumberOfXorGates { get; }
+
+        /// <summary>
+        /// Gets the number of NOT gates in the circuit.
+        /// </summary>
+        public int NumberOfNotGates { get; }
+
+        /// <summary>
+        /// Gets the number of input gates in the circuit.
+        /// </summary>
+        public int NumberOfInputGates { get; }
+
+        /// <summary>
+        /// Gets the number of output gates in the circuit.
+        /// </summary>
+        public int NumberOfOutputGates { get; }
+        
         /// <summary>
         /// Creates a new set of information on a boolean circuit.
         /// </summary>
@@ -27,66 +40,11 @@ namespace CompactMPC.Circuits
         /// /// <param name="numberOfOutputGates">Number of output gates in the circuit.</param>
         public CircuitContext(int numberOfAndGates, int numberOfXorGates, int numberOfNotGates, int numberOfInputGates, int numberOfOutputGates)
         {
-            _numberOfAndGates = numberOfAndGates;
-            _numberOfXorGates = numberOfXorGates;
-            _numberOfNotGates = numberOfNotGates;
-            _numberOfInputGates = numberOfInputGates;
-            _numberOfOutputGates = numberOfOutputGates;
-        }
-
-        /// <summary>
-        /// Gets the number of AND gates in the circuit.
-        /// </summary>
-        public int NumberOfAndGates
-        {
-            get
-            {
-                return _numberOfAndGates;
-            }
-        }
-
-        /// <summary>
-        /// Gets the number of XOR gates in the circuit.
-        /// </summary>
-        public int NumberOfXorGates
-        {
-            get
-            {
-                return _numberOfXorGates;
-            }
-        }
-
-        /// <summary>
-        /// Gets the number of NOT gates in the circuit.
-        /// </summary>
-        public int NumberOfNotGates
-        {
-            get
-            {
-                return _numberOfNotGates;
-            }
-        }
-
-        /// <summary>
-        /// Gets the number of input gates in the circuit.
-        /// </summary>
-        public int NumberOfInputGates
-        {
-            get
-            {
-                return _numberOfInputGates;
-            }
-        }
-
-        /// <summary>
-        /// Gets the number of output gates in the circuit.
-        /// </summary>
-        public int NumberOfOutputGates
-        {
-            get
-            {
-                return _numberOfOutputGates;
-            }
+            NumberOfAndGates = numberOfAndGates;
+            NumberOfXorGates = numberOfXorGates;
+            NumberOfNotGates = numberOfNotGates;
+            NumberOfInputGates = numberOfInputGates;
+            NumberOfOutputGates = numberOfOutputGates;
         }
 
         /// <summary>
@@ -97,7 +55,7 @@ namespace CompactMPC.Circuits
         {
             get
             {
-                return _numberOfAndGates + _numberOfXorGates + _numberOfNotGates + _numberOfInputGates + _numberOfInputGates;
+                return NumberOfAndGates + NumberOfXorGates + NumberOfNotGates + NumberOfInputGates + NumberOfInputGates;
             }
         }
     }

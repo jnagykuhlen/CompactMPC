@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC.Buffers.Internal
 {
     public class BufferMessageComponent : IMessageComponent
     {
-        private byte[] _buffer;
+        private readonly byte[] _buffer;
 
         public BufferMessageComponent(byte[] buffer)
         {

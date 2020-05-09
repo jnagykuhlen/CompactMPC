@@ -1,29 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace CompactMPC.Networking
 {
     public class TcpMultiPartyNetworkSession : IMultiPartyNetworkSession
     {
-        private ITwoPartyNetworkSession[] _remotePartySessions;
-        private Party _localParty;
+        private readonly ITwoPartyNetworkSession[] _remotePartySessions;
+        
+        public Party LocalParty { get; }
 
         private TcpMultiPartyNetworkSession(Party localParty, ITwoPartyNetworkSession[] remotePartySessions)
         {
             _remotePartySessions = remotePartySessions;
-            _localParty = localParty;
+            LocalParty = localParty;
         }
 
         public static async Task<TcpMultiPartyNetworkSession> EstablishAsync(Party localParty, IPAddress address, int startPort, int numberOfParties)
         {
-            TcpTwoPartyNetworkSession[] remotePartySessions = new TcpTwoPartyNetworkSession[numberOfParties - 1];
+            ITwoPartyNetworkSession[] remotePartySessions = new ITwoPartyNetworkSession[numberOfParties - 1];
 
             for (int i = 0; i < localParty.Id; ++i)
             {
@@ -42,7 +39,7 @@ namespace CompactMPC.Networking
 
             for (int i = 0; i < numberOfParties; ++i)
             {
-                if (i != localParty.Id && !remotePartySessions.Any(session => session.RemoteParty.Id == i))
+                if (i != localParty.Id && remotePartySessions.All(session => session.RemoteParty.Id != i))
                     throw new NetworkConsistencyException("Inconsistent TCP connection graph.");
             }
 
@@ -63,14 +60,6 @@ namespace CompactMPC.Networking
             }
         }
 
-        public Party LocalParty
-        {
-            get
-            {
-                return _localParty;
-            }
-        }
-        
         public int NumberOfParties
         {
             get

@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CompactMPC
+﻿namespace CompactMPC
 {
     public struct Bit
     {
         public static readonly Bit Zero = new Bit(0);
         public static readonly Bit One = new Bit(1);
 
-        private byte _value;
+        private readonly byte _value;
 
         public Bit(bool value)
         {
@@ -79,7 +73,7 @@ namespace CompactMPC
 
         public static Bit operator ~(Bit right)
         {
-            return new Bit((byte)(~right._value));
+            return new Bit((byte)~right._value);
         }
         
         public static bool operator true(Bit right)

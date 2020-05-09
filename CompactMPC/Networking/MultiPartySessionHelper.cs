@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CompactMPC.Networking
+﻿namespace CompactMPC.Networking
 {
     public static class MultiPartySessionHelper
     {

@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using CompactMPC.Circuits.Internal;
 
 namespace CompactMPC.Circuits
@@ -21,7 +17,7 @@ namespace CompactMPC.Circuits
         private int _numberOfNotGates;
         private int _nextInputIndex;
         private int _nextOutputIndex;
-        private List<OutputGate> _outputGates;
+        private readonly List<OutputGate> _outputGates;
 
         /// <summary>
         /// Creates a new empty circuit builder.

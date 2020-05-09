@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CompactMPC.Circuits.Batching
+﻿namespace CompactMPC.Circuits.Batching
 {
     public class BatchCircuitEvaluator<T> : IBatchCircuitEvaluator<T>
     {
-        private ICircuitEvaluator<T> _innerEvaluator;
+        private readonly ICircuitEvaluator<T> _innerEvaluator;
 
         public BatchCircuitEvaluator(ICircuitEvaluator<T> innerEvaluator)
         {

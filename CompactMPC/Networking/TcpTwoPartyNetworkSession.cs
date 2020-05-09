@@ -1,27 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace CompactMPC.Networking
 {
     public class TcpTwoPartyNetworkSession : ITwoPartyNetworkSession
     {
-        private TcpClient _client;
-        private IMessageChannel _channel;
-        private Party _localParty;
-        private Party _remoteParty;
+        private readonly TcpClient _client;
 
         private TcpTwoPartyNetworkSession(TcpClient client, Party localParty, Party remoteParty)
         {
             _client = client;
-            _channel = new StreamMessageChannel(client.GetStream());
-            _localParty = localParty;
-            _remoteParty = remoteParty;
+            Channel = new StreamMessageChannel(client.GetStream());
+            LocalParty = localParty;
+            RemoteParty = remoteParty;
         }
 
         public static async Task<TcpTwoPartyNetworkSession> ConnectAsync(Party localParty, IPAddress address, int port)
@@ -80,28 +74,10 @@ namespace CompactMPC.Networking
             _client.Dispose();
         }
 
-        public IMessageChannel Channel
-        {
-            get
-            {
-                return _channel;
-            }
-        }
+        public IMessageChannel Channel { get; }
 
-        public Party LocalParty
-        {
-            get
-            {
-                return _localParty;
-            }
-        }
-        
-        public Party RemoteParty
-        {
-            get
-            {
-                return _remoteParty;
-            }
-        }
+        public Party LocalParty { get; }
+
+        public Party RemoteParty { get; }
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Collections.Generic;
 using CompactMPC.Buffers.Internal;
 
 namespace CompactMPC.Buffers
@@ -12,7 +7,7 @@ namespace CompactMPC.Buffers
     {
         private const int DefaultExpectedNumberOfComponents = 4;
 
-        private List<IMessageComponent> _components;
+        private readonly List<IMessageComponent> _components;
         private int _length;
 
         public MessageComposer()
@@ -49,14 +44,6 @@ namespace CompactMPC.Buffers
                 component.WriteToBuffer(messageBuffer, ref offset);
 
             return messageBuffer;
-        }
-
-        public int Length
-        {
-            get
-            {
-                return _length;
-            }
         }
     }
 }

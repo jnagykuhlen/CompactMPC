@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CompactMPC.Buffers
+﻿namespace CompactMPC.Buffers
 {
     public class BufferBuilder
     {
-        private MessageComposer _composer;
+        private readonly MessageComposer _composer;
 
         private BufferBuilder()
         {

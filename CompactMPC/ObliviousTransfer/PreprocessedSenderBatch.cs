@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CompactMPC.ObliviousTransfer
+﻿namespace CompactMPC.ObliviousTransfer
 {
     public class PreprocessedSenderBatch
     {
-        private BitQuadrupleArray _options;
+        private readonly BitQuadrupleArray _options;
 
         public PreprocessedSenderBatch(BitQuadrupleArray options)
         {

@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace CompactMPC.Circuits.Batching.Internal
 {
     public abstract class ForwardGate
     {
-        private List<ForwardGate> _successors;
+        private readonly List<ForwardGate> _successors;
 
         public ForwardGate()
         {

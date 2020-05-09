@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using CompactMPC.Circuits;
+﻿using System.Threading.Tasks;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Networking;
 
@@ -12,8 +6,8 @@ namespace CompactMPC.Protocol.Internal
 {
     public class GMWBooleanCircuitEvaluator : IBatchCircuitEvaluator<Task<Bit>>
     {
-        private IMultiPartyNetworkSession _session;
-        private IMultiplicativeSharing _multiplicativeSharing;
+        private readonly IMultiPartyNetworkSession _session;
+        private readonly IMultiplicativeSharing _multiplicativeSharing;
         
         public GMWBooleanCircuitEvaluator(IMultiPartyNetworkSession session, IMultiplicativeSharing multiplicativeSharing)
         {

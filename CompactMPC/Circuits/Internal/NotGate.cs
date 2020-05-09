@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace CompactMPC.Circuits.Internal
 {
     public class NotGate : Gate
     {
-        private Gate _inputGate;
+        private readonly Gate _inputGate;
 
         public NotGate(int id, Gate inputGate)
              : base(id)

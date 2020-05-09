@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC
 {
@@ -11,7 +8,7 @@ namespace CompactMPC
     {
         public const int Length = 4;
 
-        private T[] _values;
+        private readonly T[] _values;
 
         public Quadruple()
         {
@@ -20,7 +17,7 @@ namespace CompactMPC
 
         public Quadruple(T v0, T v1, T v2, T v3)
         {
-            _values = new T[] { v0, v1, v2, v3 };
+            _values = new[] { v0, v1, v2, v3 };
         }
 
         public Quadruple(T[] values)

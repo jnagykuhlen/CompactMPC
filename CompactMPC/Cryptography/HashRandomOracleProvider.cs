@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
-
-namespace CompactMPC.Cryptography
+﻿namespace CompactMPC.Cryptography
 {
     public class HashRandomOracleProvider : IRandomOracleProvider
     {
-        private IHashAlgorithmProvider _hashAlgorithmProvider;
+        private readonly IHashAlgorithmProvider _hashAlgorithmProvider;
 
         public HashRandomOracleProvider(IHashAlgorithmProvider hashAlgorithmProvider)
         {

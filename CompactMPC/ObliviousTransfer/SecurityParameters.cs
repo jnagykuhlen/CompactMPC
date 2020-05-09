@@ -1,35 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 using System.Numerics;
-using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace CompactMPC.ObliviousTransfer
 {
     public class SecurityParameters
     {
-        private BigInteger _p;
-        private BigInteger _q;
-        private BigInteger _g;
-        private int _groupElementSize;
-        private int _exponentSize;
-
+        public BigInteger P { get; }
+        public BigInteger Q { get; }
+        public BigInteger G { get; }
+        public int GroupElementSize { get; }
+        public int ExponentSize { get; }
+        
         public SecurityParameters(BigInteger p, BigInteger q, BigInteger g, int groupElementSize, int exponentSize)
         {
-            _p = p;
-            _q = q;
-            _g = g;
-            _groupElementSize = groupElementSize;
-            _exponentSize = exponentSize;
+            P = p;
+            Q = q;
+            G = g;
+            GroupElementSize = groupElementSize;
+            ExponentSize = exponentSize;
         }
 
         public static SecurityParameters CreateDefault2048Bit()
         {
             // Recommendation from RFC 3526, 2048-bit MODP group, id 14
-            string primeHex = @"0
+            const string primeHex = @"0
                 FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
                 29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
                 EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
@@ -54,7 +49,7 @@ namespace CompactMPC.ObliviousTransfer
         public static SecurityParameters CreateDefault768Bit()
         {
             // Recommendation from RFC 2409, 768-bit MODP group, id 1
-            string primeHex = @"0
+            const string primeHex = @"0
                 FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
                 29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
                 EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
@@ -67,46 +62,6 @@ namespace CompactMPC.ObliviousTransfer
             int exponentSize = 256 / 8;
 
             return new SecurityParameters(p, q, g, groupElementSize, exponentSize);
-        }
-
-        public BigInteger P
-        {
-            get
-            {
-                return _p;
-            }
-        }
-
-        public BigInteger Q
-        {
-            get
-            {
-                return _q;
-            }
-        }
-
-        public BigInteger G
-        {
-            get
-            {
-                return _g;
-            }
-        }
-
-        public int GroupElementSize
-        {
-            get
-            {
-                return _groupElementSize;
-            }
-        }
-
-        public int ExponentSize
-        {
-            get
-            {
-                return _exponentSize;
-            }
         }
     }
 }

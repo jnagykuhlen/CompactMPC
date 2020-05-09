@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CompactMPC
+﻿namespace CompactMPC
 {
     public struct BitTriple
     {
-        private byte _value;
+        private readonly byte _value;
 
         public BitTriple(Bit x, Bit y, Bit z)
         {

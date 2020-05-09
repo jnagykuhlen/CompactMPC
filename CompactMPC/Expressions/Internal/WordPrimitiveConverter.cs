@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Numerics;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using CompactMPC.Circuits;
 
 namespace CompactMPC.Expressions.Internal
 {
     public class WordPrimitiveConverter : PrimitiveConverter
     {
-        private int _numberOfWires;
-
+        public override int NumberOfWires { get; }
+        
         public WordPrimitiveConverter(int numberOfWires)
         {
-            _numberOfWires = numberOfWires;
+            NumberOfWires = numberOfWires;
         }
 
         public override SecurePrimitive FromWires(CircuitBuilder builder, IEnumerable<Wire> wires)
@@ -26,14 +20,10 @@ namespace CompactMPC.Expressions.Internal
 
         public override void WriteInput(object input, BitArray buffer, int startIndex)
         {
-            if (input is BitArray)
-            {
-                WriteBitArray((BitArray)input, buffer, startIndex, NumberOfWires);
-            }
+            if (input is BitArray inputBitArray)
+                WriteBitArray(inputBitArray, buffer, startIndex, NumberOfWires);
             else
-            {
-                throw new ArgumentException(String.Format("Input must be of type {0}.", typeof(BitArray).FullName), nameof(input));
-            }
+                throw new ArgumentException($"Input must be of type {typeof(BitArray).FullName}.", nameof(input));
         }
         
         public override object ReadOutput(BitArray buffer, int startIndex)
@@ -57,14 +47,6 @@ namespace CompactMPC.Expressions.Internal
                 value[i] = buffer[startIndex + i];
 
             return value;
-        }
-
-        public override int NumberOfWires
-        {
-            get
-            {
-                return _numberOfWires;
-            }
         }
     }
 }

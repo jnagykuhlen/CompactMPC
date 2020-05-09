@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC.ObliviousTransfer
 {
     public class PreprocessedReceiverBatch
     {
-        private QuadrupleIndexArray _selectionIndices;
-        private BitArray _selectedOptions;
+        private readonly QuadrupleIndexArray _selectionIndices;
+        private readonly BitArray _selectedOptions;
 
         public PreprocessedReceiverBatch(QuadrupleIndexArray selectionIndices, BitArray selectedOptions)
         {

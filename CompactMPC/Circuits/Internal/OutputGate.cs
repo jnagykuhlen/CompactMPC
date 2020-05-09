@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace CompactMPC.Circuits.Internal
 {
     public class OutputGate : Gate
     {
-        private Gate _inputGate;
-        private int _outputIndex;
+        private readonly Gate _inputGate;
+        private readonly int _outputIndex;
 
         public OutputGate(int id, Gate inputGate, int outputIndex)
              : base(id)
@@ -30,14 +26,6 @@ namespace CompactMPC.Circuits.Internal
             get
             {
                 yield return _inputGate;
-            }
-        }
-
-        public Gate Input
-        {
-            get
-            {
-                return _inputGate;
             }
         }
     }

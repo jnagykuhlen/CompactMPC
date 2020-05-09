@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-
 using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Protocol;
@@ -94,7 +91,7 @@ namespace CompactMPC.Expressions
             return inputMapping;
         }
 
-        public static OutputPartyMapping CreateOutputMapping(OutputPrimitiveDeclaration[] outputDeclaration)
+        private static OutputPartyMapping CreateOutputMapping(OutputPrimitiveDeclaration[] outputDeclaration)
         {
             OutputPartyMapping outputMapping = new OutputPartyMapping(outputDeclaration.Sum(declaration => declaration.Converter.NumberOfWires));
 
@@ -122,8 +119,8 @@ namespace CompactMPC.Expressions
 
         private static void OutputPrimitives(CircuitBuilder builder, SecurePrimitive[] primitives)
         {
-            for (int i = 0; i < primitives.Length; ++i)
-                OutputWires(builder, primitives[i].Wires);
+            foreach (SecurePrimitive primitive in primitives)
+                OutputWires(builder, primitive.Wires);
         }
 
         private static IEnumerable<Wire> InputWires(CircuitBuilder builder, int numberOfWires)

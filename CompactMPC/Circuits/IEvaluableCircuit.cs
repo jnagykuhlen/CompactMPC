@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CompactMPC.Circuits
+﻿namespace CompactMPC.Circuits
 {
     /// <summary>
     /// Represents an abstract boolean circuit that can be traversed and evaluated.

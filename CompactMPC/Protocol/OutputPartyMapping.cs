@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC.Protocol
 {
     public class OutputPartyMapping
     {
-        private IdSet[] _partyIds;
+        private readonly IdSet[] _partyIds;
 
         public OutputPartyMapping(int numberOfOutputs)
         {

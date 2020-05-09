@@ -1,52 +1,23 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC
 {
-    public struct BitQuadruple : IReadOnlyList<Bit>
+    public readonly struct BitQuadruple : IReadOnlyList<Bit>
     {
         public const int Length = 4;
 
-        private byte _value;
-
+        public byte PackedValue { get; }
+        
         private BitQuadruple(byte value)
         {
-            _value = (byte)(value & 0xf);
+            PackedValue = (byte)(value & 0xf);
         }
 
         public BitQuadruple(Bit v0, Bit v1, Bit v2, Bit v3)
         {
-            _value = (byte)((byte)v0 | ((byte)v1 << 1) | ((byte)v2 << 2) | ((byte)v3 << 3));
-        }
-
-        public BitQuadruple(Bit[] values)
-        {
-            if (values == null)
-                throw new ArgumentNullException(nameof(values));
-
-            if (values.Length != Length)
-                throw new ArgumentException("Source array must contain exactly four bits.", nameof(values));
-
-            _value = 0;
-            for (int i = 0; i < Length; ++i)
-                _value |= (byte)((byte)values[i] << i);
-        }
-
-        public BitQuadruple(BitArray values, int startIndex)
-        {
-            if (values == null)
-                throw new ArgumentNullException(nameof(values));
-
-            if (startIndex + Length > values.Length)
-                throw new ArgumentException("Source array does not contain at least four bits starting at the given index.", nameof(values));
-
-            _value = 0;
-            for (int i = 0; i < Length; ++i)
-                _value |= (byte)((values[startIndex + i] ? 1 : 0) << i);
+            PackedValue = (byte)((byte)v0 | ((byte)v1 << 1) | ((byte)v2 << 2) | ((byte)v3 << 3));
         }
 
         public static BitQuadruple FromPackedValue(byte packedValue)
@@ -61,7 +32,7 @@ namespace CompactMPC
                 if (index < 0 || index >= Length)
                     throw new ArgumentOutOfRangeException(nameof(index));
 
-                return new Bit((byte)(_value >> index));
+                return new Bit((byte)(PackedValue >> index));
             }
         }
 
@@ -81,14 +52,6 @@ namespace CompactMPC
             get
             {
                 return Length;
-            }
-        }
-
-        public byte PackedValue
-        {
-            get
-            {
-                return _value;
             }
         }
     }

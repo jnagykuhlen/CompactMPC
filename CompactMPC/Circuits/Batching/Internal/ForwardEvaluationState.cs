@@ -1,27 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits.Batching.Internal
 {
     public class ForwardEvaluationState<T>
     {
-        private T[] _output;
-        private Dictionary<ForwardGate, T> _cachedInputValueByGate;
-        private Queue<GateEvaluation<T>> _delayedAndGateEvaluations;
+        private readonly Dictionary<ForwardGate, T> _cachedInputValueByGate;
+        private readonly Queue<GateEvaluation<T>> _delayedAndGateEvaluations;
 
+        public T[] Output { get; }
+        
         public ForwardEvaluationState(int numberOfOutputGates)
         {
-            _output = new T[numberOfOutputGates];
             _cachedInputValueByGate = new Dictionary<ForwardGate, T>();
             _delayedAndGateEvaluations = new Queue<GateEvaluation<T>>();
+            Output = new T[numberOfOutputGates];
         }
         
         public void SetOutput(int index, T value)
         {
-            _output[index] = value;
+            Output[index] = value;
         }
 
         public void WriteInputValueToCache(ForwardGate gate, T value)
@@ -38,8 +36,7 @@ namespace CompactMPC.Circuits.Batching.Internal
 
         public Optional<T> ReadInputValueFromCache(ForwardGate gate)
         {
-            T value;
-            if (_cachedInputValueByGate.TryGetValue(gate, out value))
+            if (_cachedInputValueByGate.TryGetValue(gate, out T value))
             {
                 _cachedInputValueByGate.Remove(gate);
                 return Optional<T>.FromValue(value);
@@ -58,14 +55,6 @@ namespace CompactMPC.Circuits.Batching.Internal
             GateEvaluation<T>[] nextDelayedAndGateEvaluations = _delayedAndGateEvaluations.ToArray();
             _delayedAndGateEvaluations.Clear();
             return nextDelayedAndGateEvaluations;
-        }
-        
-        public T[] Output
-        {
-            get
-            {
-                return _output;
-            }
         }
     }
 }

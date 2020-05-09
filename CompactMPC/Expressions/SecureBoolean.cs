@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using CompactMPC.Circuits;
 
 namespace CompactMPC.Expressions
 {
     public class SecureBoolean : SecurePrimitive
     {
-        private Wire _wire;
-
         public SecureBoolean(CircuitBuilder builder, Wire wire)
-            : base(builder, new[] { wire })
-        {
-            _wire = wire;
-        }
+            : base(builder, new[] { wire }) { }
 
         public static SecureBoolean True(CircuitBuilder builder)
         {
@@ -66,12 +56,12 @@ namespace CompactMPC.Expressions
         {
             return right.Wire == Wire.Zero;
         }
-
+        
         public Wire Wire
         {
             get
             {
-                return _wire;
+                return Wires[0];
             }
         }
     }

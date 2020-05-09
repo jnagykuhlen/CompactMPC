@@ -1,28 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
-
-using CompactMPC.Networking;
+using System.Threading.Tasks;
 using CompactMPC.Cryptography;
+using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
     public class ObliviousTransferPreprocessor
     {
-        private IObliviousTransfer _obliviousTransfer;
-        private RandomNumberGenerator _randomNumberGenerator;
+        private readonly IObliviousTransfer _obliviousTransfer;
+        private readonly RandomNumberGenerator _randomNumberGenerator;
 
         public ObliviousTransferPreprocessor(IObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
         {
-            if (obliviousTransfer == null)
-                throw new ArgumentNullException(nameof(obliviousTransfer));
-
             _obliviousTransfer = obliviousTransfer;
-            _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
+            _randomNumberGenerator = new ThreadSafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
         }
 
         public Task<PreprocessedSenderBatch> PreprocessSenderAsync(IMessageChannel channel, int numberOfInvocations)

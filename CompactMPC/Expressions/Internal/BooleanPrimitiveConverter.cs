@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using CompactMPC.Circuits;
 
 namespace CompactMPC.Expressions.Internal
@@ -17,14 +14,10 @@ namespace CompactMPC.Expressions.Internal
 
         public override void WriteInput(object input, BitArray buffer, int startIndex)
         {
-            if (input is bool)
-            {
-                buffer[startIndex] = new Bit((bool)input);
-            }
+            if (input is bool inputBoolean)
+                buffer[startIndex] = new Bit(inputBoolean);
             else
-            {
-                throw new ArgumentException(String.Format("Input must be of type {0}.", typeof(bool).FullName), nameof(input));
-            }
+                throw new ArgumentException($"Input must be of type {typeof(bool).FullName}.", nameof(input));
         }
 
         public override object ReadOutput(BitArray buffer, int startIndex)

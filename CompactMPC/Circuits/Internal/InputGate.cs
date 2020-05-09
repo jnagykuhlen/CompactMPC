@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits.Internal
 {
     public class InputGate : Gate
     {
-        private int _inputIndex;
+        private readonly int _inputIndex;
 
         public InputGate(int id, int inputIndex)
              : base(id)

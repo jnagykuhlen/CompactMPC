@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using System.Diagnostics;
-
-using CompactMPC.Networking;
 using CompactMPC.Buffers;
 using CompactMPC.Cryptography;
+using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
@@ -23,14 +20,14 @@ namespace CompactMPC.ObliviousTransfer
     /// </remarks>
     public class NaorPinkasObliviousTransfer : GeneralizedObliviousTransfer
     {
-        private SecurityParameters _parameters;
-        private RandomNumberGenerator _randomNumberGenerator;
-        private IRandomOracleProvider _randomOracleProvider;
+        private readonly SecurityParameters _parameters;
+        private readonly RandomNumberGenerator _randomNumberGenerator;
+        private readonly IRandomOracleProvider _randomOracleProvider;
         
         public NaorPinkasObliviousTransfer(SecurityParameters parameters, CryptoContext cryptoContext)
         {
             _parameters = parameters;
-            _randomNumberGenerator = new ThreadsafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
+            _randomNumberGenerator = new ThreadSafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
             _randomOracleProvider = new HashRandomOracleProvider(cryptoContext.HashAlgorithmProvider);
 #if DEBUG
             Console.WriteLine("Security parameters:");
@@ -101,7 +98,7 @@ namespace CompactMPC.ObliviousTransfer
                     //  to be incorporated in the random oracle query to ensure that the same query does
                     //  not occur several times. This is partly because they envision several receivers
                     //  over which the same Cs are used. Since we are having seperate sets of Cs for each
-                    //  sender-receiver pair, the requirement of unique queries is satisified just using
+                    //  sender-receiver pair, the requirement of unique queries is satisfied just using
                     //  the index j of the OT invocation and we can save a bit of bandwidth.
 
                     // todo: Think about whether we want to use a static set of Cs for each sender for all
@@ -146,7 +143,7 @@ namespace CompactMPC.ObliviousTransfer
             {
                 listOfDs[j] = GenerateGroupElement(out listOfBetas[j]);
                 if (selectionIndices[j] > 0)
-                    listOfDs[j] = (listOfCs[selectionIndices[j]] * Invert(listOfDs[j])) % _parameters.P;
+                    listOfDs[j] = listOfCs[selectionIndices[j]] * Invert(listOfDs[j]) % _parameters.P;
             });
 
 #if DEBUG
@@ -241,10 +238,8 @@ namespace CompactMPC.ObliviousTransfer
         {
             MessageComposer message = new MessageComposer(4 * numberOfInvocations);
             for (int j = 0; j < numberOfInvocations; ++j)
-            {
-                for (int i = 0; i < 4; ++i)
-                    message.Write(options[j][i]);
-            }
+            for (int i = 0; i < 4; ++i)
+                message.Write(options[j][i]);
 
             return channel.WriteMessageAsync(message.Compose());
         }

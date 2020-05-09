@@ -1,22 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using CompactMPC.Circuits.Batching.Internal;
 
 namespace CompactMPC.Circuits.Batching
 {
     public class ForwardCircuit : IEvaluableCircuit, IBatchEvaluableCircuit
     {
-        private ForwardGate[] _inputGates;
-        private CircuitContext _context;
+        private ForwardGate[] InputGates { get; }
+
+        public CircuitContext Context { get; }
 
         public ForwardCircuit(IEvaluableCircuit circuit)
         {
-            _inputGates = ForwardCircuitBuilder.Build(circuit);
-            _context = circuit.Context;
+            InputGates = ForwardCircuitBuilder.Build(circuit);
+            Context = circuit.Context;
         }
         
         public T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] input)
@@ -26,13 +23,13 @@ namespace CompactMPC.Circuits.Batching
 
         public T[] Evaluate<T>(IBatchCircuitEvaluator<T> evaluator, T[] input)
         {
-            if (input.Length != _inputGates.Length)
+            if (input.Length != InputGates.Length)
                 throw new ArgumentException("Number of provided inputs does not match the number of input gates in the circuit.", nameof(input));
 
-            ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>(_context.NumberOfOutputGates);
+            ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>(Context.NumberOfOutputGates);
 
-            for (int i = 0; i < _inputGates.Length; ++i)
-                _inputGates[i].ReceiveInputValue(input[i], evaluator, evaluationState);
+            for (int i = 0; i < InputGates.Length; ++i)
+                InputGates[i].ReceiveInputValue(input[i], evaluator, evaluationState);
 
             GateEvaluation<T>[] delayedAndGateEvaluations;
             while ((delayedAndGateEvaluations = evaluationState.GetDelayedAndGateEvaluations()).Length > 0)
@@ -48,14 +45,6 @@ namespace CompactMPC.Circuits.Batching
             }
 
             return evaluationState.Output;
-        }
-
-        public CircuitContext Context
-        {
-            get
-            {
-                return _context;
-            }
         }
     }
 }

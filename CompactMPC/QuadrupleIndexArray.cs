@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC
 {
@@ -33,7 +28,7 @@ namespace CompactMPC
 
         protected override int ReadElement(int index)
         {
-            return (int)ReadBits(index, ElementsPerByte, BitMask);
+            return ReadBits(index, ElementsPerByte, BitMask);
         }
 
         protected override void WriteElement(int value, int index)

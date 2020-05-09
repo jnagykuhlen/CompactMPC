@@ -6,7 +6,6 @@ namespace CompactMPC.UnitTests.Cryptography
     [TestClass]
     public class RandomOracleTest
     {
-
         [TestMethod]
         public void TestMask()
         {

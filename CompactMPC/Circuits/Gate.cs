@@ -1,33 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace CompactMPC.Circuits
 {
     public abstract class Gate
     {
-        private int _id;
+        public int Id { get; }
 
-        public Gate(int id)
+        protected Gate(int id)
         {
-            _id = id;
+            Id = id;
         }
-        
+
         public abstract void Evaluate<T>(
             ICircuitEvaluator<T> evaluator,
             EvaluationState<T> evaluationState
         );
 
         public abstract IEnumerable<Gate> InputGates { get; }
-
-        public int Id
-        {
-            get
-            {
-                return _id;
-            }
-        }
     }
 }

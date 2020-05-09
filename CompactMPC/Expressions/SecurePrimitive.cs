@@ -1,30 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Collections.Generic;
 using CompactMPC.Circuits;
 
 namespace CompactMPC.Expressions
 {
     public abstract class SecurePrimitive
     {
-        private CircuitBuilder _builder;
-        private Wire[] _wires;
+        private readonly Wire[] _wires;
+
+        public CircuitBuilder Builder { get; }
 
         protected SecurePrimitive(CircuitBuilder builder, Wire[] wires)
         {
-            _builder = builder;
+            Builder = builder;
             _wires = wires;
-        }
-        
-        public CircuitBuilder Builder
-        {
-            get
-            {
-                return _builder;
-            }
         }
 
         public IReadOnlyList<Wire> Wires

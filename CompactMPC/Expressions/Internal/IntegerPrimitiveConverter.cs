@@ -1,22 +1,17 @@
 ﻿using System;
-using System.Numerics;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using System.Numerics;
 using CompactMPC.Circuits;
 
 namespace CompactMPC.Expressions.Internal
 {
     public class IntegerPrimitiveConverter : PrimitiveConverter
     {
-        private int _numberOfWires;
-
+        public override int NumberOfWires { get; }
+        
         public IntegerPrimitiveConverter(int numberOfWires)
         {
-            _numberOfWires = numberOfWires;
+            NumberOfWires = numberOfWires;
         }
 
         public override SecurePrimitive FromWires(CircuitBuilder builder, IEnumerable<Wire> wires)
@@ -26,14 +21,10 @@ namespace CompactMPC.Expressions.Internal
 
         public override void WriteInput(object input, BitArray buffer, int startIndex)
         {
-            if (input is BigInteger)
-            {
-                WriteInteger((BigInteger)input, buffer, startIndex, NumberOfWires);
-            }
+            if (input is BigInteger inputInteger)
+                WriteInteger(inputInteger, buffer, startIndex, NumberOfWires);
             else
-            {
-                throw new ArgumentException(String.Format("Input must be of type {0}.", typeof(BigInteger).FullName), nameof(input));
-            }
+                throw new ArgumentException($"Input must be of type {typeof(BigInteger).FullName}.", nameof(input));
         }
         
         public override object ReadOutput(BitArray buffer, int startIndex)
@@ -46,7 +37,7 @@ namespace CompactMPC.Expressions.Internal
             if (value < 0)
                 throw new ArgumentException("Cannot write negative integer.", nameof(value));
 
-            if (value <= UInt64.MaxValue)
+            if (value <= ulong.MaxValue)
             {
                 ulong fixedValue = (ulong)value;
                 for (int i = 0; i < length; ++i)
@@ -63,31 +54,17 @@ namespace CompactMPC.Expressions.Internal
         {
             ulong fixedValue = 0;
             for (int i = 0; i < length && i < 64; ++i)
-            {
                 if (buffer[startIndex + i])
-                    fixedValue |= (1UL << i);
-            }
+                    fixedValue |= 1UL << i;
 
             BigInteger value = new BigInteger(fixedValue);
 
             if (length >= 64)
-            {
                 for (int i = 64; i < length; ++i)
-                {
                     if (buffer[startIndex + i])
-                        value |= (BigInteger.One << i);
-                }
-            }
+                        value |= BigInteger.One << i;
 
             return value;
-        }
-
-        public override int NumberOfWires
-        {
-            get
-            {
-                return _numberOfWires;
-            }
         }
     }
 }

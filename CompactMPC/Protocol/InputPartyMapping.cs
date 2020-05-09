@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompactMPC.Protocol
 {
     public class InputPartyMapping
     {
-        private int[] _partyIds;
+        private readonly int[] _partyIds;
 
         public InputPartyMapping(int numberOfInputs)
         {
@@ -39,10 +36,8 @@ namespace CompactMPC.Protocol
         public IEnumerable<int> GetAssignedInputs(int partyId)
         {
             for(int i = 0; i < _partyIds.Length; ++i)
-            {
                 if (_partyIds[i] == partyId)
                     yield return i;
-            }
         }
 
         public int NumberOfInputs
