@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,11 +6,6 @@ namespace CompactMPC.Expressions
 {
     public static class ExpressionHelper
     {
-        public static T AggregateDepthEfficient<T>(this IEnumerable<T> values, Func<T, T, T> func)
-        {
-            return AggregateDepthEfficient(values, func, values.Count());
-        }
-
         public static T AggregateDepthEfficient<T>(this IReadOnlyCollection<T> values, Func<T, T, T> func)
         {
             return AggregateDepthEfficient(values, func, values.Count);

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using CompactMPC.Circuits;
 
 namespace CompactMPC.Expressions
@@ -12,15 +9,10 @@ namespace CompactMPC.Expressions
     {
         public SecureInteger(CircuitBuilder builder, IEnumerable<Wire> wires)
             : base(builder, wires) { }
-        
-        public static SecureInteger Sum(IEnumerable<SecureInteger> values)
-        {
-            return values.AggregateDepthEfficient((x, y) => x + y);
-        }
 
         public static SecureInteger Sum(params SecureInteger[] values)
         {
-            return Sum((IEnumerable<SecureInteger>)values);
+            return values.AggregateDepthEfficient((x, y) => x + y);
         }
 
         public static SecureInteger FromWord(SecureWord word)
@@ -72,7 +64,7 @@ namespace CompactMPC.Expressions
             if (Wires.Count >= length)
                 return new SecureInteger(Builder, Wires.Take(length));
 
-            return new SecureInteger(Builder, Enumerable.Concat(Wires, Enumerable.Repeat(Wire.Zero, length - Wires.Count)));
+            return new SecureInteger(Builder, Wires.Concat(Enumerable.Repeat(Wire.Zero, length - Wires.Count)));
         }
 
         public static SecureInteger operator +(SecureInteger left, SecureInteger right)

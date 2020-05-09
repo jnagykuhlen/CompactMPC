@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using System.Runtime.CompilerServices;
 using CompactMPC.Circuits;
 
 namespace CompactMPC.Expressions
@@ -21,14 +19,14 @@ namespace CompactMPC.Expressions
             return new SecureWord(builder, bits.Select(bit => bit.IsSet ? Wire.One : Wire.Zero));
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object other)
         {
-            return base.Equals(obj);
+            return ReferenceEquals(this, other);
         }
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return RuntimeHelpers.GetHashCode(this);
         }
 
         public SecureWord GetSegment(int startIndex, int length)
@@ -69,34 +67,19 @@ namespace CompactMPC.Expressions
             return new SecureWord(Builder, result);
         }
 
-        public static SecureWord And(IEnumerable<SecureWord> values)
+        public static SecureWord And(params SecureWord[] values)
         {
             return values.AggregateDepthEfficient((x, y) => x & y);
         }
-
-        public static SecureWord And(params SecureWord[] values)
-        {
-            return And((IEnumerable<SecureWord>)values);
-        }
-
-        public static SecureWord Or(IEnumerable<SecureWord> values)
+        
+        public static SecureWord Or(params SecureWord[] values)
         {
             return values.AggregateDepthEfficient((x, y) => x | y);
         }
 
-        public static SecureWord Or(params SecureWord[] values)
-        {
-            return Or((IEnumerable<SecureWord>)values);
-        }
-
-        public static SecureWord Xor(IEnumerable<SecureWord> values)
-        {
-            return values.AggregateDepthEfficient((x, y) => x ^ y);
-        }
-
         public static SecureWord Xor(params SecureWord[] values)
         {
-            return Xor((IEnumerable<SecureWord>)values);
+            return values.AggregateDepthEfficient((x, y) => x ^ y);
         }
         
         public static SecureWord Multiplex(SecureWord left, SecureWord right, SecureBoolean condition)
@@ -180,9 +163,16 @@ namespace CompactMPC.Expressions
         {
             if (left.Builder != right.Builder)
                 throw new ArgumentException("Secure words must use the same circuit builder for constructing gates.");
+            
+            CircuitBuilder builder = right.Builder;
 
-            Wire result = Enumerable.Zip(left.Wires, right.Wires, (leftWire, rightWire) => right.Builder.Not(right.Builder.Xor(leftWire, rightWire)))
-                .AggregateDepthEfficient((x, y) => right.Builder.And(x, y));
+            if (left.Length != right.Length)
+                return SecureBoolean.False(builder);
+
+            Wire result = left.Wires
+                .Zip(right.Wires, (leftWire, rightWire) => builder.Not(builder.Xor(leftWire, rightWire)))
+                .ToArray()
+                .AggregateDepthEfficient((x, y) => builder.And(x, y));
 
             return new SecureBoolean(right.Builder, result);
         }
