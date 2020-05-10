@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CompactMPC
 {
@@ -8,17 +9,21 @@ namespace CompactMPC
         private const int BitMask = 0x3;
 
         public QuadrupleIndexArray(int numberOfElements)
-            : base(RequiredBytes(numberOfElements), numberOfElements) { }
+            : base(numberOfElements, ElementsPerByte) { }
 
-        public QuadrupleIndexArray(int[] elements)
-            : base(RequiredBytes(elements.Length), elements) { }
+        public QuadrupleIndexArray(IReadOnlyList<int> elements)
+            : base(elements.Count, ElementsPerByte)
+        {
+            for (int i = 0; i < elements.Count; ++i)
+                WriteElement(elements[i], i);
+        }
 
-        protected QuadrupleIndexArray(byte[] bytes, int numberOfElements)
-            : base(bytes, RequiredBytes(numberOfElements), numberOfElements) { }
-
+        private QuadrupleIndexArray(byte[] bytes, int numberOfElements, int elementsPerByte)
+            : base(bytes, numberOfElements, elementsPerByte) { }
+        
         public static QuadrupleIndexArray FromBytes(byte[] bytes, int numberOfElements)
         {
-            return new QuadrupleIndexArray(bytes, numberOfElements);
+            return new QuadrupleIndexArray(bytes, numberOfElements, ElementsPerByte);
         }
 
         public static int RequiredBytes(int numberOfElements)
@@ -31,7 +36,7 @@ namespace CompactMPC
             return ReadBits(index, ElementsPerByte, BitMask);
         }
 
-        protected override void WriteElement(int value, int index)
+        protected sealed override void WriteElement(int value, int index)
         {
             if (value < 0 || value >= 4)
                 throw new ArgumentOutOfRangeException(nameof(value), "Quadruple index must be in the range from 0 to 3.");
@@ -41,7 +46,7 @@ namespace CompactMPC
 
         public QuadrupleIndexArray Clone()
         {
-            return new QuadrupleIndexArray(Buffer, Length);
+            return new QuadrupleIndexArray(Buffer, Length, ElementsPerByte);
         }
     }
 }

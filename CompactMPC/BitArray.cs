@@ -1,28 +1,39 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CompactMPC
 {
     public class BitArray : PackedArray<Bit>
     {
         private const int ElementsPerByte = 8;
+        private const int BitMask = 0x1;
 
         public BitArray(int numberOfElements)
-            : base(RequiredBytes(numberOfElements), numberOfElements) { }
+            : base(numberOfElements, ElementsPerByte) { }
 
-        public BitArray(Bit[] elements)
-            : base(RequiredBytes(elements.Length), elements) { }
-
-        protected BitArray(byte[] bytes, int numberOfElements)
-            : base(bytes, RequiredBytes(numberOfElements), numberOfElements) { }
+        public BitArray(IReadOnlyList<Bit> elements)
+            : base(elements.Count, ElementsPerByte)
+        {
+            for (int i = 0; i < elements.Count; ++i)
+                WriteElement(elements[i], i);
+        }
+        
+        private BitArray(byte[] bytes, int numberOfElements, int elementsPerByte)
+            : base(bytes, numberOfElements, elementsPerByte) { }
 
         public static BitArray FromBytes(byte[] bytes, int numberOfElements)
         {
-            return new BitArray(bytes, numberOfElements);
+            return new BitArray(bytes, numberOfElements, ElementsPerByte);
         }
 
         public static int RequiredBytes(int numberOfBits)
         {
             return RequiredBytes(numberOfBits, ElementsPerByte);
+        }
+
+        public BitArray Clone()
+        {
+            return new BitArray(Buffer, Length, ElementsPerByte);
         }
 
         public void Or(BitArray other)
@@ -88,17 +99,12 @@ namespace CompactMPC
 
         protected override Bit ReadElement(int index)
         {
-            return (Bit)ReadBit(index);
+            return new Bit(ReadBits(index, ElementsPerByte, BitMask));
         }
 
-        protected override void WriteElement(Bit value, int index)
+        protected sealed override void WriteElement(Bit value, int index)
         {
-            WriteBit((byte)value, index);
-        }
-
-        public BitArray Clone()
-        {
-            return new BitArray(Buffer, Length);
+            WriteBits((byte)value, index, ElementsPerByte, BitMask);
         }
 
         public static BitArray operator |(BitArray left, BitArray right)

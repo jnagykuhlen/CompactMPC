@@ -5,25 +5,20 @@ using System.Linq;
 
 namespace CompactMPC
 {
-    public abstract class PackedArray<T> : IReadOnlyList<T>, ICollection<T>
+    public abstract class PackedArray<T> : IReadOnlyList<T>
     {
         protected byte[] Buffer { get; }
-        
         public int Length { get; }
 
-        protected PackedArray(int numberOfBytes, int numberOfElements)
+        protected PackedArray(int numberOfElements, int elementsPerByte)
         {
-            if (numberOfElements < 0)
-                throw new ArgumentOutOfRangeException(nameof(numberOfElements));
-
-            Buffer = new byte[numberOfBytes];
+            Buffer = new byte[RequiredBytes(numberOfElements, elementsPerByte)];
             Length = numberOfElements;
         }
 
-        protected PackedArray(byte[] bytes, int numberOfBytes, int numberOfElements)
+        protected PackedArray(byte[] bytes, int numberOfElements, int elementsPerByte)
         {
-            if (numberOfElements < 0)
-                throw new ArgumentOutOfRangeException(nameof(numberOfElements));
+            int numberOfBytes = RequiredBytes(numberOfElements, elementsPerByte);
 
             if (bytes.Length < numberOfBytes)
                 throw new ArgumentException("Not enough data provided.", nameof(bytes));
@@ -32,13 +27,6 @@ namespace CompactMPC
             Length = numberOfElements;
 
             Array.Copy(bytes, Buffer, numberOfBytes);
-        }
-
-        protected PackedArray(int numberOfBytes, T[] elements)
-            : this(numberOfBytes, elements.Length)
-        {
-            for (int i = 0; i < Length; ++i)
-                WriteElement(elements[i], i);
         }
 
         public byte[] ToBytes()
@@ -57,22 +45,22 @@ namespace CompactMPC
             return result;
         }
 
+        public IEnumerator<T> GetEnumerator()
+        {
+            return Enumerable.Range(0, Length).Select(i => this[i]).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
         protected static int RequiredBytes(int numberOfElements, int elementsPerByte)
         {
             if (numberOfElements > 0)
                 return (numberOfElements - 1) / elementsPerByte + 1;
 
             return 0;
-        }
-
-        protected byte ReadBit(int index)
-        {
-            return ReadBits(index, 8, 0x1);
-        }
-
-        protected void WriteBit(byte bit, int index)
-        {
-            WriteBits(bit, index, 8, 0x1);
         }
 
         protected byte ReadBits(int index, int elementsPerByte, int bitMask)
@@ -109,58 +97,6 @@ namespace CompactMPC
                     throw new ArgumentOutOfRangeException(nameof(index));
 
                 WriteElement(value, index);
-            }
-        }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            return Enumerable.Range(0, Length).Select(i => this[i]).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        void ICollection<T>.Add(T item)
-        {
-            throw new NotSupportedException("Cannot add element to array.");
-        }
-
-        bool ICollection<T>.Remove(T item)
-        {
-            throw new NotSupportedException("Cannot remove element from array.");
-        }
-
-        void ICollection<T>.Clear()
-        {
-            throw new NotSupportedException("Cannot clear array.");
-        }
-
-        public bool Contains(T item)
-        {
-            return Enumerable.Contains(this, item);
-        }
-
-        void ICollection<T>.CopyTo(T[] array, int startIndex)
-        {
-            for (int i = 0; i < Length; ++i)
-                array.SetValue(this[i], startIndex + i);
-        }
-
-        bool ICollection<T>.IsReadOnly
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        int ICollection<T>.Count
-        {
-            get
-            {
-                return Length;
             }
         }
 
