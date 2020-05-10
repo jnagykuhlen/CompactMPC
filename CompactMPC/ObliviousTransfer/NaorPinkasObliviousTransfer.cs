@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -50,8 +50,7 @@ namespace CompactMPC.ObliviousTransfer
 
             Parallel.For(0, 4, i =>
             {
-                BigInteger exponent;
-                listOfCs[i] = GenerateGroupElement(out exponent);
+                listOfCs[i] = GenerateGroupElement(out BigInteger exponent);
                 listOfExponents[i] = exponent;
             });
 
