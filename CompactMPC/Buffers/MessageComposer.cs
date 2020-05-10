@@ -9,11 +9,8 @@ namespace CompactMPC.Buffers
 
         private readonly List<IMessageComponent> _components;
         private int _length;
-
-        public MessageComposer()
-            : this(DefaultExpectedNumberOfComponents) { }
-
-        public MessageComposer(int expectedNumberOfComponents)
+        
+        public MessageComposer(int expectedNumberOfComponents = DefaultExpectedNumberOfComponents)
         {
             _components = new List<IMessageComponent>(expectedNumberOfComponents);
             _length = 0;
