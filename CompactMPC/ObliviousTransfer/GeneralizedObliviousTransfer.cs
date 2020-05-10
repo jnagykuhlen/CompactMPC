@@ -30,7 +30,6 @@ namespace CompactMPC.ObliviousTransfer
 
         public Task<BitArray> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations)
         {
-
             return ReceiveAsync(channel, selectionIndices, numberOfInvocations, 1)
                 .ContinueWith(task => FromResultMessages(task.Result));
         }
