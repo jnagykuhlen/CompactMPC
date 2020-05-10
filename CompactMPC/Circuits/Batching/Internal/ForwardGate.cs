@@ -6,7 +6,7 @@ namespace CompactMPC.Circuits.Batching.Internal
     {
         private readonly List<ForwardGate> _successors;
 
-        public ForwardGate()
+        protected ForwardGate()
         {
             _successors = new List<ForwardGate>();
         }
@@ -19,9 +19,9 @@ namespace CompactMPC.Circuits.Batching.Internal
                 successor.ReceiveInputValue(value, evaluator, evaluationState);
         }
 
-        public void AddSuccessor(ForwardGate sucessor)
+        public void AddSuccessor(ForwardGate successor)
         {
-            _successors.Add(sucessor);
+            _successors.Add(successor);
         }
     }
 }
