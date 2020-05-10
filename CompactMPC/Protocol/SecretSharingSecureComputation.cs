@@ -9,14 +9,14 @@ using CompactMPC.Protocol.Internal;
 
 namespace CompactMPC.Protocol
 {
-    public class GMWSecureComputation : ISecureComputation
+    public class SecretSharingSecureComputation : ISecureComputation
     {
         private readonly IMultiplicativeSharing _multiplicativeSharing;
         private readonly CryptoContext _cryptoContext;
         
         public IMultiPartyNetworkSession MultiPartySession { get; }
         
-        public GMWSecureComputation(IMultiPartyNetworkSession multiPartySession, IMultiplicativeSharing multiplicativeSharing, CryptoContext cryptoContext)
+        public SecretSharingSecureComputation(IMultiPartyNetworkSession multiPartySession, IMultiplicativeSharing multiplicativeSharing, CryptoContext cryptoContext)
         {
             MultiPartySession = multiPartySession;
             _multiplicativeSharing = multiplicativeSharing;
@@ -37,7 +37,7 @@ namespace CompactMPC.Protocol
                     nameof(outputMapping)
                 );
 
-            GMWBooleanCircuitEvaluator evaluator = new GMWBooleanCircuitEvaluator(MultiPartySession, _multiplicativeSharing);
+            SecretSharingBooleanCircuitEvaluator evaluator = new SecretSharingBooleanCircuitEvaluator(MultiPartySession, _multiplicativeSharing);
 
             BitArray maskedInputs = await MaskInputs(inputMapping, localInputValues);
 

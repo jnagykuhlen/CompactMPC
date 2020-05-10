@@ -4,12 +4,12 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.Protocol.Internal
 {
-    public class GMWBooleanCircuitEvaluator : IBatchCircuitEvaluator<Task<Bit>>
+    public class SecretSharingBooleanCircuitEvaluator : IBatchCircuitEvaluator<Task<Bit>>
     {
         private readonly IMultiPartyNetworkSession _session;
         private readonly IMultiplicativeSharing _multiplicativeSharing;
         
-        public GMWBooleanCircuitEvaluator(IMultiPartyNetworkSession session, IMultiplicativeSharing multiplicativeSharing)
+        public SecretSharingBooleanCircuitEvaluator(IMultiPartyNetworkSession session, IMultiplicativeSharing multiplicativeSharing)
         {
             _session = session;
             _multiplicativeSharing = multiplicativeSharing;

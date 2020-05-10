@@ -68,7 +68,7 @@ namespace CompactMPC.Application
                 cryptoContext
             );
 
-            GMWSecureComputation computation = new GMWSecureComputation(session, multiplicativeSharing, cryptoContext);
+            SecretSharingSecureComputation computation = new SecretSharingSecureComputation(session, multiplicativeSharing, cryptoContext);
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 

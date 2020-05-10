@@ -84,7 +84,7 @@ namespace CompactMPC.UnitTests
                 cryptoContext
             );
 
-            GMWSecureComputation computation = new GMWSecureComputation(session, multiplicativeSharing, cryptoContext);
+            SecretSharingSecureComputation computation = new SecretSharingSecureComputation(session, multiplicativeSharing, cryptoContext);
 
             SetIntersectionCircuitRecorder circuitRecorder =
                 new SetIntersectionCircuitRecorder(numberOfParties, localInput.Length);
