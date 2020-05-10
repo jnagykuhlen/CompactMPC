@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -97,12 +97,12 @@ namespace CompactMPC.ObliviousTransfer
                     // note(lumip): The protocol as proposed by Naor and Pinkas includes a random value
                     //  to be incorporated in the random oracle query to ensure that the same query does
                     //  not occur several times. This is partly because they envision several receivers
-                    //  over which the same Cs are used. Since we are having seperate sets of Cs for each
+                    //  over which the same Cs are used. Since we are having separate sets of Cs for each
                     //  sender-receiver pair, the requirement of unique queries is satisfied just using
                     //  the index j of the OT invocation and we can save a bit of bandwidth.
 
-                    // todo: Think about whether we want to use a static set of Cs for each sender for all
-                    //  connection to reduce the required amount of computation per OT. Would require to
+                    //  Think about whether we want to use a static set of Cs for each sender for all
+                    //  connections to reduce the required amount of computation per OT. Would require to
                     //  maintain state in this class and negate the points made in the note above.
                     maskedOptions[j][i] = MaskOption(options[j][i], e, j, i);
                 });
