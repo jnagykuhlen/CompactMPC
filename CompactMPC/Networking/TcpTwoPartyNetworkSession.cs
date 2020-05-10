@@ -27,14 +27,17 @@ namespace CompactMPC.Networking
 
         public static async Task<TcpTwoPartyNetworkSession> AcceptAsync(Party localParty, int port)
         {
-            TcpTwoPartyNetworkSession session;
-
             TcpListener listener = new TcpListener(IPAddress.Any, port) { ExclusiveAddressUse = true };
+            
             listener.Start();
-            session = await AcceptAsync(localParty, listener);
-            listener.Stop();
-
-            return session;
+            try
+            {
+                return await AcceptAsync(localParty, listener);
+            }
+            finally
+            {
+                listener.Stop();
+            }
         }
 
         public static async Task<TcpTwoPartyNetworkSession> AcceptAsync(Party localParty, TcpListener listener)
