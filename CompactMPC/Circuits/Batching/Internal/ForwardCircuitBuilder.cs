@@ -6,7 +6,7 @@
         {
             ForwardGate[] inputGates = new ForwardGate[circuit.Context.NumberOfInputGates];
             for (int i = 0; i < inputGates.Length; ++i)
-                inputGates[i] = new ForwardInputGate(i);
+                inputGates[i] = new ForwardInputGate();
 
             ForwardGate[] outputGates = circuit.Evaluate(new ForwardCircuitBuilder(), inputGates);
             for (int i = 0; i < outputGates.Length; ++i)
