@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
@@ -17,13 +16,10 @@ namespace CompactMPC.UnitTests
         [TestMethod]
         public void TestNaorPinkasObliviousTransfer()
         {
-            Task.WhenAll(
-                Task.Factory.StartNew(RunObliviousTransferParty, TaskCreationOptions.LongRunning),
-                Task.Factory.StartNew(RunObliviousTransferParty, TaskCreationOptions.LongRunning)
-            ).Wait();
+            TestNetworkRunner.RunTwoPartyNetwork(PerformObliviousTransfer);
         }
 
-        private static void RunObliviousTransferParty()
+        private static void PerformObliviousTransfer(ITwoPartyNetworkSession session)
         {
             Quadruple<byte[]>[] options =
             {
@@ -33,7 +29,6 @@ namespace CompactMPC.UnitTests
             };
 
             using CryptoContext cryptoContext = CryptoContext.CreateDefault();
-            using ITwoPartyNetworkSession session = TestNetworkSession.EstablishTwoParty();
 
             IGeneralizedObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                 SecurityParameters.CreateDefault768Bit(),

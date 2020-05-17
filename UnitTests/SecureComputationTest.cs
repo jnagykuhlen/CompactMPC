@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using CompactMPC.Circuits;
+﻿using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
@@ -51,27 +50,16 @@ namespace CompactMPC.UnitTests
         private static void RunSecureComputationParties(int numberOfParties, string expectedOutputString)
         {
             BitArray expectedOutput = BitArray.FromBinaryString(expectedOutputString);
-
-            Task[] tasks = new Task[numberOfParties];
-            for (int i = 0; i < numberOfParties; ++i)
-            {
-                int localPartyId = i;
-                BitArray localInput = new BitArray(Inputs[localPartyId].ToArray());
-
-                tasks[i] = Task.Factory.StartNew(
-                    () => RunSecureComputationParty(numberOfParties, localPartyId, localInput, expectedOutput),
-                    TaskCreationOptions.LongRunning
-                );
-            }
-
-            Task.WaitAll(tasks);
+            TestNetworkRunner.RunMultiPartyNetwork(
+                numberOfParties,
+                session => PerformSecureComputation(session, expectedOutput)
+            );
         }
 
-        private static void RunSecureComputationParty(int numberOfParties, int localPartyId, BitArray localInput,
-            BitArray expectedOutput)
+        private static void PerformSecureComputation(IMultiPartyNetworkSession session, BitArray expectedOutput)
         {
-            using IMultiPartyNetworkSession session =
-                TestNetworkSession.EstablishMultiParty(localPartyId, numberOfParties);
+            BitArray localInput = Inputs[session.LocalParty.Id];
+            
             using CryptoContext cryptoContext = CryptoContext.CreateDefault();
 
             IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
@@ -84,10 +72,16 @@ namespace CompactMPC.UnitTests
                 cryptoContext
             );
 
-            SecretSharingSecureComputation computation = new SecretSharingSecureComputation(session, multiplicativeSharing, cryptoContext);
+            SecretSharingSecureComputation computation = new SecretSharingSecureComputation(
+                session,
+                multiplicativeSharing,
+                cryptoContext
+            );
 
-            SetIntersectionCircuitRecorder circuitRecorder =
-                new SetIntersectionCircuitRecorder(numberOfParties, localInput.Length);
+            SetIntersectionCircuitRecorder circuitRecorder = new SetIntersectionCircuitRecorder(
+                session.NumberOfParties,
+                localInput.Length
+            );
 
             CircuitBuilder circuitBuilder = new CircuitBuilder();
             circuitRecorder.Record(circuitBuilder);
