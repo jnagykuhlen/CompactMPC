@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using CompactMPC.Networking;
 
 namespace CompactMPC.UnitTests.Util
@@ -10,18 +9,18 @@ namespace CompactMPC.UnitTests.Util
 
         public static IMultiPartyNetworkSession EstablishMultiParty(int localPartyId, int numberOfParties)
         {
-            return TcpMultiPartyNetworkSession.EstablishAsync(new Party(localPartyId), IPAddress.Loopback, Port, numberOfParties).Result;
+            return TcpMultiPartyNetworkSession.EstablishLoopbackAsync(new Party(localPartyId), Port, numberOfParties).Result;
         }
 
         public static ITwoPartyNetworkSession EstablishTwoParty()
         {
             try
             {
-                return TcpTwoPartyNetworkSession.AcceptAsync(new Party(1), Port).Result;
+                return TcpTwoPartyNetworkSession.AcceptLoopbackAsync(new Party(1), Port).Result;
             }
             catch (Exception)
             {
-                return TcpTwoPartyNetworkSession.ConnectAsync(new Party(0), IPAddress.Loopback, Port).Result;
+                return TcpTwoPartyNetworkSession.ConnectLoopbackAsync(new Party(0), Port).Result;
             }
         }
     }

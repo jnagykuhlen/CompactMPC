@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Net;
 using System.Numerics;
 using System.Reflection;
 using CompactMPC.Cryptography;
@@ -88,7 +87,7 @@ namespace CompactMPC.Application
 
         private static IMultiPartyNetworkSession CreateLocalSession(int localPartyId, int startPort, int numberOfParties)
         {
-            return TcpMultiPartyNetworkSession.EstablishAsync(new Party(localPartyId), IPAddress.Loopback, startPort, numberOfParties).Result;
+            return TcpMultiPartyNetworkSession.EstablishLoopbackAsync(new Party(localPartyId), startPort, numberOfParties).Result;
         }
     }
 }

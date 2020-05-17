@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using CompactMPC.Networking;
 using CompactMPC.UnitTests.Assertions;
@@ -54,17 +53,17 @@ namespace CompactMPC.UnitTests
 
         private static Task<TcpTwoPartyNetworkSession> CreateFirstTwoPartySessionAsync()
         {
-            return TcpTwoPartyNetworkSession.ConnectAsync(FirstParty, IPAddress.Loopback, Port);
+            return TcpTwoPartyNetworkSession.ConnectLoopbackAsync(FirstParty, Port);
         }
 
         private static Task<TcpTwoPartyNetworkSession> CreateSecondTwoPartySessionAsync()
         {
-            return TcpTwoPartyNetworkSession.AcceptAsync(SecondParty, Port);
+            return TcpTwoPartyNetworkSession.AcceptLoopbackAsync(SecondParty, Port);
         }
 
         private static Task<TcpMultiPartyNetworkSession> CreateMultiPartySessionAsync(Party party, int numberOfParties)
         {
-            return TcpMultiPartyNetworkSession.EstablishAsync(party, IPAddress.Loopback, Port, numberOfParties);
+            return TcpMultiPartyNetworkSession.EstablishLoopbackAsync(party, Port, numberOfParties);
         }
 
         private static IEnumerable<Party> GetRemoteParties(IMultiPartyNetworkSession multiPartySession)
