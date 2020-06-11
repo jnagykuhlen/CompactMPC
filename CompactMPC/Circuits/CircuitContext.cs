@@ -55,7 +55,7 @@
         {
             get
             {
-                return NumberOfAndGates + NumberOfXorGates + NumberOfNotGates + NumberOfInputGates + NumberOfInputGates;
+                return NumberOfAndGates + NumberOfXorGates + NumberOfNotGates + NumberOfInputGates + NumberOfOutputGates;
             }
         }
     }
