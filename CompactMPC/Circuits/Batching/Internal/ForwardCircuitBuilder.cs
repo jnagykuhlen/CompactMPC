@@ -17,25 +17,17 @@
 
         public ForwardGate EvaluateAndGate(ForwardGate leftInputGate, ForwardGate rightInputGate)
         {
-            ForwardGate gate = new ForwardAndGate();
-            leftInputGate.AddSuccessor(gate);
-            rightInputGate.AddSuccessor(gate);
-            return gate;
+            return new ForwardAndGate(leftInputGate, rightInputGate);
         }
 
         public ForwardGate EvaluateXorGate(ForwardGate leftInputGate, ForwardGate rightInputGate)
         {
-            ForwardGate gate = new ForwardXorGate();
-            leftInputGate.AddSuccessor(gate);
-            rightInputGate.AddSuccessor(gate);
-            return gate;
+            return new ForwardXorGate(leftInputGate, rightInputGate);
         }
 
         public ForwardGate EvaluateNotGate(ForwardGate inputGate)
         {
-            ForwardGate gate = new ForwardNotGate();
-            inputGate.AddSuccessor(gate);
-            return gate;
+            return new ForwardNotGate(inputGate);
         }
     }
 }

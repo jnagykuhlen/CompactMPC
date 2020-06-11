@@ -12,11 +12,18 @@ namespace CompactMPC.Circuits.Batching.Internal
         }
 
         public abstract void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState);
+        public abstract void ReceiveVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState);
 
         public void SendOutputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
         {
             foreach (ForwardGate successor in _successors)
                 successor.ReceiveInputValue(value, evaluator, evaluationState);
+        }
+        
+        public void SendVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState)
+        {
+            foreach (ForwardGate successor in _successors)
+                successor.ReceiveVisitingRequest(visitor, visitingState);
         }
 
         public void AddSuccessor(ForwardGate successor)

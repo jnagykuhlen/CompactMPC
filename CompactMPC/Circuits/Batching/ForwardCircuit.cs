@@ -6,14 +6,37 @@ namespace CompactMPC.Circuits.Batching
 {
     public class ForwardCircuit : IEvaluableCircuit, IBatchEvaluableCircuit
     {
-        private ForwardGate[] InputGates { get; }
+        private readonly ForwardGate[] _inputGates;
 
         public CircuitContext Context { get; }
 
         public ForwardCircuit(IEvaluableCircuit circuit)
         {
-            InputGates = ForwardCircuitBuilder.Build(circuit);
+            _inputGates = ForwardCircuitBuilder.Build(circuit);
             Context = circuit.Context;
+        }
+
+        public ForwardCircuit(ForwardGate[] inputGates)
+        {
+            _inputGates = inputGates;
+            Context = CreateContext(inputGates);
+        }
+
+        private static CircuitContext CreateContext(ForwardGate[] inputGates)
+        {
+            CountingCircuitVisitor visitor = new CountingCircuitVisitor();
+            ForwardVisitingState visitingState = new ForwardVisitingState();
+            
+            foreach (ForwardGate inputGate in inputGates)
+                inputGate.ReceiveVisitingRequest(visitor, visitingState);
+            
+            return new CircuitContext(
+                visitor.NumberOfAndGates,
+                visitor.NumberOfXorGates,
+                visitor.NumberOfNotGates,
+                visitor.NumberOfInputGates,
+                visitor.NumberOfOutputGates
+            );
         }
         
         public T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] input)
@@ -23,13 +46,13 @@ namespace CompactMPC.Circuits.Batching
 
         public T[] Evaluate<T>(IBatchCircuitEvaluator<T> evaluator, T[] input)
         {
-            if (input.Length != InputGates.Length)
+            if (input.Length != _inputGates.Length)
                 throw new ArgumentException("Number of provided inputs does not match the number of input gates in the circuit.", nameof(input));
 
             ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>(Context.NumberOfOutputGates);
 
-            for (int i = 0; i < InputGates.Length; ++i)
-                InputGates[i].ReceiveInputValue(input[i], evaluator, evaluationState);
+            for (int i = 0; i < _inputGates.Length; ++i)
+                _inputGates[i].ReceiveInputValue(input[i], evaluator, evaluationState);
 
             GateEvaluation<T>[] delayedAndGateEvaluations;
             while ((delayedAndGateEvaluations = evaluationState.GetDelayedAndGateEvaluations()).Length > 0)
