@@ -4,8 +4,8 @@
     {
         public ForwardXorGate(ForwardGate leftInputGate, ForwardGate rightInputGate)
         {
-            leftInputGate.AddSuccessor(this);
-            rightInputGate.AddSuccessor(this);
+            AddPredecessor(leftInputGate);
+            AddPredecessor(rightInputGate);
         }
         
         protected override void ReceiveInputValues<T>(T leftValue, T rightValue, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)

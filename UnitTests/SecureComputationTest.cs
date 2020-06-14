@@ -86,7 +86,7 @@ namespace CompactMPC.UnitTests
             CircuitBuilder circuitBuilder = new CircuitBuilder();
             circuitRecorder.Record(circuitBuilder);
 
-            ForwardCircuit circuit = new ForwardCircuit(circuitBuilder.CreateCircuit());
+            ForwardCircuit circuit = ForwardCircuit.FromCircuit(circuitBuilder.CreateCircuit());
             BitArray actualOutput = computation
                 .EvaluateAsync(circuit, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput)
                 .Result;

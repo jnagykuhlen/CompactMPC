@@ -4,7 +4,7 @@
     {
         public ForwardNotGate(ForwardGate inputGate)
         {
-            inputGate.AddSuccessor(this);
+            AddPredecessor(inputGate);
         }
         
         public override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)

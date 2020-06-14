@@ -2,12 +2,9 @@
 {
     public class CountingCircuitVisitor : ICircuitVisitor
     {
-        public int NumberOfAndGates { get; set; } = 0;
-        public int NumberOfXorGates { get; set; } = 0;
-        public int NumberOfNotGates { get; set; } = 0;
-        public int NumberOfInputGates { get; set; } = 0;
-        public int NumberOfOutputGates { get; set; } = 0;
-
+        public int NumberOfAndGates { get; private set; }
+        public int NumberOfXorGates { get; private set; }
+        public int NumberOfNotGates { get; private set; }
 
         public void VisitAndGate()
         {
@@ -22,16 +19,6 @@
         public void VisitNotGate()
         {
             NumberOfNotGates++;
-        }
-
-        public void VisitInputGate()
-        {
-            NumberOfInputGates++;
-        }
-
-        public void VisitOutputGate()
-        {
-            NumberOfOutputGates++;
         }
     }
 }

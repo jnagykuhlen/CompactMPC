@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CompactMPC.Circuits.Batching.Internal
 {
@@ -7,19 +8,24 @@ namespace CompactMPC.Circuits.Batching.Internal
     {
         private readonly Dictionary<ForwardGate, T> _cachedInputValueByGate;
         private readonly Queue<GateEvaluation<T>> _delayedAndGateEvaluations;
+        private readonly Dictionary<ForwardGate, int> _outputIndexByGate;
+        private readonly Optional<T>[] _output;
 
-        public T[] Output { get; }
-        
-        public ForwardEvaluationState(int numberOfOutputGates)
+        public ForwardEvaluationState(IReadOnlyList<ForwardGate> outputGates)
         {
             _cachedInputValueByGate = new Dictionary<ForwardGate, T>();
             _delayedAndGateEvaluations = new Queue<GateEvaluation<T>>();
-            Output = new T[numberOfOutputGates];
+            _outputIndexByGate = Enumerable
+                .Range(0, outputGates.Count)
+                .ToDictionary(i => outputGates[i]);
+
+            _output = new Optional<T>[outputGates.Count];
         }
-        
-        public void SetOutput(int index, T value)
+
+        public void SetOutputValue(ForwardGate gate, T value)
         {
-            Output[index] = value;
+            if (_outputIndexByGate.TryGetValue(gate, out int index))
+                _output[index] = Optional<T>.FromValue(value);
         }
 
         public void WriteInputValueToCache(ForwardGate gate, T value)
@@ -30,7 +36,7 @@ namespace CompactMPC.Circuits.Batching.Internal
             }
             catch (ArgumentException exception)
             {
-                throw new InvalidOperationException("Another input value is already present.", exception);
+                throw new InvalidOperationException("Another cached input value is already present.", exception);
             }
         }
 
@@ -44,17 +50,25 @@ namespace CompactMPC.Circuits.Batching.Internal
 
             return Optional<T>.Empty;
         }
-        
+
         public void DelayAndGateEvaluation(GateEvaluation<T> evaluation)
         {
             _delayedAndGateEvaluations.Enqueue(evaluation);
         }
 
-        public GateEvaluation<T>[] GetDelayedAndGateEvaluations()
+        public GateEvaluation<T>[] NextDelayedAndGateEvaluations()
         {
             GateEvaluation<T>[] nextDelayedAndGateEvaluations = _delayedAndGateEvaluations.ToArray();
             _delayedAndGateEvaluations.Clear();
             return nextDelayedAndGateEvaluations;
+        }
+
+        public IReadOnlyList<Optional<T>> Output
+        {
+            get
+            {
+                return _output;
+            }
         }
     }
 }

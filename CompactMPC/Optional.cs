@@ -2,7 +2,7 @@
 
 namespace CompactMPC
 {
-    public class Optional<T>
+    public readonly struct Optional<T>
     {
         public static readonly Optional<T> Empty = new Optional<T>(default!, false);
         

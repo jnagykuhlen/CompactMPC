@@ -2,6 +2,8 @@
 {
     public class LocalCircuitEvaluator : ICircuitEvaluator<Bit>
     {
+        public static readonly LocalCircuitEvaluator Instance = new LocalCircuitEvaluator();
+        
         public Bit EvaluateAndGate(Bit leftValue, Bit rightValue)
         {
             return leftValue && rightValue;

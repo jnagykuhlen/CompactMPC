@@ -1,21 +1,18 @@
 ﻿using System.Collections.Generic;
+using CompactMPC.Circuits.Batching.Internal;
 
-namespace CompactMPC.Circuits.Batching.Internal
+namespace CompactMPC.Circuits.Batching
 {
     public abstract class ForwardGate
     {
-        private readonly List<ForwardGate> _successors;
-
-        protected ForwardGate()
-        {
-            _successors = new List<ForwardGate>();
-        }
-
+        private readonly List<ForwardGate> _successors = new List<ForwardGate>();
+        
         public abstract void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState);
         public abstract void ReceiveVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState);
 
         public void SendOutputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
         {
+            evaluationState.SetOutputValue(this, value);
             foreach (ForwardGate successor in _successors)
                 successor.ReceiveInputValue(value, evaluator, evaluationState);
         }
@@ -26,9 +23,9 @@ namespace CompactMPC.Circuits.Batching.Internal
                 successor.ReceiveVisitingRequest(visitor, visitingState);
         }
 
-        public void AddSuccessor(ForwardGate successor)
+        protected void AddPredecessor(ForwardGate predecessor)
         {
-            _successors.Add(successor);
+            predecessor._successors.Add(this);
         }
     }
 }

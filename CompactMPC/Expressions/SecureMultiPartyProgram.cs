@@ -21,7 +21,7 @@ namespace CompactMPC.Expressions
             OutputPrimitives(builder, outputPrimitives);
             
             BitArray outputBuffer = await secureComputation.EvaluateAsync(
-                new ForwardCircuit(builder.CreateCircuit()),
+                ForwardCircuit.FromCircuit(builder.CreateCircuit()),
                 CreateInputMapping(inputDeclaration),
                 CreateOutputMapping(outputDeclaration),
                 CreateLocalInputBuffer(inputDeclaration, localInputPrimitives, secureComputation.MultiPartySession.LocalParty.Id)

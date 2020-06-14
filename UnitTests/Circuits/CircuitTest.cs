@@ -28,7 +28,7 @@ namespace CompactMPC.UnitTests.Circuits
             setIntersectionCircuitRecorder.Record(builder);
 
             Circuit circuit = builder.CreateCircuit();
-            ForwardCircuit forwardCircuit = new ForwardCircuit(circuit);
+            ForwardCircuit forwardCircuit = ForwardCircuit.FromCircuit(circuit);
 
             ICircuitEvaluator<Bit> evaluator = new LocalCircuitEvaluator();
             ReportingBatchCircuitEvaluator<Bit> batchCircuitEvaluator =

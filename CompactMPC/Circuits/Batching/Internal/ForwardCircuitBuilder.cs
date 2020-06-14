@@ -2,17 +2,15 @@
 {
     public class ForwardCircuitBuilder : ICircuitEvaluator<ForwardGate>
     {
-        public static ForwardGate[] Build(IEvaluableCircuit circuit)
+        public static ForwardCircuit Build(IEvaluableCircuit circuit)
         {
             ForwardGate[] inputGates = new ForwardGate[circuit.Context.NumberOfInputGates];
             for (int i = 0; i < inputGates.Length; ++i)
                 inputGates[i] = new ForwardInputGate();
 
             ForwardGate[] outputGates = circuit.Evaluate(new ForwardCircuitBuilder(), inputGates);
-            for (int i = 0; i < outputGates.Length; ++i)
-                outputGates[i].AddSuccessor(new ForwardOutputGate(i));
 
-            return inputGates;
+            return new ForwardCircuit(inputGates, outputGates);
         }
 
         public ForwardGate EvaluateAndGate(ForwardGate leftInputGate, ForwardGate rightInputGate)

@@ -17,11 +17,12 @@ namespace CompactMPC.UnitTests.Circuits
             ForwardGate secondAndGate = new ForwardAndGate(firstXorGate, firstAndGate);
             ForwardGate thirdAndGate = new ForwardAndGate(firstInputGate, secondInputGate);
             ForwardGate secondXorGate = new ForwardXorGate(secondAndGate, thirdAndGate);
-            ForwardGate firstOutputGate = new ForwardOutputGate(firstAndGate, 0);
-            ForwardGate secondOutputGate = new ForwardOutputGate(new ForwardNotGate(firstAndGate), 1);
-            ForwardGate thirdOutputGate = new ForwardOutputGate(secondXorGate, 2);
+            ForwardNotGate firstNotGate = new ForwardNotGate(firstAndGate);
             
-            ForwardCircuit circuit = new ForwardCircuit(new[]{ firstInputGate, secondInputGate });
+            ForwardCircuit circuit = new ForwardCircuit(
+                new[]{ firstInputGate, secondInputGate },
+                new[]{ firstAndGate, firstNotGate, secondXorGate }
+            );
 
             Assert.AreEqual(3, circuit.Context.NumberOfAndGates);
             Assert.AreEqual(2, circuit.Context.NumberOfXorGates);
