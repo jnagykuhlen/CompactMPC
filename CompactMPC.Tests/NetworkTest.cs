@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CompactMPC.Assertions;
 using CompactMPC.Networking;
-using CompactMPC.UnitTests.Assertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests
+namespace CompactMPC
 {
     [TestClass]
     public class NetworkTest

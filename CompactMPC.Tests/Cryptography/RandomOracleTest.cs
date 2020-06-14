@@ -1,7 +1,6 @@
-﻿using CompactMPC.Cryptography;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests.Cryptography
+namespace CompactMPC.Cryptography
 {
     [TestClass]
     public class RandomOracleTest

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using CompactMPC.Cryptography;
 
-namespace CompactMPC.UnitTests.Cryptography
+namespace CompactMPC.Cryptography
 {
     public class ConstantRandomOracle : RandomOracle
     {

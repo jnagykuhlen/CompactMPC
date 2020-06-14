@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CompactMPC.Networking;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests.Assertions
+namespace CompactMPC.Assertions
 {
     public static class EnumerableAssert
     {

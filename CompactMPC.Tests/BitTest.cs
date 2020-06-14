@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests
+namespace CompactMPC
 {
     [TestClass]
     public class BitTest

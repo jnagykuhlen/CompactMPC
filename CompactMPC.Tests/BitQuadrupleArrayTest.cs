@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests
+namespace CompactMPC
 {
     [TestClass]
     public class BitQuadrupleArrayTest

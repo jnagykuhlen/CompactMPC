@@ -3,10 +3,10 @@ using System.Text;
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
-using CompactMPC.UnitTests.Util;
+using CompactMPC.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests
+namespace CompactMPC
 {
     [TestClass]
     public class ObliviousTransferTest

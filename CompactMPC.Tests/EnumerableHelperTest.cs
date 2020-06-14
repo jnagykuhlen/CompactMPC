@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using CompactMPC.UnitTests.Assertions;
+using CompactMPC.Assertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests
+namespace CompactMPC
 {
     [TestClass]
     public class EnumerableHelperTest

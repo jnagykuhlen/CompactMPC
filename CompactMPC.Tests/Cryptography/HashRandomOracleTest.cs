@@ -1,9 +1,8 @@
 ﻿using System.Linq;
-using CompactMPC.Cryptography;
-using CompactMPC.UnitTests.Assertions;
+using CompactMPC.Assertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests.Cryptography
+namespace CompactMPC.Cryptography
 {
     [TestClass]
     public class HashRandomOracleTest
