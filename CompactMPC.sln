@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompactMPC", "CompactMPC\Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{40468F18-E2D3-4307-8158-0831E1BA9155}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{321E8506-96AB-4827-92F3-D9739D456DBE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompactMPC.Tests", "CompactMPC.Tests\CompactMPC.Tests.csproj", "{321E8506-96AB-4827-92F3-D9739D456DBE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleCircuits", "SampleCircuits\SampleCircuits.csproj", "{4D579F60-2EE5-4D50-9102-1B351FC2FC6A}"
 EndProject

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CompactMPC.Networking;
 
-namespace CompactMPC.UnitTests.Util
+namespace CompactMPC.Util
 {
     public static class TestNetworkRunner
     {

@@ -1,15 +1,15 @@
-﻿using CompactMPC.Circuits;
+﻿using CompactMPC.Assertions;
+using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
 using CompactMPC.SampleCircuits;
-using CompactMPC.UnitTests.Assertions;
-using CompactMPC.UnitTests.Util;
+using CompactMPC.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests
+namespace CompactMPC
 {
     [TestClass]
     public class SecureComputationTest

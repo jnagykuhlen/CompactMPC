@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using CompactMPC.ExpressionsNew;
+using CompactMPC.Assertions;
 using CompactMPC.ExpressionsNew.Internal;
-using CompactMPC.UnitTests.Assertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests.ExpressionsNew
+namespace CompactMPC.ExpressionsNew
 {
     [TestClass]
     public class BooleanBitConverterTest

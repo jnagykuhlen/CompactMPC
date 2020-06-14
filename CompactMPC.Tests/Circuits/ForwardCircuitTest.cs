@@ -2,7 +2,7 @@
 using CompactMPC.Circuits.Batching.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests.Circuits
+namespace CompactMPC.Circuits
 {
     [TestClass]
     public class ForwardCircuitTest

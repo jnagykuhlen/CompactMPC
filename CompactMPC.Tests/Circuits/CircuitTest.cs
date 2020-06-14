@@ -1,11 +1,10 @@
 ﻿using System.Linq;
-using CompactMPC.Circuits;
+using CompactMPC.Assertions;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.SampleCircuits;
-using CompactMPC.UnitTests.Assertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests.Circuits
+namespace CompactMPC.Circuits
 {
     [TestClass]
     public class CircuitTest

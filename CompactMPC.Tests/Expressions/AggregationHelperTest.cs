@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CompactMPC.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests.Expressions
+namespace CompactMPC.Expressions
 {
     [TestClass]
     public class AggregationHelperTest

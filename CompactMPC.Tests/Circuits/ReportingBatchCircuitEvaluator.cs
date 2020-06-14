@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using CompactMPC.Circuits.Batching;
 
-namespace CompactMPC.UnitTests.Circuits
+namespace CompactMPC.Circuits
 {
     public class ReportingBatchCircuitEvaluator<T> : IBatchCircuitEvaluator<T>
     {

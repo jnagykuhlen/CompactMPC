@@ -1,9 +1,8 @@
 ﻿using System;
 using CompactMPC.Circuits;
-using CompactMPC.ExpressionsNew;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests.ExpressionsNew
+namespace CompactMPC.ExpressionsNew
 {
     [TestClass]
     public class ExpressionTest

@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using CompactMPC.ExpressionsNew;
 using CompactMPC.ExpressionsNew.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests.ExpressionsNew
+namespace CompactMPC.ExpressionsNew
 {
     [TestClass]
     public class IntegerBitConverterTest

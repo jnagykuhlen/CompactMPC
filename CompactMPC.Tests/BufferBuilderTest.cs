@@ -3,7 +3,7 @@ using System.Linq;
 using CompactMPC.Buffers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.UnitTests
+namespace CompactMPC
 {
     [TestClass]
     public class BufferBuilderTest

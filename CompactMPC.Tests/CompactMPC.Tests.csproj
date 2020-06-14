@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-    <RootNamespace>CompactMPC.UnitTests</RootNamespace>
+    <RootNamespace>CompactMPC</RootNamespace>
     <AssemblyName>CompactMPC.UnitTests</AssemblyName>
     <AssemblyVersion>0.1.0</AssemblyVersion>
     <Title>CompactMPC Unit Tests</Title>
