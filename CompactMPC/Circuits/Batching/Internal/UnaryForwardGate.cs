@@ -2,7 +2,7 @@
 {
     public abstract class UnaryForwardGate : ForwardGate
     {
-        public sealed override void ReceiveVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState)
+        protected sealed override void ReceiveVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState)
         {
             Visit(visitor);
             SendVisitingRequest(visitor, visitingState);

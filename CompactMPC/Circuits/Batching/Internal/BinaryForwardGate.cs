@@ -2,7 +2,7 @@
 {
     public abstract class BinaryForwardGate : ForwardGate
     {
-        public sealed override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
+        protected sealed override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
         {
             Optional<T> cachedInputValue = evaluationState.ReadInputValueFromCache(this);
             if (cachedInputValue.IsPresent)
@@ -11,7 +11,7 @@
                 evaluationState.WriteInputValueToCache(this, value);
         }
 
-        public sealed override void ReceiveVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState)
+        protected sealed override void ReceiveVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState)
         {
             if (visitingState.HasVisitingRequest(this))
             {
