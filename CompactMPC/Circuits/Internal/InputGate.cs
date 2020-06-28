@@ -17,7 +17,7 @@ namespace CompactMPC.Circuits.Internal
             ICircuitEvaluator<T> evaluator,
             EvaluationState<T> evaluationState)
         {
-            evaluationState.SetGateEvaluationValue(this, evaluationState.GetInput(_inputIndex));
+            evaluationState.SetGateEvaluationValue(this, evaluationState.Input[_inputIndex]);
         }
 
         public override IEnumerable<Gate> InputGates

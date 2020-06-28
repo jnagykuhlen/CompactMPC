@@ -4,9 +4,8 @@
     {
         protected sealed override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
         {
-            Optional<T> cachedInputValue = evaluationState.ReadInputValueFromCache(this);
-            if (cachedInputValue.IsPresent)
-                ReceiveInputValues(cachedInputValue.Value, value, evaluator, evaluationState);
+            if (evaluationState.ReadInputValueFromCache(this, out T cachedInputValue))
+                ReceiveInputValues(cachedInputValue, value, evaluator, evaluationState);
             else
                 evaluationState.WriteInputValueToCache(this, value);
         }
@@ -27,5 +26,13 @@
 
         protected abstract void ReceiveInputValues<T>(T leftValue, T rightValue, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState);
         protected abstract void Visit(ICircuitVisitor visitor);
+        
+        public override bool IsAssignable
+        {
+            get
+            {
+                return false;
+            }
+        }
     }
 }

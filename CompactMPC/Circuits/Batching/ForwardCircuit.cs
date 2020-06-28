@@ -13,6 +13,12 @@ namespace CompactMPC.Circuits.Batching
 
         public ForwardCircuit(IReadOnlyList<ForwardGate> inputGates, IReadOnlyList<ForwardGate> outputGates)
         {
+            if (inputGates.Any(gate => !gate.IsAssignable))
+                throw new ArgumentException("Cannot assign input to unassignable gate.", nameof(inputGates));
+            
+            if (inputGates.Distinct().Count() < inputGates.Count)
+                throw new ArgumentException("Cannot assign input gate more than once.", nameof(inputGates));
+            
             _inputGates = inputGates;
             _outputGates = outputGates;
             _context = null;
@@ -49,7 +55,7 @@ namespace CompactMPC.Circuits.Batching
         public IReadOnlyList<T> Evaluate<T>(IBatchCircuitEvaluator<T> evaluator, IReadOnlyList<T> input)
         {
             if (input.Count != _inputGates.Count)
-                throw new ArgumentException("Number of provided inputs does not match the number of input gates in the circuit.", nameof(input));
+                throw new ArgumentException("Number of provided inputs does not match the number of input wires in the circuit.", nameof(input));
 
             ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>(_outputGates);
 
@@ -69,28 +75,14 @@ namespace CompactMPC.Circuits.Batching
                     delayedAndGateEvaluations[i].Gate.SendOutputValue(evaluationOutputs[i], evaluator, evaluationState);
             }
 
-            T[] output = new T[evaluationState.Output.Count];
+            T[] output = new T[_outputGates.Count];
             for (int i = 0; i < output.Length; ++i)
             {
-                if (!evaluationState.Output[i].IsPresent)
+                if (!evaluationState.GetOutputValue(_outputGates[i], out output[i]))
                     throw new CircuitEvaluationException($"Output at index {i + 1} could not be evaluated from the given input.");
-
-                output[i] = evaluationState.Output[i].Value;
             }
 
             return output;
-        }
-
-        // TODO: For compatibility only
-        public T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] inputValues)
-        {
-            return Evaluate(evaluator, (IReadOnlyList<T>) inputValues).ToArray();
-        }
-
-        // TODO: For compatibility only
-        public T[] Evaluate<T>(IBatchCircuitEvaluator<T> evaluator, T[] inputValues)
-        {
-            return Evaluate(evaluator, (IReadOnlyList<T>) inputValues).ToArray();
         }
 
         public CircuitContext Context {

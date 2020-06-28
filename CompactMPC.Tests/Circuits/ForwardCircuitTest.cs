@@ -1,4 +1,5 @@
-﻿using CompactMPC.Circuits.Batching;
+﻿using System;
+using CompactMPC.Circuits.Batching;
 using CompactMPC.Circuits.Batching.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -20,16 +21,30 @@ namespace CompactMPC.Circuits
             ForwardNotGate firstNotGate = new ForwardNotGate(firstAndGate);
             
             ForwardCircuit circuit = new ForwardCircuit(
-                new[]{ firstInputGate, secondInputGate },
-                new[]{ firstAndGate, firstNotGate, secondXorGate }
+                new[] { firstInputGate, secondInputGate },
+                new[] { firstAndGate, firstNotGate, secondXorGate }
             );
 
             Assert.AreEqual(3, circuit.Context.NumberOfAndGates);
             Assert.AreEqual(2, circuit.Context.NumberOfXorGates);
             Assert.AreEqual(1, circuit.Context.NumberOfNotGates);
-            Assert.AreEqual(2, circuit.Context.NumberOfInputGates);
-            Assert.AreEqual(3, circuit.Context.NumberOfOutputGates);
+            Assert.AreEqual(2, circuit.Context.NumberOfInputWires);
+            Assert.AreEqual(3, circuit.Context.NumberOfOutputWires);
             Assert.AreEqual(11, circuit.Context.NumberOfGates);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void TestDuplicatedInputGates()
+        {
+            ForwardGate firstInputGate = new ForwardInputGate();
+            ForwardGate secondInputGate = new ForwardInputGate();
+            ForwardGate outputGate = new ForwardXorGate(firstInputGate, secondInputGate);
+            
+            ForwardCircuit circuit = new ForwardCircuit(
+                new[] { firstInputGate, secondInputGate, firstInputGate },
+                new[] { outputGate }
+            );
         }
     }
 }

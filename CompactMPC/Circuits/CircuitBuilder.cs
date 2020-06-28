@@ -122,7 +122,7 @@ namespace CompactMPC.Circuits
         /// <summary>
         /// Marks an existing wire as output of the circuit.
         /// </summary>
-        /// <param name="wire">Wire to output.</param>
+        /// <param name="wire">LegacyWire to output.</param>
         public void Output(Wire wire)
         {
             if (wire == Wire.Zero || wire == Wire.One)

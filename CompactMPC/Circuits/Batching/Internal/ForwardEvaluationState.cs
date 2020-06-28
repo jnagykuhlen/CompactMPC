@@ -1,38 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace CompactMPC.Circuits.Batching.Internal
 {
     public class ForwardEvaluationState<T>
     {
-        private readonly Dictionary<ForwardGate, T> _cachedInputValueByGate;
+        private readonly HashSet<ForwardGate> _outputGates;
+        private readonly Dictionary<ForwardGate, T> _outputValuesByGate;
+        private readonly Dictionary<ForwardGate, T> _cachedInputValuesByGate;
         private readonly Queue<GateEvaluation<T>> _delayedAndGateEvaluations;
-        private readonly Dictionary<ForwardGate, int> _outputIndexByGate;
-        private readonly Optional<T>[] _output;
 
-        public ForwardEvaluationState(IReadOnlyList<ForwardGate> outputGates)
+        public ForwardEvaluationState(IEnumerable<ForwardGate> outputGates)
         {
-            _cachedInputValueByGate = new Dictionary<ForwardGate, T>();
+            _outputGates = new HashSet<ForwardGate>(outputGates);
+            _outputValuesByGate = new Dictionary<ForwardGate, T>(_outputGates.Count);
+            _cachedInputValuesByGate = new Dictionary<ForwardGate, T>();
             _delayedAndGateEvaluations = new Queue<GateEvaluation<T>>();
-            _outputIndexByGate = Enumerable
-                .Range(0, outputGates.Count)
-                .ToDictionary(i => outputGates[i]);
-
-            _output = new Optional<T>[outputGates.Count];
         }
 
         public void SetOutputValue(ForwardGate gate, T value)
         {
-            if (_outputIndexByGate.TryGetValue(gate, out int index))
-                _output[index] = Optional<T>.FromValue(value);
+            if (_outputGates.Contains(gate))
+                _outputValuesByGate.Add(gate, value);
+        }
+
+        public bool GetOutputValue(ForwardGate gate, out T value)
+        {
+            return _outputValuesByGate.TryGetValue(gate, out value);
         }
 
         public void WriteInputValueToCache(ForwardGate gate, T value)
         {
             try
             {
-                _cachedInputValueByGate.Add(gate, value);
+                _cachedInputValuesByGate.Add(gate, value);
             }
             catch (ArgumentException exception)
             {
@@ -40,15 +41,15 @@ namespace CompactMPC.Circuits.Batching.Internal
             }
         }
 
-        public Optional<T> ReadInputValueFromCache(ForwardGate gate)
+        public bool ReadInputValueFromCache(ForwardGate gate, out T value)
         {
-            if (_cachedInputValueByGate.TryGetValue(gate, out T value))
+            if (_cachedInputValuesByGate.TryGetValue(gate, out value))
             {
-                _cachedInputValueByGate.Remove(gate);
-                return Optional<T>.FromValue(value);
+                _cachedInputValuesByGate.Remove(gate);
+                return true;
             }
 
-            return Optional<T>.Empty;
+            return false;
         }
 
         public void DelayAndGateEvaluation(GateEvaluation<T> evaluation)
@@ -61,14 +62,6 @@ namespace CompactMPC.Circuits.Batching.Internal
             GateEvaluation<T>[] nextDelayedAndGateEvaluations = _delayedAndGateEvaluations.ToArray();
             _delayedAndGateEvaluations.Clear();
             return nextDelayedAndGateEvaluations;
-        }
-
-        public IReadOnlyList<Optional<T>> Output
-        {
-            get
-            {
-                return _output;
-            }
         }
     }
 }

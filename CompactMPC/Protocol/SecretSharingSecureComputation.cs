@@ -25,13 +25,13 @@ namespace CompactMPC.Protocol
 
         public async Task<BitArray> EvaluateAsync(IBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
         {
-            if (inputMapping.NumberOfInputs != evaluable.Context.NumberOfInputGates)
+            if (inputMapping.NumberOfInputs != evaluable.Context.NumberOfInputWires)
                 throw new ArgumentException(
                     "The number of inputs in input mapping does not match the number of declared inputs in the circuit.",
                     nameof(inputMapping)
                 );
 
-            if (outputMapping.NumberOfOutputs != evaluable.Context.NumberOfOutputGates)
+            if (outputMapping.NumberOfOutputs != evaluable.Context.NumberOfOutputWires)
                 throw new ArgumentException(
                     "The number of outputs in output mapping does not match the number of declared outputs in the circuit.",
                     nameof(outputMapping)
@@ -41,8 +41,8 @@ namespace CompactMPC.Protocol
 
             BitArray maskedInputs = await MaskInputs(inputMapping, localInputValues);
 
-            Task<Bit>[] inputTasks = maskedInputs.Select(Task.FromResult).ToArray();
-            Task<Bit>[] outputTasks = evaluable.Evaluate(evaluator, inputTasks);
+            IReadOnlyList<Task<Bit>> inputTasks = maskedInputs.Select(Task.FromResult).ToArray();
+            IReadOnlyList<Task<Bit>> outputTasks = evaluable.Evaluate(evaluator, inputTasks);
             BitArray maskedOutputs = new BitArray(await Task.WhenAll(outputTasks));
 
             return await UnmaskOutputs(outputMapping, maskedOutputs);

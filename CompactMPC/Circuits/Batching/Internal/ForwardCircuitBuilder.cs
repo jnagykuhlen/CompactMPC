@@ -1,15 +1,16 @@
-﻿namespace CompactMPC.Circuits.Batching.Internal
+﻿using System.Collections.Generic;
+
+namespace CompactMPC.Circuits.Batching.Internal
 {
     public class ForwardCircuitBuilder : ICircuitEvaluator<ForwardGate>
     {
         public static ForwardCircuit Build(IEvaluableCircuit circuit)
         {
-            ForwardGate[] inputGates = new ForwardGate[circuit.Context.NumberOfInputGates];
+            ForwardInputGate[] inputGates = new ForwardInputGate[circuit.Context.NumberOfInputWires];
             for (int i = 0; i < inputGates.Length; ++i)
                 inputGates[i] = new ForwardInputGate();
 
-            ForwardGate[] outputGates = circuit.Evaluate(new ForwardCircuitBuilder(), inputGates);
-
+            IReadOnlyList<ForwardGate> outputGates = circuit.Evaluate(new ForwardCircuitBuilder(), inputGates);
             return new ForwardCircuit(inputGates, outputGates);
         }
 

@@ -9,5 +9,13 @@
         }
         
         protected abstract void Visit(ICircuitVisitor visitor);
+        
+        public override bool IsAssignable
+        {
+            get
+            {
+                return false;
+            }
+        }
     }
 }

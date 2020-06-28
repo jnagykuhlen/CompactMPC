@@ -1,4 +1,6 @@
-﻿namespace CompactMPC.Circuits
+﻿using System.Collections.Generic;
+
+namespace CompactMPC.Circuits
 {
     /// <summary>
     /// Represents an abstract boolean circuit that can be traversed and evaluated.
@@ -12,7 +14,7 @@
         /// <param name="evaluator">An abstract evaluator that is called for each gate in the circuit.</param>
         /// <param name="inputValues">Input values corresponding to each declared input wire.</param>
         /// <returns>Output bits corresponding to each declared output wire.</returns>
-        T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] inputValues);
+        IReadOnlyList<T> Evaluate<T>(ICircuitEvaluator<T> evaluator, IReadOnlyList<T> inputValues);
         
         /// <summary>
         /// Gets information on the number of gates in the circuit.

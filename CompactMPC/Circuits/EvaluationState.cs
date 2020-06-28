@@ -1,29 +1,25 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CompactMPC.Circuits
 {
     public class EvaluationState<T>
     {
+        public IReadOnlyList<T> Input { get; }
+
+        private readonly T[] _output;
         private readonly IdMapping<Optional<T>> _gateEvaluationValues;
 
-        public T[] Input { get; }
-        public T[] Output { get; }
-        
-        public EvaluationState(T[] input, CircuitContext context)
+        public EvaluationState(IReadOnlyList<T> input, CircuitContext context)
         {
-            _gateEvaluationValues = new IdMapping<Optional<T>>(Optional<T>.Empty, context.NumberOfGates);
             Input = input;
-            Output = new T[context.NumberOfOutputGates];
+            _output = new T[context.NumberOfOutputWires];
+            _gateEvaluationValues = new IdMapping<Optional<T>>(Optional<T>.Empty, context.NumberOfGates);
         }
-
-        public T GetInput(int index)
-        {
-            return Input[index];
-        }
-
+        
         public void SetOutput(int index, T value)
         {
-            Output[index] = value;
+            _output[index] = value;
         }
 
         public T GetGateEvaluationValue(Gate gate)
@@ -43,6 +39,14 @@ namespace CompactMPC.Circuits
         public bool IsGateEvaluated(Gate gate)
         {
             return _gateEvaluationValues[gate.Id].IsPresent;
+        }
+
+        public IReadOnlyList<T> Output
+        {
+            get
+            {
+                return _output;
+            }
         }
     }
 }

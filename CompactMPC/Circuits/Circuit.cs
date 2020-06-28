@@ -16,9 +16,9 @@ namespace CompactMPC.Circuits
             Context = context;
         }
 
-        public T[] Evaluate<T>(ICircuitEvaluator<T> evaluator, T[] input)
+        public IReadOnlyList<T> Evaluate<T>(ICircuitEvaluator<T> evaluator, IReadOnlyList<T> input)
         {
-            if (input.Length != Context.NumberOfInputGates)
+            if (input.Count != Context.NumberOfInputWires)
                 throw new ArgumentException("Number of provided inputs does not match the number of input gates in the circuit.", nameof(input));
 
             EvaluationState<T> evaluationState = new EvaluationState<T>(input, Context);
