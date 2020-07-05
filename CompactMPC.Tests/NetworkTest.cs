@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using CompactMPC.Assertions;
 using CompactMPC.Networking;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC
@@ -25,10 +24,11 @@ namespace CompactMPC
             using TcpTwoPartyNetworkSession firstSession = firstSessionTask.Result;
             using TcpTwoPartyNetworkSession secondSession = secondSessionTask.Result;
 
-            Assert.AreEqual(FirstParty, firstSession.LocalParty);
-            Assert.AreEqual(SecondParty, firstSession.RemoteParty);
-            Assert.AreEqual(SecondParty, secondSession.LocalParty);
-            Assert.AreEqual(FirstParty, secondSession.RemoteParty);
+            firstSession.LocalParty.Should().Be(FirstParty);
+            firstSession.RemoteParty.Should().Be(SecondParty);
+            
+            secondSession.LocalParty.Should().Be(SecondParty);
+            secondSession.RemoteParty.Should().Be(FirstParty);
         }
 
         [TestMethod]
@@ -42,13 +42,20 @@ namespace CompactMPC
             using TcpMultiPartyNetworkSession secondSession = secondSessionTask.Result;
             using TcpMultiPartyNetworkSession thirdSession = thirdSessionTask.Result;
 
-            Assert.AreEqual(FirstParty, firstSession.LocalParty);
-            Assert.AreEqual(SecondParty, secondSession.LocalParty);
-            Assert.AreEqual(ThirdParty, thirdSession.LocalParty);
-
-            EnumerableAssert.AreEquivalent(new[] { SecondParty, ThirdParty }, GetRemoteParties(firstSession));
-            EnumerableAssert.AreEquivalent(new[] { FirstParty, ThirdParty }, GetRemoteParties(secondSession));
-            EnumerableAssert.AreEquivalent(new[] { FirstParty, SecondParty }, GetRemoteParties(thirdSession));
+            firstSession.LocalParty.Should().Be(FirstParty);
+            firstSession.RemotePartySessions.Select(session => session.RemoteParty)
+                .Should()
+                .Equal(SecondParty, ThirdParty);
+            
+            secondSession.LocalParty.Should().Be(SecondParty);
+            secondSession.RemotePartySessions.Select(session => session.RemoteParty)
+                .Should()
+                .Equal(FirstParty, ThirdParty);
+            
+            thirdSession.LocalParty.Should().Be(ThirdParty);
+            thirdSession.RemotePartySessions.Select(session => session.RemoteParty)
+                .Should()
+                .Equal(FirstParty, SecondParty);
         }
 
         private static Task<TcpTwoPartyNetworkSession> CreateFirstTwoPartySessionAsync()
@@ -64,11 +71,6 @@ namespace CompactMPC
         private static Task<TcpMultiPartyNetworkSession> CreateMultiPartySessionAsync(Party party, int numberOfParties)
         {
             return TcpMultiPartyNetworkSession.EstablishLoopbackAsync(party, Port, numberOfParties);
-        }
-
-        private static IEnumerable<Party> GetRemoteParties(IMultiPartyNetworkSession multiPartySession)
-        {
-            return multiPartySession.RemotePartySessions.Select(session => session.RemoteParty);
         }
     }
 }

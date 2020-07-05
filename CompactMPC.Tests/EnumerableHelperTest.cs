@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using CompactMPC.Assertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC
@@ -16,9 +16,7 @@ namespace CompactMPC
                 new[] { 2, 4 }
             };
 
-            IEnumerable<int> flattened = source.Flatten();
-            
-            EnumerableAssert.AreEqual(new[] { 1, 3, 7, 2, 4 }, flattened);
+            source.Flatten().Should().Equal(1, 3, 7, 2, 4);
         }
     }
 }

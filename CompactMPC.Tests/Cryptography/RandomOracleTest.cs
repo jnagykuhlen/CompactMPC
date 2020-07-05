@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.Cryptography
 {
@@ -8,16 +9,14 @@ namespace CompactMPC.Cryptography
         [TestMethod]
         public void TestMask()
         {
-            byte[] query = { 0x00 };
-            BitArray invokeResponse = BitArray.FromBinaryString("1001010111001011");
-            BitArray message = BitArray.FromBinaryString("1100110011001100");
+            byte[] query = { };
+            byte[] invokeResponse = {0xa7, 0x38};
+            byte[] message = {0x21, 0xf2};
 
-            BitArray expectedMaskedMessage = message ^ invokeResponse;
+            RandomOracle oracle = new ConstantRandomOracle(invokeResponse);
+            byte[] maskedMessage = oracle.Mask(message, query);
 
-            RandomOracle oracle = new ConstantRandomOracle(invokeResponse.ToBytes());
-            byte[] maskedMessage = oracle.Mask(message.ToBytes(), query);
-
-            CollectionAssert.AreEqual(expectedMaskedMessage.ToBytes(), maskedMessage);
+            maskedMessage.Should().Equal(0xa7 ^ 0x21, 0x38 ^ 0xf2);
         }
     }
 }

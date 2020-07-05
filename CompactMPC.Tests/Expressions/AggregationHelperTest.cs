@@ -1,4 +1,5 @@
 ﻿using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.Expressions
@@ -10,39 +11,35 @@ namespace CompactMPC.Expressions
         public void TestAggregateDepthEfficientAggregatesSingleValue()
         {
             int result = new[] { 3 }.AggregateDepthEfficient((x, y) => x + y);
-
-            Assert.AreEqual(3, result);
+            result.Should().Be(3);
         }
         
         [TestMethod]
         public void TestAggregateDepthEfficientAggregatesEvenNumberOfValues()
         {
             int result = new[] { 1, 3, 5, 4 }.AggregateDepthEfficient((x, y) => x + y);
-            
-            Assert.AreEqual(13, result);
+            result.Should().Be(13);
         }
         
         [TestMethod]
         public void TestAggregateDepthEfficientAggregatesOddNumberOfValues()
         {
             int result = new[] { 8, 3, 5, 4, 1 }.AggregateDepthEfficient((x, y) => x + y);
-            
-            Assert.AreEqual(21, result);
+            result.Should().Be(21);
         }
         
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
         public void TestAggregateDepthEfficientDoesNotAggregateZeroValues()
         {
-            new int[] { }.AggregateDepthEfficient((x, y) => x + y);
+           Action aggregate = () => new int[] { }.AggregateDepthEfficient((x, y) => x + y);
+           aggregate.Should().Throw<ArgumentException>();
         }
         
         [TestMethod]
         public void TestAggregateDepthEfficientAggregatesWithMinimumDepth()
         {
             int depth = new[] { 0, 0, 0, 0, 0, 0, 0 }.AggregateDepthEfficient((x, y) => Math.Max(x, y) + 1);
-
-            Assert.AreEqual(3, depth);
+            depth.Should().Be(3);
         }
     }
 }

@@ -4,6 +4,7 @@ using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Util;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC
@@ -44,19 +45,7 @@ namespace CompactMPC
                 QuadrupleIndexArray indices = new QuadrupleIndexArray(new[] { 0, 3, 2 });
                 byte[][] results = obliviousTransfer.ReceiveAsync(session.Channel, indices, 3, 6).Result;
 
-                Assert.IsNotNull(results, "Result is null.");
-                Assert.AreEqual(3, results.Length, "Result does not match the correct number of invocations.");
-
-                for (int j = 0; j < 3; ++j)
-                {
-                    CollectionAssert.AreEqual(
-                        results[j],
-                        options[j][indices[j]],
-                        "Incorrect message content {0} (should be {1}).",
-                        Encoding.ASCII.GetString(results[j]),
-                        Encoding.ASCII.GetString(options[j][indices[j]])
-                    );
-                }
+                results.Should().BeEquivalentTo(options[0][0], options[1][3], options[2][2]);
             }
         }
     }

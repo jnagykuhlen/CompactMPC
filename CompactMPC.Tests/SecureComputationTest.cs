@@ -1,5 +1,4 @@
-﻿using CompactMPC.Assertions;
-using CompactMPC.Circuits;
+﻿using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
@@ -7,6 +6,7 @@ using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
 using CompactMPC.SampleCircuits;
 using CompactMPC.Util;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC
@@ -91,10 +91,7 @@ namespace CompactMPC
                 .EvaluateAsync(circuit, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput)
                 .Result;
 
-            EnumerableAssert.AreEqual(
-                expectedOutput,
-                actualOutput
-            );
+            actualOutput.Should().Equal(expectedOutput);
         }
     }
 }

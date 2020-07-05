@@ -1,4 +1,4 @@
-﻿using System;
+﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC
@@ -15,23 +15,19 @@ namespace CompactMPC
                 [5] = 2
             };
 
-
-            byte[] buffer = indexArray.ToBytes();
-
-            Assert.AreEqual(7, indexArray.Length);
-            Assert.AreEqual(2, buffer.Length);
-            Assert.AreEqual((byte)Convert.ToInt32("01000111", 2), buffer[0]);
-            Assert.AreEqual((byte)Convert.ToInt32("00011011", 2), buffer[1]);
+            indexArray.Should().HaveCount(7);
+            indexArray.ToBytes().Should().Equal(0b01000111, 0b00011011);
         }
 
         [TestMethod]
         public void TestRequiredBytes()
         {
-            Assert.AreEqual(0, QuadrupleIndexArray.RequiredBytes(0));
-            Assert.AreEqual(1, QuadrupleIndexArray.RequiredBytes(1));
-            Assert.AreEqual(1, QuadrupleIndexArray.RequiredBytes(3));
-            Assert.AreEqual(1, QuadrupleIndexArray.RequiredBytes(4));
-            Assert.AreEqual(2, QuadrupleIndexArray.RequiredBytes(5));
+            QuadrupleIndexArray.RequiredBytes(0).Should().Be(0);
+            QuadrupleIndexArray.RequiredBytes(1).Should().Be(1);
+            QuadrupleIndexArray.RequiredBytes(2).Should().Be(1);
+            QuadrupleIndexArray.RequiredBytes(3).Should().Be(1);
+            QuadrupleIndexArray.RequiredBytes(4).Should().Be(1);
+            QuadrupleIndexArray.RequiredBytes(5).Should().Be(2);
         }
     }
 }
