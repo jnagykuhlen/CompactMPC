@@ -1,7 +1,7 @@
 ﻿using System.Linq;
-using CompactMPC.Assertions;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.SampleCircuits;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.Circuits
@@ -17,6 +17,8 @@ namespace CompactMPC.Circuits
                 BitArray.FromBinaryString("1101100010"),
                 BitArray.FromBinaryString("0111110011")
             };
+            
+            BitArray expectedOutput = BitArray.FromBinaryString("01010000101100");
 
             Bit[] sequentialInput = inputs.SelectMany(bits => bits).ToArray();
 
@@ -33,27 +35,10 @@ namespace CompactMPC.Circuits
             ReportingBatchCircuitEvaluator<Bit> batchCircuitEvaluator =
                 new ReportingBatchCircuitEvaluator<Bit>(new BatchCircuitEvaluator<Bit>(evaluator));
 
-            BitArray lazyEvaluationOutput = new BitArray(circuit.Evaluate(evaluator, sequentialInput));
-            BitArray forwardEvaluationOutput = new BitArray(forwardCircuit.Evaluate(batchCircuitEvaluator, sequentialInput));
-            BitArray expectedEvaluationOutput = BitArray.FromBinaryString("01010000101100");
+            circuit.Evaluate(evaluator, sequentialInput).Should().Equal(expectedOutput);
+            forwardCircuit.Evaluate(batchCircuitEvaluator, sequentialInput).Should().Equal(expectedOutput);
 
-            EnumerableAssert.AreEqual(
-                expectedEvaluationOutput,
-                lazyEvaluationOutput
-            );
-
-            EnumerableAssert.AreEqual(
-                expectedEvaluationOutput,
-                forwardEvaluationOutput
-            );
-
-            int[] actualBatchSizes = batchCircuitEvaluator.BatchSizes;
-            int[] expectedBatchSizes = { 10, 10, 9, 9, 8 };
-
-            EnumerableAssert.AreEqual(
-                expectedBatchSizes,
-                actualBatchSizes
-            );
+            batchCircuitEvaluator.BatchSizes.Should().Equal(10, 10, 9, 9, 8);
         }
     }
 }

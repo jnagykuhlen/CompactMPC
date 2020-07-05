@@ -1,4 +1,4 @@
-﻿using System;
+﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC
@@ -14,23 +14,19 @@ namespace CompactMPC
             array[2] = Bit.One;
             array[5] = Bit.Zero;
 
-            byte[] buffer = array.ToBytes();
-
-            Assert.AreEqual(15, array.Length);
-            Assert.AreEqual(2, buffer.Length);
-            Assert.AreEqual("101100011100101", array.ToBinaryString());
-            Assert.AreEqual((byte)Convert.ToInt32("10001101", 2), buffer[0]);
-            Assert.AreEqual((byte)Convert.ToInt32("01010011", 2), buffer[1]);
+            array.Should().HaveCount(15);
+            array.ToBinaryString().Should().Be("101100011100101");
+            array.ToBytes().Should().Equal(0b10001101, 0b01010011);
         }
 
         [TestMethod]
         public void TestRequiredBytes()
         {
-            Assert.AreEqual(0, BitArray.RequiredBytes(0));
-            Assert.AreEqual(1, BitArray.RequiredBytes(1));
-            Assert.AreEqual(1, BitArray.RequiredBytes(7));
-            Assert.AreEqual(1, BitArray.RequiredBytes(8));
-            Assert.AreEqual(2, BitArray.RequiredBytes(9));
+            BitArray.RequiredBytes(0).Should().Be(0);
+            BitArray.RequiredBytes(1).Should().Be(1);
+            BitArray.RequiredBytes(7).Should().Be(1);
+            BitArray.RequiredBytes(8).Should().Be(1);
+            BitArray.RequiredBytes(9).Should().Be(2);
         }
 
         [TestMethod]
@@ -39,10 +35,10 @@ namespace CompactMPC
             BitArray left = BitArray.FromBinaryString("1001");
             BitArray right = BitArray.FromBinaryString("1010");
 
-            Assert.AreEqual("1011", (left | right).ToBinaryString());
-            Assert.AreEqual("0011", (left ^ right).ToBinaryString());
-            Assert.AreEqual("1000", (left & right).ToBinaryString());
-            Assert.AreEqual("0110", (~left).ToBinaryString());
+            (left | right).ToBinaryString().Should().Be("1011");
+            (left ^ right).ToBinaryString().Should().Be("0011");
+            (left & right).ToBinaryString().Should().Be("1000");
+            (~left).ToBinaryString().Should().Be("0110");
         }
     }
 }

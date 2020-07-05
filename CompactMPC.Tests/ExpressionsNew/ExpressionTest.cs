@@ -1,5 +1,6 @@
 ﻿using System;
 using CompactMPC.Circuits;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.ExpressionsNew
@@ -17,29 +18,22 @@ namespace CompactMPC.ExpressionsNew
             BooleanExpression e = b > a;
             BooleanExpression f = c && e;
 
-            int aValue = a.Evaluate(a.Bind(113));
-            Assert.AreEqual(113, aValue);
-            
-            int dValue = d.Evaluate(a.Bind(42), b.Bind(137), c.Bind(true));
-            Assert.AreEqual(180, dValue);
-
-            bool eValue = e.Evaluate(a.Bind(42), b.Bind(137), c.Bind(true));
-            Assert.IsTrue(eValue);
-            
-            bool fValue = f.Evaluate(a.Bind(42), b.Bind(137), c.Bind(false));
-            Assert.IsFalse(fValue);
+            a.Evaluate(a.Bind(113)).Should().Be(113);
+            d.Evaluate(a.Bind(42), b.Bind(137), c.Bind(true)).Should().Be(180);
+            e.Evaluate(a.Bind(42), b.Bind(137), c.Bind(true)).Should().BeTrue();
+            f.Evaluate(a.Bind(42), b.Bind(137), c.Bind(false)).Should().BeFalse();
         }
         
         [TestMethod]
-        [ExpectedException(typeof(CircuitEvaluationException))]
         public void TestEvaluateWithMissingInputValues()
         {
             IntegerExpression a = IntegerExpression.FromInput(120);
             IntegerExpression b = IntegerExpression.FromInput(140);
             IntegerExpression c = a + b;
 
-            int cValue = c.Evaluate(a.Bind(113));
-            Assert.AreEqual(113, cValue);
+            Action evaluate = () => c.Evaluate(a.Bind(113));
+            
+            evaluate.Should().Throw<CircuitEvaluationException>();
         }
         
         [TestMethod]
@@ -49,19 +43,18 @@ namespace CompactMPC.ExpressionsNew
             IntegerExpression constant = IntegerExpression.FromConstant(42);
             IntegerExpression sum = input + constant;
 
-            int sumValue = sum.Evaluate(input.Bind(3));
-            Assert.AreEqual(45, sumValue);
-
-            int constantValue = constant.Evaluate();
-            Assert.AreEqual(42, constantValue);
+            constant.Evaluate().Should().Be(42);
+            sum.Evaluate(input.Bind(3)).Should().Be(45);
         }
         
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
         public void TestConstantWithConstantBinding()
         {
             IntegerExpression constant = IntegerExpression.FromConstant(42);
-            constant.Evaluate(constant.Bind(21));
+            
+            Action evaluate = () => constant.Evaluate(constant.Bind(21));
+            
+            evaluate.Should().Throw<ArgumentException>();
         }
     }
 }

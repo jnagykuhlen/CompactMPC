@@ -1,6 +1,7 @@
 ﻿using System;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Circuits.Batching.Internal;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.Circuits
@@ -25,26 +26,27 @@ namespace CompactMPC.Circuits
                 new[] { firstAndGate, firstNotGate, secondXorGate }
             );
 
-            Assert.AreEqual(3, circuit.Context.NumberOfAndGates);
-            Assert.AreEqual(2, circuit.Context.NumberOfXorGates);
-            Assert.AreEqual(1, circuit.Context.NumberOfNotGates);
-            Assert.AreEqual(2, circuit.Context.NumberOfInputWires);
-            Assert.AreEqual(3, circuit.Context.NumberOfOutputWires);
-            Assert.AreEqual(11, circuit.Context.NumberOfGates);
+            circuit.Context.NumberOfAndGates.Should().Be(3);
+            circuit.Context.NumberOfXorGates.Should().Be(2);
+            circuit.Context.NumberOfNotGates.Should().Be(1);
+            circuit.Context.NumberOfInputWires.Should().Be(2);
+            circuit.Context.NumberOfOutputWires.Should().Be(3);
+            circuit.Context.NumberOfGates.Should().Be(11);
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
         public void TestDuplicatedInputGates()
         {
             ForwardGate firstInputGate = new ForwardInputGate();
             ForwardGate secondInputGate = new ForwardInputGate();
             ForwardGate outputGate = new ForwardXorGate(firstInputGate, secondInputGate);
             
-            ForwardCircuit circuit = new ForwardCircuit(
+            Func<ForwardCircuit> createCircuit = () => new ForwardCircuit(
                 new[] { firstInputGate, secondInputGate, firstInputGate },
                 new[] { outputGate }
             );
+
+            createCircuit.Should().Throw<ArgumentException>();
         }
     }
 }

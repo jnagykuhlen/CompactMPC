@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using CompactMPC.Assertions;
 using CompactMPC.ExpressionsNew.Internal;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.ExpressionsNew
@@ -12,28 +12,28 @@ namespace CompactMPC.ExpressionsNew
         public void TestFalseToBits()
         {
             IReadOnlyList<Bit> bits = BooleanBitConverter.Instance.ToBits(false, 1);
-            EnumerableAssert.AreEquivalent(new[] { Bit.Zero }, bits);
+            bits.Should().Equal(Bit.Zero);
         }
         
         [TestMethod]
         public void TestTrueToBits()
         {
             IReadOnlyList<Bit> bits = BooleanBitConverter.Instance.ToBits(true, 1);
-            EnumerableAssert.AreEquivalent(new[] { Bit.One }, bits);
+            bits.Should().Equal(Bit.One);
         }
         
         [TestMethod]
         public void TestFalseFromBits()
         {
             bool value = BooleanBitConverter.Instance.FromBits(new [] { Bit.Zero });
-            Assert.IsFalse(value);
+            value.Should().BeFalse();
         }
         
         [TestMethod]
         public void TestTrueFromBits()
         {
             bool value = BooleanBitConverter.Instance.FromBits(new [] { Bit.One });
-            Assert.IsTrue(value);
+            value.Should().BeTrue();
         }
     }
 }

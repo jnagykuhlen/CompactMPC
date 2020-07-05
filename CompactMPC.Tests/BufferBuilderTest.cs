@@ -1,6 +1,5 @@
-﻿using System;
-using System.Linq;
-using CompactMPC.Buffers;
+﻿using CompactMPC.Buffers;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC
@@ -11,18 +10,19 @@ namespace CompactMPC
         [TestMethod]
         public void TestCombineBufferWithIds()
         {
-            byte[] prefix = { 1, 3, 5, 228, 113 };
-            int firstId = 12312345;
-            int secondId = 127;
-            byte[] suffix = { 43, 31, 8 };
+            byte[] prefix = { 0x01, 0x03, 0x05, 0xf7, 0x59 };
+            int firstId = 0x00bbdf19;
+            int secondId = 0x7bc00127;
+            byte[] suffix = { 0x43, 0xb1 };
 
             byte[] result = BufferBuilder.From(prefix).With(firstId).With(secondId).With(suffix).Create();
 
-            Assert.AreEqual(prefix.Length + suffix.Length + 8, result.Length);
-            Assert.IsTrue(prefix.SequenceEqual(result.Take(prefix.Length)));
-            Assert.IsTrue(BitConverter.GetBytes(firstId).SequenceEqual(result.Skip(prefix.Length).Take(4)));
-            Assert.IsTrue(BitConverter.GetBytes(secondId).SequenceEqual(result.Skip(prefix.Length + 4).Take(4)));
-            Assert.IsTrue(suffix.SequenceEqual(result.Skip(prefix.Length + 8)));
+            result.Should().Equal(
+                0x01, 0x03, 0x05, 0xf7, 0x59,
+                0x19, 0xdf, 0xbb, 0x00,
+                0x27, 0x01, 0xc0, 0x7b,
+                0x43, 0xb1
+            );
         }
     }
 }
