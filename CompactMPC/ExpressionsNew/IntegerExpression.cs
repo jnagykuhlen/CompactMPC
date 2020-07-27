@@ -9,7 +9,7 @@ namespace CompactMPC.ExpressionsNew
     public class IntegerExpression : Expression<int>
     {
         public static readonly IntegerExpression Zero = new IntegerExpression(new Wire[] { }, 0);
-        public static readonly IntegerExpression One = new IntegerExpression(new[] {Wire.One,}, 1);
+        public static readonly IntegerExpression One = new IntegerExpression(new[] {Wire.One}, 1);
 
         public int MaxValue { get; }
 
@@ -133,11 +133,9 @@ namespace CompactMPC.ExpressionsNew
             return new IntegerExpression(wires, maxValue);
         }
 
-        public override IBitConverter<int> Converter {
-            get
-            {
-                return IntegerBitConverter.Instance;
-            }
+        public override IBitConverter<int> Converter
+        {
+            get { return IntegerBitConverter.Instance; }
         }
     }
 }
