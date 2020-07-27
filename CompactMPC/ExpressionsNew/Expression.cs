@@ -29,29 +29,29 @@ namespace CompactMPC.ExpressionsNew
             IReadOnlyList<Bit> inputBits = inputBindings
                 .SelectMany(inputBinding => inputBinding.Bits)
                 .ToList();
-            
+
             ForwardCircuit circuit = new ForwardCircuit(inputGates, outputGates);
-            IReadOnlyList<Bit> outputBitsWithoutConstants = circuit.Evaluate(LocalCircuitEvaluator.Instance, inputBits);
-            
-            BitArray outputBits = new BitArray(Wires.Count);
-            int nextOutputBitsWithoutConstantsIndex = 0;
-            for (int i = 0; i < Wires.Count; ++i)
-            {
-                if (Wires[i] == Wire.Zero)
-                {
-                    outputBits[i] = Bit.Zero;
-                }
-                else if (Wires[i] == Wire.One)
-                {
-                    outputBits[i] = Bit.One;
-                }
-                else
-                {
-                    outputBits[i] = outputBitsWithoutConstants[nextOutputBitsWithoutConstantsIndex++];
-                }
-            }
+            IReadOnlyList<Bit> nonConstantOutputBits = circuit.Evaluate(LocalCircuitEvaluator.Instance, inputBits);
+
+            int nextNonConstantOutputBitIndex = 0;
+            Bit NextNonConstantOutputBit() => nonConstantOutputBits[nextNonConstantOutputBitIndex++];
+
+            IReadOnlyList<Bit> outputBits = Wires
+                .Select(wire => GetConstantValue(wire) ?? NextNonConstantOutputBit())
+                .ToList();
 
             return Converter.FromBits(outputBits);
+        }
+
+        private static Bit? GetConstantValue(Wire wire)
+        {
+            if (wire == Wire.Zero)
+                return Bit.Zero;
+
+            if (wire == Wire.One)
+                return Bit.One;
+
+            return null;
         }
 
         public abstract IBitConverter<T> Converter { get; }
