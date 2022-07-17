@@ -6,10 +6,10 @@ using CompactMPC.ExpressionsNew.Internal;
 
 namespace CompactMPC.ExpressionsNew
 {
-    public class IntegerExpression : Expression<int>
+    public class IntegerExpression : Expression, IInputExpression<int>, IOutputExpression<int>
     {
         public static readonly IntegerExpression Zero = new IntegerExpression(new Wire[] { }, 0);
-        public static readonly IntegerExpression One = new IntegerExpression(new[] {Wire.One}, 1);
+        public static readonly IntegerExpression One = new IntegerExpression(new[] { Wire.One }, 1);
 
         public int MaxValue { get; }
 
@@ -17,6 +17,16 @@ namespace CompactMPC.ExpressionsNew
             : base(wires)
         {
             MaxValue = maxValue;
+        }
+
+        public IReadOnlyList<Bit> ToBits(int value)
+        {
+            return IntegerBitConverter.Instance.ToBits(value, Wires.Count);
+        }
+
+        public int FromBits(IReadOnlyList<Bit> bits)
+        {
+            return IntegerBitConverter.Instance.FromBits(bits);
         }
 
         public static IntegerExpression Sum(params IntegerExpression[] values)
@@ -131,11 +141,6 @@ namespace CompactMPC.ExpressionsNew
                 .ToArray();
 
             return new IntegerExpression(wires, maxValue);
-        }
-
-        public override IBitConverter<int> Converter
-        {
-            get { return IntegerBitConverter.Instance; }
         }
     }
 }

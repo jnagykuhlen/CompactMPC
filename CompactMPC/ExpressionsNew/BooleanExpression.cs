@@ -1,14 +1,26 @@
-﻿using CompactMPC.ExpressionsNew.Internal;
+﻿using System.Collections.Generic;
+using CompactMPC.ExpressionsNew.Internal;
 
 namespace CompactMPC.ExpressionsNew
 {
-    public class BooleanExpression : Expression<bool>
+    public class BooleanExpression : Expression, IInputExpression<bool>, IOutputExpression<bool>
     {
         public static readonly BooleanExpression False = new BooleanExpression(Wire.Zero);
         public static readonly BooleanExpression True = new BooleanExpression(Wire.One);
 
         public BooleanExpression(Wire wire)
-            : base(new[] {wire}) { }
+            : base(new[] { wire }) { }
+
+        public IReadOnlyList<Bit> ToBits(bool value)
+        {
+            return BooleanBitConverter.Instance.ToBits(value, 1);
+
+        }
+
+        public bool FromBits(IReadOnlyList<Bit> bits)
+        {
+            return BooleanBitConverter.Instance.FromBits(bits);
+        }
 
         public static BooleanExpression FromInput()
         {
@@ -50,14 +62,6 @@ namespace CompactMPC.ExpressionsNew
             get
             {
                 return Wires[0];
-            }
-        }
-
-        public override IBitConverter<bool> Converter
-        {
-            get
-            {
-                return BooleanBitConverter.Instance;
             }
         }
     }

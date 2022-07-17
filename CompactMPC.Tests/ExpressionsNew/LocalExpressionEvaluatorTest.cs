@@ -6,8 +6,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CompactMPC.ExpressionsNew
 {
     [TestClass]
-    public class ExpressionTest
+    public class LocalExpressionEvaluatorTest
     {
+        private readonly LocalExpressionEvaluator _localExpressionEvaluator = new LocalExpressionEvaluator();
+
         [TestMethod]
         public void TestEvaluateFromInputs()
         {
@@ -18,12 +20,12 @@ namespace CompactMPC.ExpressionsNew
             BooleanExpression e = b > a;
             BooleanExpression f = c && e;
 
-            a.Evaluate(a.Bind(113)).Should().Be(113);
-            d.Evaluate(a.Bind(42), b.Bind(137), c.Bind(true)).Should().Be(180);
-            e.Evaluate(a.Bind(42), b.Bind(137), c.Bind(true)).Should().BeTrue();
-            f.Evaluate(a.Bind(42), b.Bind(137), c.Bind(false)).Should().BeFalse();
+            _localExpressionEvaluator.Evaluate(a, a.Bind(113)).Should().Be(113);
+            _localExpressionEvaluator.Evaluate(d, a.Bind(42), b.Bind(137), c.Bind(true)).Should().Be(180);
+            _localExpressionEvaluator.Evaluate(e, a.Bind(42), b.Bind(137), c.Bind(true)).Should().BeTrue();
+            _localExpressionEvaluator.Evaluate(f, a.Bind(42), b.Bind(137), c.Bind(false)).Should().BeFalse();
         }
-        
+
         [TestMethod]
         public void TestEvaluateWithMissingInputValues()
         {
@@ -31,11 +33,11 @@ namespace CompactMPC.ExpressionsNew
             IntegerExpression b = IntegerExpression.FromInput(140);
             IntegerExpression c = a + b;
 
-            Action evaluate = () => c.Evaluate(a.Bind(113));
-            
+            Action evaluate = () => _localExpressionEvaluator.Evaluate(c, a.Bind(113));
+
             evaluate.Should().Throw<CircuitEvaluationException>();
         }
-        
+
         [TestMethod]
         public void TestEvaluateWithConstants()
         {
@@ -43,17 +45,17 @@ namespace CompactMPC.ExpressionsNew
             IntegerExpression constant = IntegerExpression.FromConstant(42);
             IntegerExpression sum = input + constant;
 
-            constant.Evaluate().Should().Be(42);
-            sum.Evaluate(input.Bind(3)).Should().Be(45);
+            _localExpressionEvaluator.Evaluate(constant).Should().Be(42);
+            _localExpressionEvaluator.Evaluate(sum, input.Bind(3)).Should().Be(45);
         }
-        
+
         [TestMethod]
         public void TestConstantWithConstantBinding()
         {
             IntegerExpression constant = IntegerExpression.FromConstant(42);
-            
-            Action evaluate = () => constant.Evaluate(constant.Bind(21));
-            
+
+            Action evaluate = () => _localExpressionEvaluator.Evaluate(constant, constant.Bind(21));
+
             evaluate.Should().Throw<ArgumentException>();
         }
     }
