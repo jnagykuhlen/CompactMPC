@@ -1,8 +1,7 @@
-﻿using CompactMPC.Buffers;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC
+namespace CompactMPC.Buffers
 {
     [TestClass]
     public class BufferBuilderTest
