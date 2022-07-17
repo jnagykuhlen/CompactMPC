@@ -58,7 +58,7 @@ namespace CompactMPC.ObliviousTransfer
 
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Sender] Generating group elements took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Sender] Generating c took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
@@ -131,7 +131,7 @@ namespace CompactMPC.ObliviousTransfer
 
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Receiver] Reading values for c took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Receiver] Reading c took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
@@ -147,7 +147,7 @@ namespace CompactMPC.ObliviousTransfer
 
 #if DEBUG
             stopwatch.Stop();
-            Console.WriteLine("[Receiver] Generating and d took {0} ms.", stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("[Receiver] Generating d took {0} ms.", stopwatch.ElapsedMilliseconds);
             stopwatch.Restart();
 #endif
 
