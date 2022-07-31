@@ -11,7 +11,11 @@ namespace CompactMPC.Buffers
         private readonly int _length;
         private readonly Message? _previous;
 
-        private Message(byte[] buffer, int startIndex = 0, Message? previous = null)
+        public Message(byte[] buffer) : this(buffer, 0, null)
+        {
+        }
+
+        private Message(byte[] buffer, int startIndex, Message? previous)
         {
             if (startIndex > buffer.Length)
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
@@ -32,11 +36,16 @@ namespace CompactMPC.Buffers
             return Write(BitConverter.GetBytes(value));
         }
 
+        public Message Write(Message message)
+        {
+            return Write(message.ToBuffer());
+        }
+
         public Message ReadBytes(int numberOfBytes, out byte[] bytes)
         {
             if (_previous != null)
                 return new Message(ToBuffer()).ReadBytes(numberOfBytes, out bytes);
-            
+
             int endIndex = _startIndex + numberOfBytes;
             if (endIndex > _buffer.Length)
                 throw new ArgumentOutOfRangeException(nameof(numberOfBytes));
@@ -51,9 +60,16 @@ namespace CompactMPC.Buffers
         {
             if (_previous != null)
                 return new Message(ToBuffer()).ReadInt(out value);
-            
+
             value = BitConverter.ToInt32(_buffer, _startIndex);
             return SubMessage(_startIndex + sizeof(int));
+        }
+
+        public Message ReadMessage(int length, out Message message)
+        {
+            Message remainingMessage = ReadBytes(length, out byte[] bytes);
+            message = new Message(bytes);
+            return remainingMessage;
         }
 
         private Message SubMessage(int startIndex)
@@ -61,7 +77,7 @@ namespace CompactMPC.Buffers
             if (startIndex == _buffer.Length)
                 return Empty;
 
-            return new Message(_buffer, startIndex);
+            return new Message(_buffer, startIndex, null);
         }
 
         public byte[] ToBuffer()
@@ -82,16 +98,13 @@ namespace CompactMPC.Buffers
                 _previous.CopyTo(buffer);
                 offset = _previous.Length;
             }
-            
+
             Buffer.BlockCopy(_buffer, _startIndex, buffer, offset, _buffer.Length - _startIndex);
         }
 
         public int Length
         {
-            get
-            {
-                return _length;
-            }
+            get { return _length; }
         }
     }
 }

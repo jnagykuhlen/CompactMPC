@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CompactMPC.Buffers;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
@@ -82,7 +83,7 @@ namespace CompactMPC.Protocol
                     BitArray remoteSharesOfLocalInput = _cryptoContext.RandomNumberGenerator.GetBits(localInputIds.Count);
                     localSharesOfLocalInput.Xor(remoteSharesOfLocalInput);
 
-                    await session.Channel.WriteMessageAsync(remoteSharesOfLocalInput.ToBytes());
+                    await session.Channel.WriteMessageAsync(new Message(remoteSharesOfLocalInput.ToBytes()));
                 }
                 
                 for (int localInputId = 0; localInputId < localInputIds.Count; ++localInputId)
@@ -96,7 +97,8 @@ namespace CompactMPC.Protocol
 
                 if (remoteInputIds.Count > 0)
                 {
-                    BitArray localSharesOfRemoteInput = BitArray.FromBytes(await session.Channel.ReadMessageAsync(), remoteInputIds.Count);
+                    Message message = await session.Channel.ReadMessageAsync();
+                    BitArray localSharesOfRemoteInput = BitArray.FromBytes(message.ToBuffer(), remoteInputIds.Count);
 
                     if (localSharesOfRemoteInput.Length != remoteInputIds.Count)
                         throw new ProtocolException("Number of input shares received from remote party does not match number of declared inputs in the circuit.");
@@ -129,7 +131,7 @@ namespace CompactMPC.Protocol
                     for (int i = 0; i < remoteOutputIds.Count; ++i)
                         localSharesOfRemoteOutput[i] = localSharesOfOutput[remoteOutputIds[i]];
 
-                    await session.Channel.WriteMessageAsync(localSharesOfRemoteOutput.ToBytes());
+                    await session.Channel.WriteMessageAsync(new Message(localSharesOfRemoteOutput.ToBytes()));
                 }
             }
 
@@ -139,11 +141,14 @@ namespace CompactMPC.Protocol
                 localOutputValues[i] = localSharesOfOutput[localOutputIds[i]];
 
             if (localOutputIds.Count > 0)
+            {
                 foreach (ITwoPartyNetworkSession session in MultiPartySession.RemotePartySessions)
                 {
-                    BitArray remoteSharesOfLocalOutput = BitArray.FromBytes(await session.Channel.ReadMessageAsync(), localOutputIds.Count);
+                    Message message = await session.Channel.ReadMessageAsync();
+                    BitArray remoteSharesOfLocalOutput = BitArray.FromBytes(message.ToBuffer(), localOutputIds.Count);
                     localOutputValues.Xor(remoteSharesOfLocalOutput);
                 }
+            }
 
             return localOutputValues;
         }

@@ -39,7 +39,7 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        protected override async Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        protected override async Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<Message>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {   
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -80,10 +80,10 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            Quadruple<byte[]>[] maskedOptions = new Quadruple<byte[]>[numberOfInvocations];
+            Quadruple<Message>[] maskedOptions = new Quadruple<Message>[numberOfInvocations];
             Parallel.For(0, numberOfInvocations, j =>
             {
-                maskedOptions[j] = new Quadruple<byte[]>();
+                maskedOptions[j] = new Quadruple<Message>();
                 BigInteger exponentiatedD = BigInteger.ModPow(listOfDs[j], alpha, _parameters.P);
                 BigInteger inverseExponentiatedD = Invert(exponentiatedD);
 
@@ -121,7 +121,7 @@ namespace CompactMPC.ObliviousTransfer
 #endif
         }
 
-        protected override async Task<byte[][]> GeneralizedReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        protected override async Task<Message[]> GeneralizedReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
 #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -152,7 +152,7 @@ namespace CompactMPC.ObliviousTransfer
 #endif
 
             Task writeDsTask = WriteGroupElements(channel, listOfDs);
-            Task<Quadruple<byte[]>[]> readMaskedOptionsTask = ReadOptions(channel, numberOfInvocations, numberOfMessageBytes);
+            Task<Quadruple<Message>[]> readMaskedOptionsTask = ReadOptions(channel, numberOfInvocations, numberOfMessageBytes);
 
             BigInteger[] listOfEs = new BigInteger[numberOfInvocations];
             Parallel.For(0, numberOfInvocations, j =>
@@ -161,7 +161,7 @@ namespace CompactMPC.ObliviousTransfer
             });
 
             await Task.WhenAll(writeDsTask, readMaskedOptionsTask);
-            Quadruple<byte[]>[] maskedOptions = readMaskedOptionsTask.Result;
+            Quadruple<Message>[] maskedOptions = readMaskedOptionsTask.Result;
 
 #if DEBUG
             stopwatch.Stop();
@@ -169,7 +169,7 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            byte[][] selectedOptions = new byte[numberOfInvocations][];
+            Message[] selectedOptions = new Message[numberOfInvocations];
             Parallel.For(0, numberOfInvocations, j =>
             {
                 int i = selectionIndices[j];
@@ -206,52 +206,60 @@ namespace CompactMPC.ObliviousTransfer
 
         private Task WriteGroupElements(IMessageChannel channel, IReadOnlyList<BigInteger> groupElements)
         {
-            MessageComposer message = new MessageComposer(2 * groupElements.Count);
+            Message message = Message.Empty;
             foreach (BigInteger groupElement in groupElements)
             {
                 byte[] packedGroupElement = groupElement.ToByteArray();
-                message.Write(packedGroupElement.Length);
-                message.Write(packedGroupElement);
+                message = message
+                    .Write(packedGroupElement.Length)
+                    .Write(packedGroupElement);
             }
 
-            return channel.WriteMessageAsync(message.Compose());
+            return channel.WriteMessageAsync(message);
         }
 
         private async Task<BigInteger[]> ReadGroupElements(IMessageChannel channel, int numberOfGroupElements)
         {
-            MessageDecomposer message = new MessageDecomposer(await channel.ReadMessageAsync());
+            Message message = await channel.ReadMessageAsync();
 
             BigInteger[] groupElements = new BigInteger[numberOfGroupElements];
             for (int i = 0; i < numberOfGroupElements; ++i)
             {
-                int length = message.ReadInt();
-                byte[] packedGroupElement = message.ReadBuffer(length);
+                message = message
+                    .ReadInt(out int length)
+                    .ReadBytes(length, out byte[] packedGroupElement);
+                
                 groupElements[i] = new BigInteger(packedGroupElement);
             }
 
             return groupElements;
         }
 
-        private Task WriteOptions(IMessageChannel channel, Quadruple<byte[]>[] options, int numberOfInvocations)
+        private Task WriteOptions(IMessageChannel channel, Quadruple<Message>[] options, int numberOfInvocations)
         {
-            MessageComposer message = new MessageComposer(4 * numberOfInvocations);
-            for (int j = 0; j < numberOfInvocations; ++j)
-            for (int i = 0; i < 4; ++i)
-                message.Write(options[j][i]);
-
-            return channel.WriteMessageAsync(message.Compose());
-        }
-
-        private async Task<Quadruple<byte[]>[]> ReadOptions(IMessageChannel channel, int numberOfInvocations, int numberOfMessageBytes)
-        {
-            MessageDecomposer message = new MessageDecomposer(await channel.ReadMessageAsync());
-
-            Quadruple<byte[]>[] options = new Quadruple<byte[]>[numberOfInvocations];
+            Message message = Message.Empty;
             for (int j = 0; j < numberOfInvocations; ++j)
             {
-                options[j] = new Quadruple<byte[]>();
                 for (int i = 0; i < 4; ++i)
-                    options[j][i] = message.ReadBuffer(numberOfMessageBytes);
+                    message = message.Write(options[j][i]);
+            }
+
+            return channel.WriteMessageAsync(message);
+        }
+
+        private async Task<Quadruple<Message>[]> ReadOptions(IMessageChannel channel, int numberOfInvocations, int numberOfMessageBytes)
+        {
+            Message packedOptions = await channel.ReadMessageAsync();
+
+            Quadruple<Message>[] options = new Quadruple<Message>[numberOfInvocations];
+            for (int j = 0; j < numberOfInvocations; ++j)
+            {
+                options[j] = new Quadruple<Message>();
+                for (int i = 0; i < 4; ++i)
+                {
+                    packedOptions = packedOptions.ReadMessage(numberOfMessageBytes, out Message option);
+                    options[j][i] = option;
+                }
             }
 
             return options;
@@ -269,13 +277,14 @@ namespace CompactMPC.ObliviousTransfer
         /// <param name="invocationIndex">The index of the OT invocation this option belongs to.</param>
         /// <param name="optionIndex">The index of the option.</param>
         /// <returns>The masked option.</returns>
-        private byte[] MaskOption(byte[] option, BigInteger groupElement,  int invocationIndex, int optionIndex)
+        private Message MaskOption(Message option, BigInteger groupElement, int invocationIndex, int optionIndex)
         {
-            using (RandomOracle randomOracle = _randomOracleProvider.Create())
-            {
-                byte[] query = BufferBuilder.From(groupElement.ToByteArray()).With(invocationIndex).With(optionIndex).Create();
-                return randomOracle.Mask(option, query);
-            }
+            using RandomOracle randomOracle = _randomOracleProvider.Create();
+            Message query = new Message(groupElement.ToByteArray())
+                .Write(invocationIndex)
+                .Write(optionIndex);
+            
+            return new Message(randomOracle.Mask(option.ToBuffer(), query.ToBuffer()));
         }
     }
 }
