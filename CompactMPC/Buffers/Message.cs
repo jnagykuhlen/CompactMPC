@@ -4,31 +4,34 @@ namespace CompactMPC.Buffers
 {
     public class Message
     {
-        public static readonly Message Empty = new Message(new byte[] { });
-
         private readonly byte[] _buffer;
         private readonly int _startIndex;
         private readonly int _length;
-        private readonly Message? _previous;
 
-        public Message(byte[] buffer) : this(buffer, 0, null)
+        public Message(byte[] buffer) : this(buffer, 0, buffer.Length)
         {
         }
 
-        private Message(byte[] buffer, int startIndex, Message? previous)
+        public Message(int capacity) : this(new byte[capacity], 0, 0)
         {
-            if (startIndex > buffer.Length)
+        } 
+
+        private Message(byte[] buffer, int startIndex, int length)
+        {
+            if (startIndex < 0 || startIndex > buffer.Length)
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
+            
+            if (length < 0 || length > buffer.Length - startIndex)
+                throw new ArgumentOutOfRangeException(nameof(length));
 
             _buffer = buffer;
             _startIndex = startIndex;
-            _length = buffer.Length - startIndex + (previous?.Length ?? 0);
-            _previous = previous;
+            _length = length;
         }
 
         public Message Write(byte[] bytes)
         {
-            return new Message(bytes, 0, _length == 0 ? null : this);
+            return Write(bytes, 0, bytes.Length);
         }
 
         public Message Write(int value)
@@ -38,14 +41,27 @@ namespace CompactMPC.Buffers
 
         public Message Write(Message message)
         {
-            return Write(message.ToBuffer());
+            return Write(message._buffer, message._startIndex, message._length);
+        }
+        
+        private Message Write(byte[] bytes, int startIndex, int length)
+        {
+            if (startIndex < 0 || startIndex > bytes.Length)
+                throw new ArgumentException(nameof(startIndex));
+
+            if (length < 0 || length > bytes.Length - startIndex)
+                throw new ArgumentException(nameof(length));
+            
+            if (bytes.Length > _buffer.Length - _startIndex - _length)
+                throw new ArgumentException("Written bytes exceed message capacity.", nameof(bytes));
+            
+            Buffer.BlockCopy(bytes, startIndex, _buffer, _startIndex + _length, length);
+            
+            return new Message(_buffer, _startIndex, _length + bytes.Length);
         }
 
         public Message ReadBytes(int numberOfBytes, out byte[] bytes)
         {
-            if (_previous != null)
-                return new Message(ToBuffer()).ReadBytes(numberOfBytes, out bytes);
-
             int endIndex = _startIndex + numberOfBytes;
             if (endIndex > _buffer.Length)
                 throw new ArgumentOutOfRangeException(nameof(numberOfBytes));
@@ -58,48 +74,29 @@ namespace CompactMPC.Buffers
 
         public Message ReadInt(out int value)
         {
-            if (_previous != null)
-                return new Message(ToBuffer()).ReadInt(out value);
-
             value = BitConverter.ToInt32(_buffer, _startIndex);
             return SubMessage(_startIndex + sizeof(int));
         }
 
         public Message ReadMessage(int length, out Message message)
         {
-            Message remainingMessage = ReadBytes(length, out byte[] bytes);
-            message = new Message(bytes);
-            return remainingMessage;
+            message = new Message(_buffer, _startIndex, length);
+            return new Message(_buffer, _startIndex + length, _length - length);
         }
 
         private Message SubMessage(int startIndex)
         {
-            if (startIndex == _buffer.Length)
-                return Empty;
-
-            return new Message(_buffer, startIndex, null);
+            return new Message(_buffer, startIndex, _startIndex + _length - startIndex);
         }
 
         public byte[] ToBuffer()
         {
-            if (_startIndex == 0 && _previous == null)
+            if (_startIndex == 0 && _length == _buffer.Length)
                 return _buffer;
 
             byte[] buffer = new byte[_length];
-            CopyTo(buffer);
+            Buffer.BlockCopy(_buffer, _startIndex, buffer, 0, _length);
             return buffer;
-        }
-
-        private void CopyTo(byte[] buffer)
-        {
-            int offset = 0;
-            if (_previous != null)
-            {
-                _previous.CopyTo(buffer);
-                offset = _previous.Length;
-            }
-
-            Buffer.BlockCopy(_buffer, _startIndex, buffer, offset, _buffer.Length - _startIndex);
         }
 
         public int Length

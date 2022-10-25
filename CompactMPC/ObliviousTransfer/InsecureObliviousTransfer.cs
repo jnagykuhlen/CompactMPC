@@ -8,7 +8,7 @@ namespace CompactMPC.ObliviousTransfer
     {
         protected override Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<Message>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
-            Message packedOptions = Message.Empty;
+            Message packedOptions = new Message(4 * numberOfInvocations * numberOfMessageBytes);
             for (int i = 0; i < numberOfInvocations; ++i)
             {
                 for (int j = 0; j < 4; ++j)

@@ -14,7 +14,7 @@ namespace CompactMPC.Buffers
             int secondId = 0x7bc00127;
             byte[] suffix = { 0x43, 0xb1 };
 
-            Message message = Message.Empty
+            Message message = new Message(17)
                 .Write(prefix)
                 .Write(firstId)
                 .Write(secondId)
@@ -39,7 +39,7 @@ namespace CompactMPC.Buffers
             readSecondId.Should().Be(secondId);
             readSuffix.Should().Equal(suffix);
 
-            remainingMessage.Should().BeSameAs(Message.Empty);
+            remainingMessage.Length.Should().Be(0);
         }
 
         [TestMethod]
@@ -48,7 +48,7 @@ namespace CompactMPC.Buffers
             byte[] prefix = { 0x01, 0x03, 0x05, 0x7f, 0x59 };
             int id = 0x00bbdf19;
 
-            Message message = Message.Empty
+            Message message = new Message(9)
                 .Write(prefix)
                 .Write(id);
             

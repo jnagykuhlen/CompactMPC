@@ -113,7 +113,7 @@ namespace CompactMPC.ObliviousTransfer
             stopwatch.Restart();
 #endif
 
-            await WriteOptions(channel, maskedOptions, numberOfInvocations);
+            await WriteOptions(channel, maskedOptions, numberOfInvocations, numberOfMessageBytes);
 
 #if DEBUG
             stopwatch.Stop();
@@ -206,7 +206,7 @@ namespace CompactMPC.ObliviousTransfer
 
         private Task WriteGroupElements(IMessageChannel channel, IReadOnlyList<BigInteger> groupElements)
         {
-            Message message = Message.Empty;
+            Message message = new Message(groupElements.Count * (sizeof(int) + _parameters.GroupElementSize + 1));
             foreach (BigInteger groupElement in groupElements)
             {
                 byte[] packedGroupElement = groupElement.ToByteArray();
@@ -235,9 +235,9 @@ namespace CompactMPC.ObliviousTransfer
             return groupElements;
         }
 
-        private Task WriteOptions(IMessageChannel channel, Quadruple<Message>[] options, int numberOfInvocations)
+        private Task WriteOptions(IMessageChannel channel, Quadruple<Message>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
-            Message message = Message.Empty;
+            Message message = new Message(4 * numberOfInvocations * numberOfMessageBytes);
             for (int j = 0; j < numberOfInvocations; ++j)
             {
                 for (int i = 0; i < 4; ++i)
@@ -280,7 +280,8 @@ namespace CompactMPC.ObliviousTransfer
         private Message MaskOption(Message option, BigInteger groupElement, int invocationIndex, int optionIndex)
         {
             using RandomOracle randomOracle = _randomOracleProvider.Create();
-            Message query = new Message(groupElement.ToByteArray())
+            Message query = new Message(_parameters.GroupElementSize + 1 + 2 * sizeof(int))
+                .Write(groupElement.ToByteArray())
                 .Write(invocationIndex)
                 .Write(optionIndex);
             
