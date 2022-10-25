@@ -44,11 +44,11 @@ namespace CompactMPC.Application
         private static void RunCoordinator()
         {
             Console.WriteLine("Starting parties...");
-            
-            string executablePath = Assembly.GetExecutingAssembly().Location;
+
+            string executablePath = Assembly.GetExecutingAssembly().Location.Replace(".dll", ".exe");
             Process[] processes = Enumerable
                 .Range(0, NumberOfParties)
-                .Select(partyId => Process.Start(executablePath, partyId.ToString()))
+                .Select(partyId => StartProcess(executablePath, partyId.ToString()))
                 .ToArray();
             
             Console.WriteLine("Successfully started parties.");
@@ -111,6 +111,12 @@ namespace CompactMPC.Application
             Console.WriteLine();
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey(true);
+        }
+
+        private static Process StartProcess(string fileName, string arguments)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo(fileName, arguments) { UseShellExecute = true };
+            return Process.Start(startInfo)!;
         }
     }
 }
