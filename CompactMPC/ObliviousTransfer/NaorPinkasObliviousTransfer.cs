@@ -206,14 +206,9 @@ namespace CompactMPC.ObliviousTransfer
 
         private Task WriteGroupElements(IMessageChannel channel, IReadOnlyList<BigInteger> groupElements)
         {
-            Message message = new Message(groupElements.Count * (sizeof(int) + _parameters.GroupElementSize + 1));
+            Message message = new Message(groupElements.Count * _parameters.GroupElementSize);
             foreach (BigInteger groupElement in groupElements)
-            {
-                byte[] packedGroupElement = groupElement.ToByteArray();
-                message = message
-                    .Write(packedGroupElement.Length)
-                    .Write(packedGroupElement);
-            }
+                message = message.Write(_parameters.GroupElementSize, groupElement);
 
             return channel.WriteMessageAsync(message);
         }
@@ -224,13 +219,7 @@ namespace CompactMPC.ObliviousTransfer
 
             BigInteger[] groupElements = new BigInteger[numberOfGroupElements];
             for (int i = 0; i < numberOfGroupElements; ++i)
-            {
-                message = message
-                    .ReadInt(out int length)
-                    .ReadBytes(length, out byte[] packedGroupElement);
-                
-                groupElements[i] = new BigInteger(packedGroupElement);
-            }
+                message = message.ReadBigInteger(_parameters.GroupElementSize, out groupElements[i]);
 
             return groupElements;
         }
@@ -280,8 +269,8 @@ namespace CompactMPC.ObliviousTransfer
         private Message MaskOption(Message option, BigInteger groupElement, int invocationIndex, int optionIndex)
         {
             using RandomOracle randomOracle = _randomOracleProvider.Create();
-            Message query = new Message(_parameters.GroupElementSize + 1 + 2 * sizeof(int))
-                .Write(groupElement.ToByteArray())
+            Message query = new Message(_parameters.GroupElementSize + 2 * sizeof(int))
+                .Write(_parameters.GroupElementSize, groupElement)
                 .Write(invocationIndex)
                 .Write(optionIndex);
             
