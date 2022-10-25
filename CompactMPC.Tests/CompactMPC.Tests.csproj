@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>CompactMPC</RootNamespace>
     <AssemblyName>CompactMPC.UnitTests</AssemblyName>
     <AssemblyVersion>0.1.0</AssemblyVersion>
