@@ -47,10 +47,10 @@ namespace CompactMPC.Buffers
         private Message Write(byte[] bytes, int startIndex, int length)
         {
             if (startIndex < 0 || startIndex > bytes.Length)
-                throw new ArgumentException(nameof(startIndex));
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
 
             if (length < 0 || length > bytes.Length - startIndex)
-                throw new ArgumentException(nameof(length));
+                throw new ArgumentOutOfRangeException(nameof(length));
             
             if (bytes.Length > _buffer.Length - _startIndex - _length)
                 throw new ArgumentException("Written bytes exceed message capacity.", nameof(bytes));
