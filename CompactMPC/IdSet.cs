@@ -72,7 +72,7 @@ namespace CompactMPC
             return id;
         }
 
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
         {
             return other is IdSet otherIdSet && this == otherIdSet;
         }

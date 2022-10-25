@@ -22,7 +22,7 @@
             return $"{Name} (id: {Id})";
         }
 
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
         {
             if (other is Party otherParty)
                 return Id == otherParty.Id && Name == otherParty.Name;
