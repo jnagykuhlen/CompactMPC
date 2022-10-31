@@ -52,12 +52,20 @@ namespace CompactMPC.Buffers
             if (length < 0 || length > bytes.Length - startIndex)
                 throw new ArgumentOutOfRangeException(nameof(length));
             
-            if (bytes.Length > _buffer.Length - _startIndex - _length)
+            if (bytes.Length > Capacity)
                 throw new ArgumentException("Written bytes exceed message capacity.", nameof(bytes));
             
             Buffer.BlockCopy(bytes, startIndex, _buffer, _startIndex + _length, length);
             
             return new Message(_buffer, _startIndex, _length + bytes.Length);
+        }
+
+        public Message Pad(int numberOfBytes)
+        {
+            if (numberOfBytes > Capacity)
+                throw new ArgumentException("Padded bytes exceed message capacity.", nameof(numberOfBytes));
+            
+            return new Message(_buffer, _startIndex, _length + numberOfBytes);
         }
 
         public Message ReadBytes(int numberOfBytes, out byte[] bytes)
@@ -102,6 +110,14 @@ namespace CompactMPC.Buffers
         public int Length
         {
             get { return _length; }
+        }
+
+        private int Capacity
+        {
+            get
+            {
+                return _buffer.Length - _startIndex - _length;
+            }
         }
     }
 }

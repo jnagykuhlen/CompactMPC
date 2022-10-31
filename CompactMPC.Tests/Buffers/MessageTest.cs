@@ -61,5 +61,20 @@ namespace CompactMPC.Buffers
 
             remainingMessage.ToBuffer().Should().Equal(0x59, 0x19, 0xdf, 0xbb, 0x00);
         }
+        
+        [TestMethod]
+        public void TestPadding()
+        {
+            Message message = new Message(4)
+                .Write(new byte[] { 123 })
+                .Pad(3);
+            
+            message.Length.Should().Be(4);
+
+            Message remainingMessage = message.ReadInt(out int readValue);
+
+            readValue.Should().Be(123);
+            remainingMessage.Length.Should().Be(0);
+        }
     }
 }

@@ -14,10 +14,9 @@ namespace CompactMPC.Buffers
             if (numberOfBytes == bytes.Length)
                 return message.Write(bytes);
 
-            byte[] padding = new byte[numberOfBytes - bytes.Length];
             return message
                 .Write(bytes)
-                .Write(padding);
+                .Pad(numberOfBytes - bytes.Length);
         }
 
         public static Message ReadBigInteger(this Message message, int numberOfBytes, out BigInteger bigInteger)
