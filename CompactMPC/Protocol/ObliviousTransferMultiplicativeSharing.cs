@@ -7,9 +7,9 @@ namespace CompactMPC.Protocol
 {
     public class ObliviousTransferMultiplicativeSharing : PairwiseMultiplicativeSharing
     {
-        private readonly IObliviousTransfer _obliviousTransfer;
+        private readonly IBitObliviousTransfer _obliviousTransfer;
 
-        public ObliviousTransferMultiplicativeSharing(IObliviousTransfer obliviousTransfer)
+        public ObliviousTransferMultiplicativeSharing(IBitObliviousTransfer obliviousTransfer)
         {
             _obliviousTransfer = obliviousTransfer;
         }

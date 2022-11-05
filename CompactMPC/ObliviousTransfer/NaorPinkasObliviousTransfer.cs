@@ -17,7 +17,7 @@ namespace CompactMPC.ObliviousTransfer
     /// Further implementation details: Seung Geol Choi et al.: Secure Multi-Party Computation of Boolean Circuits with Applications
     /// to Privacy in On-Line Marketplaces. https://link.springer.com/chapter/10.1007/978-3-642-27954-6_26
     /// </remarks>
-    public class NaorPinkasObliviousTransfer : GeneralizedObliviousTransfer
+    public class NaorPinkasObliviousTransfer : MessageObliviousTransfer
     {
         private readonly SecurityParameters _parameters;
         private readonly RandomOracle _randomOracle;

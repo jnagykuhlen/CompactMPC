@@ -59,7 +59,7 @@ namespace CompactMPC
         {
             BitArray localInput = Inputs[session.LocalParty.Id];
 
-            IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+            IBitObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                 new SecurityParameters(47, 23, 4, 1, 1)
             );
 

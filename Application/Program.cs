@@ -74,7 +74,7 @@ namespace CompactMPC.Application
                 NumberOfParties
             );
 
-            IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+            IBitObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                 SecurityParameters.CreateDefault768Bit()
             );
 

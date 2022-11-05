@@ -6,9 +6,9 @@ namespace CompactMPC.ObliviousTransfer
 {
     public class ObliviousTransferPreprocessor
     {
-        private readonly IObliviousTransfer _obliviousTransfer;
+        private readonly IBitObliviousTransfer _obliviousTransfer;
 
-        public ObliviousTransferPreprocessor(IObliviousTransfer obliviousTransfer)
+        public ObliviousTransferPreprocessor(IBitObliviousTransfer obliviousTransfer)
         {
             _obliviousTransfer = obliviousTransfer;
         }

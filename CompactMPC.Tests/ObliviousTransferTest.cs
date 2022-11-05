@@ -41,7 +41,7 @@ namespace CompactMPC
                 )
             };
 
-            IGeneralizedObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+            IMessageObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
                 SecurityParameters.CreateDefault768Bit()
             );
 
