@@ -6,7 +6,7 @@ namespace CompactMPC.ObliviousTransfer
 {
     public class InsecureObliviousTransfer : ObliviousTransfer
     {
-        protected override Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<Message>[] options, int numberOfInvocations, int numberOfMessageBytes)
+        protected override Task InternalSendAsync(IMessageChannel channel, Quadruple<Message>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {
             Message packedOptions = new Message(4 * numberOfInvocations * numberOfMessageBytes);
             for (int i = 0; i < numberOfInvocations; ++i)
@@ -18,7 +18,7 @@ namespace CompactMPC.ObliviousTransfer
             return channel.WriteMessageAsync(packedOptions);
         }
 
-        protected override async Task<Message[]> GeneralizedReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
+        protected override async Task<Message[]> InternalReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations, int numberOfMessageBytes)
         {
             Message packedOptions = await channel.ReadMessageAsync();
             if (packedOptions.Length != 4 * numberOfInvocations * numberOfMessageBytes)
