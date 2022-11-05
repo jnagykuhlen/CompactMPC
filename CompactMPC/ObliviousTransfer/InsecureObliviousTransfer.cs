@@ -4,7 +4,7 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    public class InsecureMessageObliviousTransfer : MessageObliviousTransfer
+    public class InsecureObliviousTransfer : ObliviousTransfer
     {
         protected override Task GeneralizedSendAsync(IMessageChannel channel, Quadruple<Message>[] options, int numberOfInvocations, int numberOfMessageBytes)
         {

@@ -6,7 +6,7 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer
 {
-    public abstract class MessageObliviousTransfer : IBitObliviousTransfer, IMessageObliviousTransfer
+    public abstract class ObliviousTransfer : IBitObliviousTransfer, IMessageObliviousTransfer
     {
         public Task SendAsync(IMessageChannel channel, BitQuadrupleArray options, int numberOfInvocations)
         {
