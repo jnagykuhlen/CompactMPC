@@ -1,4 +1,4 @@
-﻿namespace CompactMPC.ObliviousTransfer
+﻿namespace CompactMPC.ObliviousTransfer.Preprocessing
 {
     public class PreprocessedSenderBatch
     {

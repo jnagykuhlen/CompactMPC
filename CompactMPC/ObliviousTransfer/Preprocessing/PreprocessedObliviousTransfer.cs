@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using CompactMPC.Buffers;
 using CompactMPC.Networking;
 
-namespace CompactMPC.ObliviousTransfer
+namespace CompactMPC.ObliviousTransfer.Preprocessing
 {
     public class PreprocessedObliviousTransfer : IBitObliviousTransfer
     {

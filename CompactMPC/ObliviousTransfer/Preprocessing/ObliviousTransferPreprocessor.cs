@@ -2,7 +2,7 @@
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 
-namespace CompactMPC.ObliviousTransfer
+namespace CompactMPC.ObliviousTransfer.Preprocessing
 {
     public class ObliviousTransferPreprocessor
     {
