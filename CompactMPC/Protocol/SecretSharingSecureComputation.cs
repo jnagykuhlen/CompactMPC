@@ -13,15 +13,13 @@ namespace CompactMPC.Protocol
     public class SecretSharingSecureComputation : ISecureComputation
     {
         private readonly IMultiplicativeSharing _multiplicativeSharing;
-        private readonly CryptoContext _cryptoContext;
-        
+
         public IMultiPartyNetworkSession MultiPartySession { get; }
         
-        public SecretSharingSecureComputation(IMultiPartyNetworkSession multiPartySession, IMultiplicativeSharing multiplicativeSharing, CryptoContext cryptoContext)
+        public SecretSharingSecureComputation(IMultiPartyNetworkSession multiPartySession, IMultiplicativeSharing multiplicativeSharing)
         {
             MultiPartySession = multiPartySession;
             _multiplicativeSharing = multiplicativeSharing;
-            _cryptoContext = cryptoContext;
         }
 
         public async Task<BitArray> EvaluateAsync(IBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
@@ -80,7 +78,7 @@ namespace CompactMPC.Protocol
                 
                 foreach (ITwoPartyNetworkSession session in MultiPartySession.RemotePartySessions)
                 {
-                    BitArray remoteSharesOfLocalInput = _cryptoContext.RandomNumberGenerator.GetBits(localInputIds.Count);
+                    BitArray remoteSharesOfLocalInput = RandomNumberGenerator.GetBits(localInputIds.Count);
                     localSharesOfLocalInput.Xor(remoteSharesOfLocalInput);
 
                     await session.Channel.WriteMessageAsync(new Message(remoteSharesOfLocalInput.ToBytes()));

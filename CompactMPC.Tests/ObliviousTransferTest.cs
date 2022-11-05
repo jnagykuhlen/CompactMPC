@@ -1,7 +1,5 @@
-using System.Linq;
 using System.Text;
 using CompactMPC.Buffers;
-using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Util;
@@ -43,11 +41,8 @@ namespace CompactMPC
                 )
             };
 
-            using CryptoContext cryptoContext = CryptoContext.CreateDefault();
-
             IGeneralizedObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
-                SecurityParameters.CreateDefault768Bit(),
-                cryptoContext
+                SecurityParameters.CreateDefault768Bit()
             );
 
             if (session.LocalParty.Id == 0)

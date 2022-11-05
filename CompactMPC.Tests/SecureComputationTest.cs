@@ -1,6 +1,5 @@
 ﻿using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
-using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
@@ -59,23 +58,18 @@ namespace CompactMPC
         private static void PerformSecureComputation(IMultiPartyNetworkSession session, BitArray expectedOutput)
         {
             BitArray localInput = Inputs[session.LocalParty.Id];
-            
-            using CryptoContext cryptoContext = CryptoContext.CreateDefault();
 
             IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
-                new SecurityParameters(47, 23, 4, 1, 1),
-                cryptoContext
+                new SecurityParameters(47, 23, 4, 1, 1)
             );
 
             IMultiplicativeSharing multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(
-                obliviousTransfer,
-                cryptoContext
+                obliviousTransfer
             );
 
             SecretSharingSecureComputation computation = new SecretSharingSecureComputation(
                 session,
-                multiplicativeSharing,
-                cryptoContext
+                multiplicativeSharing
             );
 
             SetIntersectionCircuitRecorder circuitRecorder = new SetIntersectionCircuitRecorder(

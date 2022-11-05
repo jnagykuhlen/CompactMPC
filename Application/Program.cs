@@ -4,7 +4,6 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Threading.Tasks;
-using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
@@ -74,23 +73,18 @@ namespace CompactMPC.Application
                 StartPort,
                 NumberOfParties
             );
-            
-            using CryptoContext cryptoContext = CryptoContext.CreateDefault();
 
             IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
-                SecurityParameters.CreateDefault768Bit(),
-                cryptoContext
+                SecurityParameters.CreateDefault768Bit()
             );
 
             IMultiplicativeSharing multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(
-                obliviousTransfer,
-                cryptoContext
+                obliviousTransfer
             );
 
             SecretSharingSecureComputation computation = new SecretSharingSecureComputation(
                 session,
-                multiplicativeSharing,
-                cryptoContext
+                multiplicativeSharing
             );
 
             Stopwatch stopwatch = Stopwatch.StartNew();

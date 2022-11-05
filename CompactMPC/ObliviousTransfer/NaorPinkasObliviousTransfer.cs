@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using CompactMPC.Buffers;
 using CompactMPC.Cryptography;
@@ -21,13 +20,11 @@ namespace CompactMPC.ObliviousTransfer
     public class NaorPinkasObliviousTransfer : GeneralizedObliviousTransfer
     {
         private readonly SecurityParameters _parameters;
-        private readonly RandomNumberGenerator _randomNumberGenerator;
         private readonly RandomOracle _randomOracle;
 
-        public NaorPinkasObliviousTransfer(SecurityParameters parameters, CryptoContext cryptoContext)
+        public NaorPinkasObliviousTransfer(SecurityParameters parameters)
         {
             _parameters = parameters;
-            _randomNumberGenerator = new ThreadSafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
             _randomOracle = new HashRandomOracle();
 #if DEBUG
             Console.WriteLine("Security parameters:");
@@ -192,7 +189,7 @@ namespace CompactMPC.ObliviousTransfer
             //  have an impact on security).
             do
             {
-                exponent = _randomNumberGenerator.GetBigInteger(_parameters.ExponentSize);
+                exponent = RandomNumberGenerator.GetBigInteger(_parameters.ExponentSize);
             }
             while (exponent.IsZero || exponent > _parameters.Q);
 
