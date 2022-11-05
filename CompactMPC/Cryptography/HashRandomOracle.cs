@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Security.Cryptography;
+using CompactMPC.Buffers;
 
 namespace CompactMPC.Cryptography
 {
@@ -11,24 +11,18 @@ namespace CompactMPC.Cryptography
         {
             byte[] seed = SHA256.HashData(query);
 
-            using (MemoryStream stream = new MemoryStream(seed.Length + 4))
+            Message seedMessage = new Message(seed.Length + sizeof(int)).Write(seed);
+
+            int counter = 0;
+            while (counter < int.MaxValue)
             {
-                stream.Write(seed, 0, seed.Length);
+                Message seedMessageWithCounter = seedMessage.Write(counter);
+                byte[] block = SHA256.HashData(seedMessageWithCounter.ToBuffer());
 
-                int counter = 0;
-                while (counter < int.MaxValue)
-                {
-                    stream.Position = seed.Length;
-                    stream.Write(BitConverter.GetBytes(counter), 0, 4);
-                    stream.Position = 0;
+                foreach (byte blockByte in block)
+                    yield return blockByte;
 
-                    byte[] block = SHA256.HashData(stream.GetBuffer());
-
-                    foreach (byte blockByte in block)
-                        yield return blockByte;
-
-                    counter++;
-                }
+                counter++;
             }
 
             throw new InvalidOperationException("Random oracle cannot provide more data since the counter has reached its maximum value.");
