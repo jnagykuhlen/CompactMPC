@@ -15,7 +15,5 @@ namespace CompactMPC.Cryptography
         {
             return _invokeResponse;
         }
-
-        public override void Dispose() { }
     }
 }

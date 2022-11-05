@@ -22,13 +22,13 @@ namespace CompactMPC.ObliviousTransfer
     {
         private readonly SecurityParameters _parameters;
         private readonly RandomNumberGenerator _randomNumberGenerator;
-        private readonly IRandomOracleProvider _randomOracleProvider;
-        
+        private readonly RandomOracle _randomOracle;
+
         public NaorPinkasObliviousTransfer(SecurityParameters parameters, CryptoContext cryptoContext)
         {
             _parameters = parameters;
             _randomNumberGenerator = new ThreadSafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
-            _randomOracleProvider = new HashRandomOracleProvider(cryptoContext.HashAlgorithmProvider);
+            _randomOracle = new HashRandomOracle();
 #if DEBUG
             Console.WriteLine("Security parameters:");
             Console.WriteLine("p = {0}", _parameters.P);
@@ -268,13 +268,12 @@ namespace CompactMPC.ObliviousTransfer
         /// <returns>The masked option.</returns>
         private Message MaskOption(Message option, BigInteger groupElement, int invocationIndex, int optionIndex)
         {
-            using RandomOracle randomOracle = _randomOracleProvider.Create();
             Message query = new Message(_parameters.GroupElementSize + 2 * sizeof(int))
                 .Write(_parameters.GroupElementSize, groupElement)
                 .Write(invocationIndex)
                 .Write(optionIndex);
             
-            return new Message(randomOracle.Mask(option.ToBuffer(), query.ToBuffer()));
+            return new Message(_randomOracle.Mask(option.ToBuffer(), query.ToBuffer()));
         }
     }
 }

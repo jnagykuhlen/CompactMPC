@@ -7,19 +7,9 @@ namespace CompactMPC.Cryptography
 {
     public class HashRandomOracle : RandomOracle
     {
-        private readonly HashAlgorithm _hashAlgorithm;
-
-        public HashRandomOracle(IHashAlgorithmProvider hashAlgorithmProvider)
-        {
-            if (hashAlgorithmProvider == null)
-                throw new ArgumentNullException(nameof(hashAlgorithmProvider));
-
-            _hashAlgorithm = hashAlgorithmProvider.Create();
-        }
-
         public override IEnumerable<byte> Invoke(byte[] query)
         {
-            byte[] seed = _hashAlgorithm.ComputeHash(query);
+            byte[] seed = SHA256.HashData(query);
 
             using (MemoryStream stream = new MemoryStream(seed.Length + 4))
             {
@@ -32,7 +22,7 @@ namespace CompactMPC.Cryptography
                     stream.Write(BitConverter.GetBytes(counter), 0, 4);
                     stream.Position = 0;
 
-                    byte[] block = _hashAlgorithm.ComputeHash(stream);
+                    byte[] block = SHA256.HashData(stream.GetBuffer());
 
                     foreach (byte blockByte in block)
                         yield return blockByte;
@@ -42,11 +32,6 @@ namespace CompactMPC.Cryptography
             }
 
             throw new InvalidOperationException("Random oracle cannot provide more data since the counter has reached its maximum value.");
-        }
-
-        public override void Dispose()
-        {
-            _hashAlgorithm.Dispose();
         }
     }
 }
