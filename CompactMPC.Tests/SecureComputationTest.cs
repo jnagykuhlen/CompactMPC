@@ -1,4 +1,5 @@
-﻿using CompactMPC.Circuits;
+﻿using System.Threading.Tasks;
+using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
@@ -23,33 +24,33 @@ namespace CompactMPC
         };
 
         [TestMethod]
-        public void TestTwoPartySetIntersection()
+        public Task TestTwoPartySetIntersection()
         {
-            RunSecureComputationParties(2, "010101110");
+            return RunSecureComputationParties(2, "010101110");
         }
 
         [TestMethod]
-        public void TestThreePartySetIntersection()
+        public Task TestThreePartySetIntersection()
         {
-            RunSecureComputationParties(3, "010101110");
+            return RunSecureComputationParties(3, "010101110");
         }
 
         [TestMethod]
-        public void TestFourPartySetIntersection()
+        public Task TestFourPartySetIntersection()
         {
-            RunSecureComputationParties(4, "010001010");
+            return RunSecureComputationParties(4, "010001010");
         }
 
         [TestMethod]
-        public void TestFivePartySetIntersection()
+        public Task TestFivePartySetIntersection()
         {
-            RunSecureComputationParties(5, "010001010");
+            return RunSecureComputationParties(5, "010001010");
         }
 
-        private static void RunSecureComputationParties(int numberOfParties, string expectedOutputString)
+        private static Task RunSecureComputationParties(int numberOfParties, string expectedOutputString)
         {
             BitArray expectedOutput = BitArray.FromBinaryString(expectedOutputString);
-            TestNetworkRunner.RunMultiPartyNetwork(
+            return TestNetworkRunner.RunMultiPartyNetwork(
                 numberOfParties,
                 session => PerformSecureComputation(session, expectedOutput)
             );
