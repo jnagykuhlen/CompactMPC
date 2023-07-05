@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Numerics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -68,10 +69,14 @@ namespace CompactMPC.Application
         {
             Console.WriteLine($"Starting party {localPartyId}...");
             
-            using IMultiPartyNetworkSession session = await TcpMultiPartyNetworkSession.EstablishLoopbackAsync(
+            IPEndPoint[] endpoints = Enumerable
+                .Range(StartPort, NumberOfParties)
+                .Select(port => IPAddress.Loopback.BoundToPort(port))
+                .ToArray();
+            
+            using IMultiPartyNetworkSession session = await TcpMultiPartyNetworkSession.EstablishAsync(
                 new Party(localPartyId),
-                StartPort,
-                NumberOfParties
+                endpoints
             );
 
             IBitObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(

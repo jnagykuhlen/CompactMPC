@@ -18,11 +18,6 @@ namespace CompactMPC.Networking
             RemoteParty = remoteParty;
         }
 
-        public static Task<TcpTwoPartyNetworkSession> ConnectLoopbackAsync(Party localParty, int port)
-        {
-            return ConnectAsync(localParty, new IPEndPoint(IPAddress.Loopback, port));
-        }
-        
         public static async Task<TcpTwoPartyNetworkSession> ConnectAsync(Party localParty, IPEndPoint endpoint)
         {
             TcpClient client = new TcpClient();
@@ -33,11 +28,6 @@ namespace CompactMPC.Networking
         public static ITwoPartyConnectionListener CreateListener(Party localParty, IPEndPoint localEndPoint)
         {
             return new ConnectionListener(localParty, localEndPoint);
-        }
-        
-        public static ITwoPartyConnectionListener CreateListenerLoopback(Party localParty, int port)
-        {
-            return CreateListener(localParty, new IPEndPoint(IPAddress.Loopback, port));
         }
 
         private static TcpTwoPartyNetworkSession CreateFromPartyInformationExchange(Party localParty, TcpClient client)

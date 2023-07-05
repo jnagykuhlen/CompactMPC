@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,15 +14,17 @@ namespace CompactMPC.Networking
         private static readonly Party SecondParty = new Party(1, "Second");
 
         [TestMethod]
-        public void TestTcpTwoPartyNetworkSession()
+        public async Task TestTcpTwoPartyNetworkSession()
         {
-            using ITwoPartyConnectionListener listener = TcpTwoPartyNetworkSession.CreateListenerLoopback(SecondParty, Port);
+            IPEndPoint endPoint = IPAddress.Loopback.BoundToPort(Port);
             
-            Task<TcpTwoPartyNetworkSession> firstSessionTask = TcpTwoPartyNetworkSession.ConnectLoopbackAsync(FirstParty, Port);
+            using ITwoPartyConnectionListener listener = TcpTwoPartyNetworkSession.CreateListener(SecondParty, endPoint);
+            
+            Task<TcpTwoPartyNetworkSession> firstSessionTask = TcpTwoPartyNetworkSession.ConnectAsync(FirstParty, endPoint);
             Task<TcpTwoPartyNetworkSession> secondSessionTask = listener.AcceptAsync();
 
-            using TcpTwoPartyNetworkSession firstSession = firstSessionTask.Result;
-            using TcpTwoPartyNetworkSession secondSession = secondSessionTask.Result;
+            using TcpTwoPartyNetworkSession firstSession = await firstSessionTask;
+            using TcpTwoPartyNetworkSession secondSession = await secondSessionTask;
 
             firstSession.LocalParty.Should().Be(FirstParty);
             firstSession.RemoteParty.Should().Be(SecondParty);

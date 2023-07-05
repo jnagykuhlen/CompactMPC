@@ -18,16 +18,6 @@ namespace CompactMPC.Networking
             LocalParty = localParty;
         }
 
-        public static Task<TcpMultiPartyNetworkSession> EstablishLoopbackAsync(Party localParty, int startPort, int numberOfParties)
-        {
-            IPEndPoint[] endpoints = Enumerable
-                .Range(startPort, numberOfParties)
-                .Select(port => new IPEndPoint(IPAddress.Loopback, port))
-                .ToArray();
-
-            return EstablishAsync(localParty, endpoints);
-        }
-
         public static async Task<TcpMultiPartyNetworkSession> EstablishAsync(Party localParty, IPEndPoint[] endPoints)
         {
             if (localParty.Id < 0 || localParty.Id >= endPoints.Length)
