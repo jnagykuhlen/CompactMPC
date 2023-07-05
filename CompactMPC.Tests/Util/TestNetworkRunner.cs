@@ -21,10 +21,14 @@ namespace CompactMPC.Util
         
         public static void RunTwoPartyNetwork(Action<ITwoPartyNetworkSession> perPartyAction)
         {
+            Party firstParty = new Party(0);
+            Party secondParty = new Party(1);
+            
+            using ITwoPartyConnectionListener listener = TcpTwoPartyNetworkSession.CreateListenerLoopback(secondParty, Port);
             Task<TcpTwoPartyNetworkSession>[] sessionTasks =
             {
-                TcpTwoPartyNetworkSession.ConnectLoopbackAsync(new Party(0), Port),
-                TcpTwoPartyNetworkSession.AcceptLoopbackAsync(new Party(1), Port)
+                TcpTwoPartyNetworkSession.ConnectLoopbackAsync(firstParty, Port),
+                listener.AcceptAsync()
             };
 
             RunNetwork(sessionTasks, perPartyAction);

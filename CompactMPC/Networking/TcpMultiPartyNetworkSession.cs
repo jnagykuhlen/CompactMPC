@@ -35,21 +35,17 @@ namespace CompactMPC.Networking
 
             IPEndPoint localEndPoint = endPoints[localParty.Id];
 
-            TcpTwoPartyNetworkSession[] outgoingSessions = await TcpTwoPartyNetworkSession.ConnectAsync(
-                localParty,
-                endPoints,
-                localParty.Id
-            );
-
-            TcpTwoPartyNetworkSession[] incomingSessions = await TcpTwoPartyNetworkSession.AcceptAsync(
-                localParty,
-                localEndPoint,
-                endPoints.Length - localParty.Id - 1
-            );
-
-            List<ITwoPartyNetworkSession> remotePartySessions = new List<ITwoPartyNetworkSession>(endPoints.Length - 1);
-            remotePartySessions.AddRange(outgoingSessions);
-            remotePartySessions.AddRange(incomingSessions);
+            using ITwoPartyConnectionListener listener = TcpTwoPartyNetworkSession.CreateListener(localParty, localEndPoint);
+            
+            int numberOfConnects = localParty.Id;
+            TcpTwoPartyNetworkSession[] remotePartySessions = await Task.WhenAll(Enumerable.Concat(
+                endPoints
+                    .Take(numberOfConnects)
+                    .Select(endPoint => TcpTwoPartyNetworkSession.ConnectAsync(localParty, endPoint)),
+                endPoints
+                    .Skip(numberOfConnects + 1)
+                    .Select(_ => listener.AcceptAsync())
+            ));
 
             for (int i = 0; i < endPoints.Length; ++i)
             {

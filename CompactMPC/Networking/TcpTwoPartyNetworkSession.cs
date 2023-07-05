@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -30,42 +29,15 @@ namespace CompactMPC.Networking
             await client.ConnectAsync(endpoint.Address, endpoint.Port);
             return CreateFromPartyInformationExchange(localParty, client);
         }
-        
-        public static Task<TcpTwoPartyNetworkSession[]> ConnectAsync(Party localParty, IPEndPoint[] remoteEndPoints, int numberOfSessions)
-        {
-            return Task.WhenAll(remoteEndPoints.Take(numberOfSessions).Select(endpoint => ConnectAsync(localParty, endpoint)));
-        }
 
-        public static Task<TcpTwoPartyNetworkSession> AcceptLoopbackAsync(Party localParty, int port)
+        public static ITwoPartyConnectionListener CreateListener(Party localParty, IPEndPoint localEndPoint)
         {
-            return AcceptAsync(localParty, new IPEndPoint(IPAddress.Loopback, port));
+            return new ConnectionListener(localParty, localEndPoint);
         }
         
-        public static async Task<TcpTwoPartyNetworkSession> AcceptAsync(Party localParty, IPEndPoint localEndPoint)
+        public static ITwoPartyConnectionListener CreateListenerLoopback(Party localParty, int port)
         {
-            return (await AcceptAsync(localParty, localEndPoint, 1)).First();
-        }
-        
-        public static async Task<TcpTwoPartyNetworkSession[]> AcceptAsync(Party localParty, IPEndPoint localEndPoint, int numberOfSessions)
-        {
-            TcpListener listener = new TcpListener(localEndPoint) { ExclusiveAddressUse = true };
-            
-            listener.Start();
-            try
-            {
-                TcpTwoPartyNetworkSession[] sessions = new TcpTwoPartyNetworkSession[numberOfSessions];
-                for (int i = 0; i < numberOfSessions; ++i)
-                {
-                    TcpClient client = await listener.AcceptTcpClientAsync();
-                    sessions[i] = CreateFromPartyInformationExchange(localParty, client);
-                }
-
-                return sessions;
-            }
-            finally
-            {
-                listener.Stop();
-            }
+            return CreateListener(localParty, new IPEndPoint(IPAddress.Loopback, port));
         }
 
         private static TcpTwoPartyNetworkSession CreateFromPartyInformationExchange(Party localParty, TcpClient client)
@@ -100,5 +72,29 @@ namespace CompactMPC.Networking
         public Party LocalParty { get; }
 
         public Party RemoteParty { get; }
+        
+        private class ConnectionListener : ITwoPartyConnectionListener
+        {
+            private readonly Party _localParty;
+            private readonly TcpListener _listener;
+
+            public ConnectionListener(Party localParty, IPEndPoint localEndPoint)
+            {
+                _localParty = localParty;
+                _listener = new TcpListener(localEndPoint) { ExclusiveAddressUse = true };
+                _listener.Start();
+            }
+
+            public async Task<TcpTwoPartyNetworkSession> AcceptAsync()
+            {
+                TcpClient client = await _listener.AcceptTcpClientAsync();
+                return CreateFromPartyInformationExchange(_localParty, client);
+            }
+
+            public void Dispose()
+            {
+                _listener.Stop();
+            }
+        }
     }
 }

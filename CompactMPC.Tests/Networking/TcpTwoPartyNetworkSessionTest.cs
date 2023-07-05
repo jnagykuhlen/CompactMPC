@@ -15,8 +15,10 @@ namespace CompactMPC.Networking
         [TestMethod]
         public void TestTcpTwoPartyNetworkSession()
         {
-            Task<TcpTwoPartyNetworkSession> firstSessionTask = CreateFirstTwoPartySessionAsync();
-            Task<TcpTwoPartyNetworkSession> secondSessionTask = CreateSecondTwoPartySessionAsync();
+            using ITwoPartyConnectionListener listener = TcpTwoPartyNetworkSession.CreateListenerLoopback(SecondParty, Port);
+            
+            Task<TcpTwoPartyNetworkSession> firstSessionTask = TcpTwoPartyNetworkSession.ConnectLoopbackAsync(FirstParty, Port);
+            Task<TcpTwoPartyNetworkSession> secondSessionTask = listener.AcceptAsync();
 
             using TcpTwoPartyNetworkSession firstSession = firstSessionTask.Result;
             using TcpTwoPartyNetworkSession secondSession = secondSessionTask.Result;
@@ -26,16 +28,6 @@ namespace CompactMPC.Networking
             
             secondSession.LocalParty.Should().Be(SecondParty);
             secondSession.RemoteParty.Should().Be(FirstParty);
-        }
-
-        private static Task<TcpTwoPartyNetworkSession> CreateFirstTwoPartySessionAsync()
-        {
-            return TcpTwoPartyNetworkSession.ConnectLoopbackAsync(FirstParty, Port);
-        }
-
-        private static Task<TcpTwoPartyNetworkSession> CreateSecondTwoPartySessionAsync()
-        {
-            return TcpTwoPartyNetworkSession.AcceptLoopbackAsync(SecondParty, Port);
         }
     }
 }
