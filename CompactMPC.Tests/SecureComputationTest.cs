@@ -56,7 +56,7 @@ namespace CompactMPC
             );
         }
 
-        private static void PerformSecureComputation(IMultiPartyNetworkSession session, BitArray expectedOutput)
+        private static async Task PerformSecureComputation(IMultiPartyNetworkSession session, BitArray expectedOutput)
         {
             BitArray localInput = Inputs[session.LocalParty.Id];
 
@@ -82,9 +82,8 @@ namespace CompactMPC
             circuitRecorder.Record(circuitBuilder);
 
             ForwardCircuit circuit = new ForwardCircuit(circuitBuilder.CreateCircuit());
-            BitArray actualOutput = computation
-                .EvaluateAsync(circuit, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput)
-                .Result;
+            BitArray actualOutput = await computation
+                .EvaluateAsync(circuit, circuitRecorder.InputMapping, circuitRecorder.OutputMapping, localInput);
 
             actualOutput.Should().Equal(expectedOutput);
         }
