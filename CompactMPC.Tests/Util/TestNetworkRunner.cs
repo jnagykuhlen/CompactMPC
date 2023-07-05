@@ -11,7 +11,7 @@ namespace CompactMPC.Util
     {
         private const int StartPort = 16741;
 
-        public static Task RunMultiPartyNetwork(int numberOfParties, Action<IMultiPartyNetworkSession> perPartyAction)
+        public static Task RunMultiPartyNetwork(int numberOfParties, Func<IMultiPartyNetworkSession, Task> perPartyAction)
         {
             var endPoints = Enumerable
                 .Range(StartPort, numberOfParties)
@@ -25,7 +25,7 @@ namespace CompactMPC.Util
             return RunNetwork(sessionTasks, perPartyAction);
         }
         
-        public static Task RunTwoPartyNetwork(Action<ITwoPartyNetworkSession> perPartyAction)
+        public static Task RunTwoPartyNetwork(Func<ITwoPartyNetworkSession, Task> perPartyAction)
         {
             Party firstParty = new Party(0);
             Party secondParty = new Party(1);
@@ -42,23 +42,11 @@ namespace CompactMPC.Util
             return RunNetwork(sessionTasks, perPartyAction);
         }
 
-        private static Task RunNetwork<T>(IEnumerable<Task<T>> sessionTasks, Action<T> perPartyAction)
+        private static async Task RunNetwork<T>(IEnumerable<Task<T>> sessionTasks, Func<T, Task> perPartyAction)
             where T : IDisposable
         {
-            return Task.WhenAll(sessionTasks.Select(sessionTask => RunPartyAsync(sessionTask, perPartyAction)));
-        }
-
-        private static Task RunPartyAsync<T>(Task<T> sessionTask, Action<T> perPartyAction)
-            where T : IDisposable
-        {
-            return Task.Factory.StartNew(
-                () =>
-                {
-                    using T session = sessionTask.Result;
-                    perPartyAction(session);
-                },
-                TaskCreationOptions.LongRunning
-            );
+            T[] sessions = await Task.WhenAll(sessionTasks);
+            await Task.WhenAll(sessions.Select(perPartyAction));
         }
     }
 }
