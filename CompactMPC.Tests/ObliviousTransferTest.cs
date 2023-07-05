@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.Tasks;
 using CompactMPC.Buffers;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
@@ -12,9 +13,9 @@ namespace CompactMPC
     public class ObliviousTransferTest
     {
         [TestMethod]
-        public void TestNaorPinkasObliviousTransfer()
+        public Task TestNaorPinkasObliviousTransfer()
         {
-            TestNetworkRunner.RunTwoPartyNetwork(PerformObliviousTransfer);
+            return TestNetworkRunner.RunTwoPartyNetwork(PerformObliviousTransfer);
         }
 
         private static void PerformObliviousTransfer(ITwoPartyNetworkSession session)
