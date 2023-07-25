@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,11 +8,7 @@ namespace CompactMPC.Networking
     [TestClass]
     public class TcpMultiPartyNetworkSessionTest
     {
-        private static readonly IPEndPoint[] EndPoints = {
-            IPAddress.Loopback.BoundToPort(12680),
-            IPAddress.Loopback.BoundToPort(12681),
-            IPAddress.Loopback.BoundToPort(12682)
-        };
+        private const int StartPort = 12684;
         
         private static readonly Party FirstParty = new Party(0);
         private static readonly Party SecondParty = new Party(1);
@@ -22,9 +17,9 @@ namespace CompactMPC.Networking
         [TestMethod]
         public async Task TestTcpMultiPartyNetworkSession()
         {
-            Task<TcpMultiPartyNetworkSession> firstSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(FirstParty, EndPoints);
-            Task<TcpMultiPartyNetworkSession> secondSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(SecondParty, EndPoints);
-            Task<TcpMultiPartyNetworkSession> thirdSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(ThirdParty, EndPoints);
+            Task<TcpMultiPartyNetworkSession> firstSessionTask = TcpMultiPartyNetworkSession.EstablishLoopbackAsync(FirstParty, StartPort, 3);
+            Task<TcpMultiPartyNetworkSession> secondSessionTask = TcpMultiPartyNetworkSession.EstablishLoopbackAsync(FirstParty, StartPort, 3);
+            Task<TcpMultiPartyNetworkSession> thirdSessionTask = TcpMultiPartyNetworkSession.EstablishLoopbackAsync(FirstParty, StartPort, 3);
 
             using TcpMultiPartyNetworkSession firstSession = await firstSessionTask;
             using TcpMultiPartyNetworkSession secondSession = await secondSessionTask;
