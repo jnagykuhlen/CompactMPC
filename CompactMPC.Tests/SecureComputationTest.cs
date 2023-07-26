@@ -5,7 +5,6 @@ using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
 using CompactMPC.SampleCircuits;
-using CompactMPC.Util;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -50,7 +49,7 @@ namespace CompactMPC
         private static Task RunSecureComputationParties(int numberOfParties, string expectedOutputString)
         {
             BitArray expectedOutput = BitArray.FromBinaryString(expectedOutputString);
-            return TestNetworkRunner.RunMultiPartyNetwork(
+            return LocalNetworkRunner.RunMultiPartyNetwork(
                 numberOfParties,
                 session => PerformSecureComputation(session, expectedOutput)
             );

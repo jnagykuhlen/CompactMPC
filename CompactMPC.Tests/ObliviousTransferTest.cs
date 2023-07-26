@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using CompactMPC.Buffers;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
-using CompactMPC.Util;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -15,7 +14,7 @@ namespace CompactMPC
         [TestMethod]
         public Task TestNaorPinkasObliviousTransfer()
         {
-            return TestNetworkRunner.RunTwoPartyNetwork(PerformObliviousTransfer);
+            return LocalNetworkRunner.RunTwoPartyNetwork(PerformObliviousTransfer);
         }
 
         private static async Task PerformObliviousTransfer(ITwoPartyNetworkSession session)

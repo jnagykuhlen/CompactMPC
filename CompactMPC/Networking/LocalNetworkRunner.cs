@@ -2,24 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CompactMPC.Networking;
 
-namespace CompactMPC.Util
+namespace CompactMPC.Networking
 {
-    public static class TestNetworkRunner
+    public static class LocalNetworkRunner
     {
         private const int Port = 16741;
 
-        public static Task RunMultiPartyNetwork(int numberOfParties, Func<IMultiPartyNetworkSession, Task> perPartyAction)
+        public static async Task RunMultiPartyNetwork(int numberOfParties, Func<IMultiPartyNetworkSession, Task> perPartyAction)
         {
             IEnumerable<Task<TcpMultiPartyNetworkSession>> sessionTasks = Enumerable
                 .Range(0, numberOfParties)
                 .Select(partyId => TcpMultiPartyNetworkSession.EstablishLoopbackAsync(new Party(partyId), Port, numberOfParties));
             
-            return RunNetwork(sessionTasks, perPartyAction);
+            await RunAndDispose(sessionTasks, perPartyAction);
         }
         
-        public static Task RunTwoPartyNetwork(Func<ITwoPartyNetworkSession, Task> perPartyAction)
+        public static async Task RunTwoPartyNetwork(Func<ITwoPartyNetworkSession, Task> perPartyAction)
         {
             Party firstParty = new Party(0);
             Party secondParty = new Party(1);
@@ -31,14 +30,18 @@ namespace CompactMPC.Util
                 listener.AcceptAsync()
             };
 
-            return RunNetwork(sessionTasks, perPartyAction);
+            await RunAndDispose(sessionTasks, perPartyAction);
         }
 
-        private static async Task RunNetwork<T>(IEnumerable<Task<T>> sessionTasks, Func<T, Task> perPartyAction)
+        private static async Task RunAndDispose<T>(IEnumerable<Task<T>> sessionTasks, Func<T, Task> perPartyAction)
             where T : IDisposable
         {
             T[] sessions = await Task.WhenAll(sessionTasks);
             await Task.WhenAll(sessions.Select(perPartyAction));
+            foreach (T session in sessions)
+            {
+                session.Dispose();
+            }
         }
     }
 }
