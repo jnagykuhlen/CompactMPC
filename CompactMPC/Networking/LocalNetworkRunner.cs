@@ -7,26 +7,26 @@ namespace CompactMPC.Networking
 {
     public static class LocalNetworkRunner
     {
-        private const int Port = 16741;
+        private const int DefaultStartPort = 16741;
 
-        public static async Task RunMultiPartyNetwork(int numberOfParties, Func<IMultiPartyNetworkSession, Task> perPartyAction)
+        public static async Task RunMultiPartyNetwork(int numberOfParties, Func<IMultiPartyNetworkSession, Task> perPartyAction, int startPort = DefaultStartPort)
         {
             IEnumerable<Task<TcpMultiPartyNetworkSession>> sessionTasks = Enumerable
                 .Range(0, numberOfParties)
-                .Select(partyId => TcpMultiPartyNetworkSession.EstablishLoopbackAsync(new Party(partyId), Port, numberOfParties));
+                .Select(partyId => TcpMultiPartyNetworkSession.EstablishLoopbackAsync(new Party(partyId), startPort, numberOfParties));
             
             await RunAndDispose(sessionTasks, perPartyAction);
         }
         
-        public static async Task RunTwoPartyNetwork(Func<ITwoPartyNetworkSession, Task> perPartyAction)
+        public static async Task RunTwoPartyNetwork(Func<ITwoPartyNetworkSession, Task> perPartyAction, int port = DefaultStartPort)
         {
             Party firstParty = new Party(0);
             Party secondParty = new Party(1);
             
-            using ITwoPartyConnectionListener listener = TcpTwoPartyNetworkSession.CreateListenerLoopback(secondParty, Port);
+            using ITwoPartyConnectionListener listener = TcpTwoPartyNetworkSession.CreateListenerLoopback(secondParty, port);
             Task<TcpTwoPartyNetworkSession>[] sessionTasks =
             {
-                TcpTwoPartyNetworkSession.ConnectLoopbackAsync(firstParty, Port),
+                TcpTwoPartyNetworkSession.ConnectLoopbackAsync(firstParty, port),
                 listener.AcceptAsync()
             };
 
