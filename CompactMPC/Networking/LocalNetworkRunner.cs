@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace CompactMPC.Networking
@@ -18,16 +19,18 @@ namespace CompactMPC.Networking
             await RunAndDispose(sessionTasks, perPartyAction);
         }
         
-        public static async Task RunTwoPartyNetwork(Func<ITwoPartyNetworkSession, Task> perPartyAction, int port = DefaultStartPort)
+        public static async Task RunTwoPartyNetwork(Func<ITwoPartyNetworkSession, Task> perPartyAction, int startPort = DefaultStartPort)
         {
             Party firstParty = new Party(0);
             Party secondParty = new Party(1);
+
+            IPEndPoint firstEndPoint = new IPEndPoint(IPAddress.Loopback, startPort);
+            IPEndPoint secondEndPoint = new IPEndPoint(IPAddress.Loopback, startPort + 1);
             
-            using ITwoPartyConnectionListener listener = TcpTwoPartyNetworkSession.CreateListenerLoopback(secondParty, port);
             Task<TcpTwoPartyNetworkSession>[] sessionTasks =
             {
-                TcpTwoPartyNetworkSession.ConnectLoopbackAsync(firstParty, port),
-                listener.AcceptAsync()
+                TcpTwoPartyNetworkSession.EstablishAsync(firstParty, firstEndPoint, secondEndPoint),
+                TcpTwoPartyNetworkSession.EstablishAsync(secondParty, secondEndPoint, firstEndPoint)
             };
 
             await RunAndDispose(sessionTasks, perPartyAction);

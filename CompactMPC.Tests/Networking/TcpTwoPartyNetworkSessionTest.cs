@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -7,25 +8,24 @@ namespace CompactMPC.Networking
     [TestClass]
     public class TcpTwoPartyNetworkSessionTest
     {
-        private const int Port = 12674;
-        
         private static readonly Party FirstParty = new Party(0, "First");
         private static readonly Party SecondParty = new Party(1, "Second");
 
-        [TestMethod]
-        public void TestTcpTwoPartyNetworkSession()
-        {
-            using ITwoPartyConnectionListener listener = TcpTwoPartyNetworkSession.CreateListenerLoopback(SecondParty, Port);
-            
-            Task<TcpTwoPartyNetworkSession> firstSessionTask = TcpTwoPartyNetworkSession.ConnectLoopbackAsync(FirstParty, Port);
-            Task<TcpTwoPartyNetworkSession> secondSessionTask = listener.AcceptAsync();
+        private static readonly IPEndPoint FirstEndPoint = new IPEndPoint(IPAddress.Loopback, 12674);
+        private static readonly IPEndPoint SecondEndPoint = new IPEndPoint(IPAddress.Loopback, 12675);
 
-            using TcpTwoPartyNetworkSession firstSession = firstSessionTask.Result;
-            using TcpTwoPartyNetworkSession secondSession = secondSessionTask.Result;
+        [TestMethod]
+        public async Task TestTcpTwoPartyNetworkSession()
+        {
+            Task<TcpTwoPartyNetworkSession> firstSessionTask = TcpTwoPartyNetworkSession.EstablishAsync(FirstParty, FirstEndPoint, SecondEndPoint);
+            Task<TcpTwoPartyNetworkSession> secondSessionTask = TcpTwoPartyNetworkSession.EstablishAsync(SecondParty, SecondEndPoint, FirstEndPoint);
+
+            using TcpTwoPartyNetworkSession firstSession = await firstSessionTask;
+            using TcpTwoPartyNetworkSession secondSession = await secondSessionTask;
 
             firstSession.LocalParty.Should().Be(FirstParty);
             firstSession.RemoteParty.Should().Be(SecondParty);
-            
+
             secondSession.LocalParty.Should().Be(SecondParty);
             secondSession.RemoteParty.Should().Be(FirstParty);
         }

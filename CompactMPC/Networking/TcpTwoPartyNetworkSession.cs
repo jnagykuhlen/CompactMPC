@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CompactMPC.Networking
@@ -22,11 +24,72 @@ namespace CompactMPC.Networking
         {
             return ConnectAsync(localParty, new IPEndPoint(IPAddress.Loopback, port));
         }
-        
-        public static async Task<TcpTwoPartyNetworkSession> ConnectAsync(Party localParty, IPEndPoint endpoint)
+
+        public static async Task<TcpTwoPartyNetworkSession> EstablishAsync(Party localParty, IPEndPoint localEndPoint, IPEndPoint remoteEndPoint)
+        {
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+            Task<TcpClient> listenTask = ListenAsync(localEndPoint, cancellationTokenSource.Token);
+            Task<TcpClient> connectTask = ConnectAsync(remoteEndPoint, cancellationTokenSource.Token);
+
+            Task<TcpClient> selectedClientTask = await Task.WhenAny(
+                listenTask,
+                connectTask
+            );
+
+            cancellationTokenSource.Cancel();
+
+            TcpClient selectedClient = selectedClientTask.Result;
+
+            try
+            {
+                TcpClient[] clients = await Task.WhenAll(listenTask, connectTask);
+                foreach (TcpClient client in clients)
+                {
+                    if (client != selectedClient)
+                        client.Dispose();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
+            return CreateFromPartyInformationExchange(localParty, selectedClientTask.Result);
+        }
+
+        private static async Task<TcpClient> ListenAsync(IPEndPoint localEndPoint, CancellationToken cancellationToken)
+        {
+            TcpListener listener = new TcpListener(localEndPoint) { ExclusiveAddressUse = true };
+            listener.Start();
+            try
+            {
+                return await listener.AcceptTcpClientAsync(cancellationToken);
+            }
+            finally
+            {
+                listener.Stop();
+            }
+        }
+
+        private static async Task<TcpClient> ConnectAsync(IPEndPoint remoteEndPoint, CancellationToken cancellationToken)
         {
             TcpClient client = new TcpClient();
-            await client.ConnectAsync(endpoint.Address, endpoint.Port);
+            try
+            {
+                await client.ConnectAsync(remoteEndPoint, cancellationToken);
+                return client;
+            }
+            catch (Exception)
+            {
+                client.Dispose();
+                throw;
+            }
+        }
+
+        public static async Task<TcpTwoPartyNetworkSession> ConnectAsync(Party localParty, IPEndPoint remoteEndPoint)
+        {
+            TcpClient client = new TcpClient();
+            await client.ConnectAsync(remoteEndPoint);
             return CreateFromPartyInformationExchange(localParty, client);
         }
 
@@ -34,7 +97,7 @@ namespace CompactMPC.Networking
         {
             return new ConnectionListener(localParty, localEndPoint);
         }
-        
+
         public static ITwoPartyConnectionListener CreateListenerLoopback(Party localParty, int port)
         {
             return CreateListener(localParty, new IPEndPoint(IPAddress.Loopback, port));
@@ -72,7 +135,7 @@ namespace CompactMPC.Networking
         public Party LocalParty { get; }
 
         public Party RemoteParty { get; }
-        
+
         private class ConnectionListener : ITwoPartyConnectionListener
         {
             private readonly Party _localParty;
