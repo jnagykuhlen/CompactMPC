@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,7 +9,9 @@ namespace CompactMPC.Networking
     [TestClass]
     public class TcpMultiPartyNetworkSessionTest
     {
-        private const int StartPort = 12684;
+        private static readonly IPEndPoint FirstEndPoint = new IPEndPoint(IPAddress.Loopback, 12840);
+        private static readonly IPEndPoint SecondEndPoint = new IPEndPoint(IPAddress.Loopback, 12841);
+        private static readonly IPEndPoint ThirdEndPoint = new IPEndPoint(IPAddress.Loopback, 12842);
         
         private static readonly Party FirstParty = new Party(0);
         private static readonly Party SecondParty = new Party(1);
@@ -17,9 +20,9 @@ namespace CompactMPC.Networking
         [TestMethod]
         public async Task TestTcpMultiPartyNetworkSession()
         {
-            Task<TcpMultiPartyNetworkSession> firstSessionTask = TcpMultiPartyNetworkSession.EstablishLoopbackAsync(FirstParty, StartPort, 3);
-            Task<TcpMultiPartyNetworkSession> secondSessionTask = TcpMultiPartyNetworkSession.EstablishLoopbackAsync(FirstParty, StartPort, 3);
-            Task<TcpMultiPartyNetworkSession> thirdSessionTask = TcpMultiPartyNetworkSession.EstablishLoopbackAsync(FirstParty, StartPort, 3);
+            Task<TcpMultiPartyNetworkSession> firstSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(FirstParty, FirstEndPoint, new[] { SecondEndPoint, ThirdEndPoint });
+            Task<TcpMultiPartyNetworkSession> secondSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(SecondParty, SecondEndPoint, new[] { FirstEndPoint, ThirdEndPoint });
+            Task<TcpMultiPartyNetworkSession> thirdSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(ThirdParty, ThirdEndPoint, new[] { FirstEndPoint, SecondEndPoint });
 
             using TcpMultiPartyNetworkSession firstSession = await firstSessionTask;
             using TcpMultiPartyNetworkSession secondSession = await secondSessionTask;
@@ -28,17 +31,17 @@ namespace CompactMPC.Networking
             firstSession.LocalParty.Should().Be(FirstParty);
             firstSession.RemotePartySessions.Select(session => session.RemoteParty)
                 .Should()
-                .Equal(SecondParty, ThirdParty);
+                .BeEquivalentTo(SecondParty, ThirdParty);
             
             secondSession.LocalParty.Should().Be(SecondParty);
             secondSession.RemotePartySessions.Select(session => session.RemoteParty)
                 .Should()
-                .Equal(FirstParty, ThirdParty);
+                .BeEquivalentTo(FirstParty, ThirdParty);
             
             thirdSession.LocalParty.Should().Be(ThirdParty);
             thirdSession.RemotePartySessions.Select(session => session.RemoteParty)
                 .Should()
-                .Equal(FirstParty, SecondParty);
+                .BeEquivalentTo(FirstParty, SecondParty);
         }
     }
 }
