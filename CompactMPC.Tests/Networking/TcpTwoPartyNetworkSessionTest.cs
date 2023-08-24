@@ -8,8 +8,8 @@ namespace CompactMPC.Networking
     [TestClass]
     public class TcpTwoPartyNetworkSessionTest
     {
-        private static readonly Party FirstParty = new Party(0, "First");
-        private static readonly Party SecondParty = new Party(1, "Second");
+        private static readonly Party FirstParty = new Party(0);
+        private static readonly Party SecondParty = new Party(1);
 
         private static readonly IPEndPoint FirstEndPoint = new IPEndPoint(IPAddress.Loopback, 12674);
         private static readonly IPEndPoint SecondEndPoint = new IPEndPoint(IPAddress.Loopback, 12675);
