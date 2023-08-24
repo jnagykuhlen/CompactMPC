@@ -12,9 +12,14 @@ namespace CompactMPC.Networking
 
         public static async Task RunMultiPartyNetwork(int numberOfParties, Func<IMultiPartyNetworkSession, Task> perPartyAction, int startPort = DefaultStartPort)
         {
+            IPEndPoint[] endPoints = Enumerable
+                .Range(0, numberOfParties)
+                .Select(partyId => new IPEndPoint(IPAddress.Loopback, startPort + partyId))
+                .ToArray();
+
             IEnumerable<Task<TcpMultiPartyNetworkSession>> sessionTasks = Enumerable
                 .Range(0, numberOfParties)
-                .Select(partyId => TcpMultiPartyNetworkSession.EstablishLoopbackAsync(new Party(partyId), startPort, numberOfParties));
+                .Select(partyId => TcpMultiPartyNetworkSession.EstablishAsync(new Party(partyId), endPoints[partyId], endPoints.Without(endPoints[partyId]).ToArray()));
             
             await RunAndDispose(sessionTasks, perPartyAction);
         }
