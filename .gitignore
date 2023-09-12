@@ -3,4 +3,7 @@
 *.suo
 /packages/*
 .vs
+.vscode
+.idea
+*.DotSettings.user
 project.lock.json

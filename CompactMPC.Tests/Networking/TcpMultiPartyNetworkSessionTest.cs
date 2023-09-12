@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,42 +9,39 @@ namespace CompactMPC.Networking
     [TestClass]
     public class TcpMultiPartyNetworkSessionTest
     {
-        private const int Port = 12684;
+        private static readonly IPEndPoint FirstEndPoint = new IPEndPoint(IPAddress.Loopback, 12840);
+        private static readonly IPEndPoint SecondEndPoint = new IPEndPoint(IPAddress.Loopback, 12841);
+        private static readonly IPEndPoint ThirdEndPoint = new IPEndPoint(IPAddress.Loopback, 12842);
         
-        private static readonly Party FirstParty = new Party(0, "First");
-        private static readonly Party SecondParty = new Party(1, "Second");
-        private static readonly Party ThirdParty = new Party(2, "Third");
+        private static readonly Party FirstParty = new Party(0);
+        private static readonly Party SecondParty = new Party(1);
+        private static readonly Party ThirdParty = new Party(2);
 
         [TestMethod]
-        public void TestTcpMultiPartyNetworkSession()
+        public async Task TestTcpMultiPartyNetworkSession()
         {
-            Task<TcpMultiPartyNetworkSession> firstSessionTask = CreateMultiPartySessionAsync(FirstParty, 3);
-            Task<TcpMultiPartyNetworkSession> secondSessionTask = CreateMultiPartySessionAsync(SecondParty, 3);
-            Task<TcpMultiPartyNetworkSession> thirdSessionTask = CreateMultiPartySessionAsync(ThirdParty, 3);
+            Task<TcpMultiPartyNetworkSession> firstSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(FirstParty, FirstEndPoint, new[] { SecondEndPoint, ThirdEndPoint });
+            Task<TcpMultiPartyNetworkSession> secondSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(SecondParty, SecondEndPoint, new[] { FirstEndPoint, ThirdEndPoint });
+            Task<TcpMultiPartyNetworkSession> thirdSessionTask = TcpMultiPartyNetworkSession.EstablishAsync(ThirdParty, ThirdEndPoint, new[] { FirstEndPoint, SecondEndPoint });
 
-            using TcpMultiPartyNetworkSession firstSession = firstSessionTask.Result;
-            using TcpMultiPartyNetworkSession secondSession = secondSessionTask.Result;
-            using TcpMultiPartyNetworkSession thirdSession = thirdSessionTask.Result;
+            using TcpMultiPartyNetworkSession firstSession = await firstSessionTask;
+            using TcpMultiPartyNetworkSession secondSession = await secondSessionTask;
+            using TcpMultiPartyNetworkSession thirdSession = await thirdSessionTask;
 
             firstSession.LocalParty.Should().Be(FirstParty);
             firstSession.RemotePartySessions.Select(session => session.RemoteParty)
                 .Should()
-                .Equal(SecondParty, ThirdParty);
+                .BeEquivalentTo(SecondParty, ThirdParty);
             
             secondSession.LocalParty.Should().Be(SecondParty);
             secondSession.RemotePartySessions.Select(session => session.RemoteParty)
                 .Should()
-                .Equal(FirstParty, ThirdParty);
+                .BeEquivalentTo(FirstParty, ThirdParty);
             
             thirdSession.LocalParty.Should().Be(ThirdParty);
             thirdSession.RemotePartySessions.Select(session => session.RemoteParty)
                 .Should()
-                .Equal(FirstParty, SecondParty);
-        }
-        
-        private static Task<TcpMultiPartyNetworkSession> CreateMultiPartySessionAsync(Party party, int numberOfParties)
-        {
-            return TcpMultiPartyNetworkSession.EstablishLoopbackAsync(party, Port, numberOfParties);
+                .BeEquivalentTo(FirstParty, SecondParty);
         }
     }
 }

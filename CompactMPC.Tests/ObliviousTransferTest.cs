@@ -1,8 +1,8 @@
 using System.Text;
+using System.Threading.Tasks;
 using CompactMPC.Buffers;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
-using CompactMPC.Util;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,12 +12,12 @@ namespace CompactMPC
     public class ObliviousTransferTest
     {
         [TestMethod]
-        public void TestNaorPinkasObliviousTransfer()
+        public Task TestNaorPinkasObliviousTransfer()
         {
-            TestNetworkRunner.RunTwoPartyNetwork(PerformObliviousTransfer);
+            return LocalNetworkRunner.RunTwoPartyNetwork(PerformObliviousTransfer);
         }
 
-        private static void PerformObliviousTransfer(ITwoPartyNetworkSession session)
+        private static async Task PerformObliviousTransfer(ITwoPartyNetworkSession session)
         {
             Quadruple<Message>[] options =
             {
@@ -47,12 +47,12 @@ namespace CompactMPC
 
             if (session.LocalParty.Id == 0)
             {
-                obliviousTransfer.SendAsync(session.Channel, options, 3, 5).Wait();
+                await obliviousTransfer.SendAsync(session.Channel, options, 3, 5);
             }
             else
             {
                 QuadrupleIndexArray indices = new QuadrupleIndexArray(new[] { 0, 3, 2 });
-                Message[] results = obliviousTransfer.ReceiveAsync(session.Channel, indices, 3, 5).Result;
+                Message[] results = await obliviousTransfer.ReceiveAsync(session.Channel, indices, 3, 5);
 
                 results.Should().BeEquivalentTo(options[0][0], options[1][3], options[2][2]);
             }
