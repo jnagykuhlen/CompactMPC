@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CompactMPC.Buffers;
 using CompactMPC.Networking;
 
-namespace CompactMPC.ObliviousTransfer
+namespace CompactMPC.ObliviousTransfer.Preprocessing
 {
-    public class PreprocessedObliviousTransfer : IObliviousTransfer
+    public class PreprocessedObliviousTransfer : IBitObliviousTransfer
     {
         private readonly PreprocessedSenderBatch _senderBatch;
         private readonly PreprocessedReceiverBatch _receiverBatch;
@@ -27,11 +28,12 @@ namespace CompactMPC.ObliviousTransfer
             if (_senderBatch == null || _nextSenderInstanceId + numberOfInvocations > _senderBatch.NumberOfInstances)
                 throw new InvalidOperationException("Not enough preprocessed sender data available.");
 
-            byte[] packedDeltaSelectionIndices = await channel.ReadMessageAsync();
+            Message packedDeltaSelectionIndices = await channel.ReadMessageAsync();
             if (packedDeltaSelectionIndices.Length != QuadrupleIndexArray.RequiredBytes(numberOfInvocations))
                 throw new DesynchronizationException("Received incorrect number of delta selection indices.");
 
-            QuadrupleIndexArray deltaSelectionIndices = QuadrupleIndexArray.FromBytes(packedDeltaSelectionIndices, numberOfInvocations);
+            QuadrupleIndexArray deltaSelectionIndices =
+                QuadrupleIndexArray.FromBytes(packedDeltaSelectionIndices.ToBuffer(), numberOfInvocations);
 
             BitQuadrupleArray maskedOptionQuadruples = new BitQuadrupleArray(numberOfInvocations);
             for (int i = 0; i < numberOfInvocations; ++i)
@@ -49,7 +51,7 @@ namespace CompactMPC.ObliviousTransfer
                 maskedOptionQuadruples[i] = maskedOptions;
             }
             
-            await channel.WriteMessageAsync(maskedOptionQuadruples.ToBytes());
+            await channel.WriteMessageAsync(new Message(maskedOptionQuadruples.ToBytes()));
 
             _nextSenderInstanceId += numberOfInvocations;
         }
@@ -70,13 +72,14 @@ namespace CompactMPC.ObliviousTransfer
                 deltaSelectionIndices[i] = deltaSelectionIndex;
             }
 
-            await channel.WriteMessageAsync(deltaSelectionIndices.ToBytes());
+            await channel.WriteMessageAsync(new Message(deltaSelectionIndices.ToBytes()));
 
-            byte[] packedMaskedOptionQuadruples = await channel.ReadMessageAsync();
+            Message packedMaskedOptionQuadruples = await channel.ReadMessageAsync();
             if (packedMaskedOptionQuadruples.Length != BitQuadrupleArray.RequiredBytes(numberOfInvocations))
                 throw new DesynchronizationException("Received incorrect number of masked option quadruples.");
 
-            BitQuadrupleArray maskedOptionQuadruples = BitQuadrupleArray.FromBytes(packedMaskedOptionQuadruples, numberOfInvocations);
+            BitQuadrupleArray maskedOptionQuadruples =
+                BitQuadrupleArray.FromBytes(packedMaskedOptionQuadruples.ToBuffer(), numberOfInvocations);
 
             BitArray selectedBits = new BitArray(numberOfInvocations);
             for (int i = 0; i < numberOfInvocations; ++i)

@@ -19,7 +19,7 @@ namespace CompactMPC.Expressions
             return new SecureWord(builder, bits.Select(bit => bit.IsSet ? Wire.One : Wire.Zero));
         }
 
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
         {
             return ReferenceEquals(this, other);
         }

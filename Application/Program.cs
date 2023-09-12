@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Numerics;
-using System.Reflection;
 using System.Threading.Tasks;
-using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
@@ -17,88 +17,46 @@ namespace CompactMPC.Application
         private const int NumberOfParties = 3;
         private const int NumberOfElements = 10;
         private const int StartPort = 12348;
-        
-        private static readonly BitArray[] Inputs = {
+
+        private static readonly BitArray[] Inputs =
+        {
             BitArray.FromBinaryString("0111010011"),
             BitArray.FromBinaryString("1101100010"),
             BitArray.FromBinaryString("0111110011")
         };
 
-        public static void Main(string[] args)
-        {
-            if (args.Length == 0)
-            {
-                RunCoordinator();
-            }
-            else if (args.Length == 1)
-            {
-                int localPartyId = int.Parse(args[0]);
-                RunSecureComputationParty(localPartyId, Inputs[localPartyId]);
-            }
-            else
-            {
-                Console.WriteLine("Invalid number of arguments.");
-            }
-        }
+        private static readonly IPEndPoint[] EndPoints = Enumerable.Range(0, NumberOfParties)
+            .Select(partyIndex => new IPEndPoint(IPAddress.Loopback, StartPort + partyIndex))
+            .ToArray();
 
-        private static void RunCoordinator()
+        public static async Task Main()
         {
-            Console.WriteLine("Starting parties...");
+            Console.WriteLine($"Start this application {NumberOfParties} times to begin computation.");
             
-            string executablePath = Assembly.GetExecutingAssembly().Location;
-            Process[] processes = Enumerable
-                .Range(0, NumberOfParties)
-                .Select(partyId => Process.Start(executablePath, partyId.ToString()))
-                .ToArray();
+            SessionInfo sessionInfo = await EstablishSessionAsync();
+            using IMultiPartyNetworkSession session = sessionInfo.Session;
             
-            Console.WriteLine("Successfully started parties.");
-            Console.WriteLine("Waiting for parties to finish computation...");
-            
-            foreach (Process process in processes)
-                process.WaitForExit();
-            
-            Console.WriteLine("Computation finished.");
-        }
+            BitArray localInput = Inputs[sessionInfo.LocalPartyIndex];
 
-        private static void RunSecureComputationParty(int localPartyId, BitArray localInput)
-        {
-            RunSecureComputationPartyAsync(localPartyId, localInput).Wait();
-        }
-        
-        private static async Task RunSecureComputationPartyAsync(int localPartyId, BitArray localInput)
-        {
-            Console.WriteLine($"Starting party {localPartyId}...");
-            
-            using IMultiPartyNetworkSession session = await TcpMultiPartyNetworkSession.EstablishLoopbackAsync(
-                new Party(localPartyId),
-                StartPort,
-                NumberOfParties
-            );
-            
-            using CryptoContext cryptoContext = CryptoContext.CreateDefault();
-
-            IObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
-                SecurityParameters.CreateDefault768Bit(),
-                cryptoContext
+            IBitObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
+                SecurityParameters.CreateDefault768Bit()
             );
 
             IMultiplicativeSharing multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(
-                obliviousTransfer,
-                cryptoContext
+                obliviousTransfer
             );
 
             SecretSharingSecureComputation computation = new SecretSharingSecureComputation(
                 session,
-                multiplicativeSharing,
-                cryptoContext
+                multiplicativeSharing
             );
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             SetIntersectionSecureProgram secureProgram = new SetIntersectionSecureProgram(NumberOfParties, NumberOfElements);
-            object[] outputPrimitives = await secureProgram.EvaluateAsync(computation, new object[] {localInput});
-            BitArray intersection = (BitArray) outputPrimitives[0];
-            BigInteger count = (BigInteger) outputPrimitives[1];
+            object[] outputPrimitives = await secureProgram.EvaluateAsync(computation, new object[] { localInput });
+            BitArray intersection = (BitArray)outputPrimitives[0];
+            BigInteger count = (BigInteger)outputPrimitives[1];
 
             stopwatch.Stop();
 
@@ -107,10 +65,49 @@ namespace CompactMPC.Application
             Console.WriteLine($"  Local input: {localInput.ToBinaryString()}");
             Console.WriteLine($"  Computed intersection: {intersection.ToBinaryString()}");
             Console.WriteLine($"  Computed number of matches: {count}");
-            
+
             Console.WriteLine();
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey(true);
+        }
+
+        private static async Task<SessionInfo> EstablishSessionAsync(int localPartyIndex = 0)
+        {
+            try
+            {
+                IPEndPoint localEndPoint = EndPoints[localPartyIndex];
+                IPEndPoint[] remoteEndPoints = EndPoints.Without(localEndPoint).ToArray();
+                Party localParty = new Party(localPartyIndex);
+
+                Console.WriteLine($"Try listening at {localEndPoint}...");
+
+                TcpMultiPartyNetworkSession session = await TcpMultiPartyNetworkSession.EstablishAsync(
+                    localParty,
+                    localEndPoint,
+                    remoteEndPoints
+                );
+                
+                return new SessionInfo(session, localPartyIndex);
+            }
+            catch (SocketException socketException)
+                when (socketException.SocketErrorCode == SocketError.AddressAlreadyInUse && localPartyIndex + 1 < NumberOfParties)
+            {
+                Console.WriteLine("  Address already in use");
+                return await EstablishSessionAsync(localPartyIndex + 1);
+            }
+        }
+    }
+
+    public class SessionInfo
+    {
+        public IMultiPartyNetworkSession Session { get; }
+
+        public int LocalPartyIndex { get; }
+
+        public SessionInfo(IMultiPartyNetworkSession session, int localPartyIndex)
+        {
+            Session = session;
+            LocalPartyIndex = localPartyIndex;
         }
     }
 }

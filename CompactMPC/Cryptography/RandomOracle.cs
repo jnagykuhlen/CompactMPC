@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CompactMPC.Cryptography
 {
-    public abstract class RandomOracle : IDisposable
+    public abstract class RandomOracle
     {
         public byte[] Mask(byte[] message, byte[] query)
         {
@@ -24,6 +24,5 @@ namespace CompactMPC.Cryptography
         }
 
         public abstract IEnumerable<byte> Invoke(byte[] query);
-        public abstract void Dispose();
     }
 }

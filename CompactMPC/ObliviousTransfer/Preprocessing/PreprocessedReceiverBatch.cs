@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CompactMPC.ObliviousTransfer
+namespace CompactMPC.ObliviousTransfer.Preprocessing
 {
     public class PreprocessedReceiverBatch
     {

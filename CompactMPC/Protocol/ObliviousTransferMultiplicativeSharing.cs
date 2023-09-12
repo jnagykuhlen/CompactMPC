@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
@@ -8,13 +7,11 @@ namespace CompactMPC.Protocol
 {
     public class ObliviousTransferMultiplicativeSharing : PairwiseMultiplicativeSharing
     {
-        private readonly IObliviousTransfer _obliviousTransfer;
-        private readonly RandomNumberGenerator _randomNumberGenerator;
+        private readonly IBitObliviousTransfer _obliviousTransfer;
 
-        public ObliviousTransferMultiplicativeSharing(IObliviousTransfer obliviousTransfer, CryptoContext cryptoContext)
+        public ObliviousTransferMultiplicativeSharing(IBitObliviousTransfer obliviousTransfer)
         {
             _obliviousTransfer = obliviousTransfer;
-            _randomNumberGenerator = new ThreadSafeRandomNumberGenerator(cryptoContext.RandomNumberGenerator);
         }
 
         protected override Task<BitArray> ComputePairwiseMultiplicativeSharesAsync(ITwoPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
@@ -28,7 +25,7 @@ namespace CompactMPC.Protocol
 
         private async Task<BitArray> ComputeSenderSharesAsync(IMessageChannel channel, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
         {
-            BitArray randomShares = _randomNumberGenerator.GetBits(numberOfInvocations);
+            BitArray randomShares = RandomNumberGenerator.GetBits(numberOfInvocations);
             BitQuadrupleArray options = new BitQuadrupleArray(numberOfInvocations);
 
             for (int i = 0; i < numberOfInvocations; ++i)

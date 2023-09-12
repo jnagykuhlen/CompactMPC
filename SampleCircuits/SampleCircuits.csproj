@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>CompactMPC.SampleCircuits</RootNamespace>
     <AssemblyName>CompactMPC.SampleCircuits</AssemblyName>
     <AssemblyVersion>0.1.0</AssemblyVersion>
