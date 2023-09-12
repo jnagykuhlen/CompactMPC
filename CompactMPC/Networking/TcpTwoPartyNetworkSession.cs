@@ -72,7 +72,9 @@ namespace CompactMPC.Networking
             TcpTwoPartyNetworkSession session =
                 await CreateFromPartyInfoExchangeAsync(await listener.AcceptTcpClientAsync(), localParty);
 
+#if DEBUG
             Console.WriteLine($"[{localParty.Name}] LISTEN successful to {session.RemoteParty.Name}.");
+#endif
 
             return session;
         }
@@ -98,7 +100,9 @@ namespace CompactMPC.Networking
                 await client.ConnectAsync(remoteEndPoint);
                 TcpTwoPartyNetworkSession session = await CreateFromPartyInfoExchangeAsync(client, localParty);
 
+#if DEBUG
                 Console.WriteLine($"[{localParty.Name}] CONNECT successful to {session.RemoteParty.Name}.");
+#endif
 
                 return session;
             }
