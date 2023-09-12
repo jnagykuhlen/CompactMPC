@@ -60,7 +60,6 @@ namespace CompactMPC.Networking
                 }
 
                 return establishedSessions;
-
             }
             finally
             {
@@ -70,21 +69,42 @@ namespace CompactMPC.Networking
 
         private static async Task<TcpTwoPartyNetworkSession> ListenAsync(TcpListener listener, Party localParty)
         {
-            return await CreateFromPartyInfoExchangeAsync(await listener.AcceptTcpClientAsync(), localParty);
+            TcpTwoPartyNetworkSession session =
+                await CreateFromPartyInfoExchangeAsync(await listener.AcceptTcpClientAsync(), localParty);
+
+            Console.WriteLine($"[{localParty.Name}] LISTEN successful to {session.RemoteParty.Name}.");
+
+            return session;
         }
 
-        private static async Task<TcpTwoPartyNetworkSession> ConnectAsync(IPEndPoint remoteEndPoint, Party localParty)
+        private static Task<TcpTwoPartyNetworkSession> ConnectAsync(IPEndPoint remoteEndPoint, Party localParty)
         {
             TcpClient client = new TcpClient();
             try
             {
-                await client.ConnectAsync(remoteEndPoint);
-                return await CreateFromPartyInfoExchangeAsync(client, localParty);
+                return RetriedConnectAsync(client, remoteEndPoint, localParty);
             }
             catch (Exception)
             {
                 client.Dispose();
                 throw;
+            }
+        }
+
+        private static async Task<TcpTwoPartyNetworkSession> RetriedConnectAsync(TcpClient client, IPEndPoint remoteEndPoint, Party localParty)
+        {
+            try
+            {
+                await client.ConnectAsync(remoteEndPoint);
+                TcpTwoPartyNetworkSession session = await CreateFromPartyInfoExchangeAsync(client, localParty);
+
+                Console.WriteLine($"[{localParty.Name}] CONNECT successful to {session.RemoteParty.Name}.");
+
+                return session;
+            }
+            catch (SocketException exception) when (exception.SocketErrorCode == SocketError.ConnectionRefused)
+            {
+                return await RetriedConnectAsync(client, remoteEndPoint, localParty);
             }
         }
 
