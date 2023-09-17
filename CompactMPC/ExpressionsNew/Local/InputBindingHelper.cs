@@ -1,4 +1,4 @@
-﻿namespace CompactMPC.ExpressionsNew
+﻿namespace CompactMPC.ExpressionsNew.Local
 {
     public static class InputBindingHelper
     {

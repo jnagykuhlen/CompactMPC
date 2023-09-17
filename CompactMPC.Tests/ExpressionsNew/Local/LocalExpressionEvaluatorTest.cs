@@ -3,7 +3,7 @@ using CompactMPC.Circuits;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.ExpressionsNew
+namespace CompactMPC.ExpressionsNew.Local
 {
     [TestClass]
     public class LocalExpressionEvaluatorTest

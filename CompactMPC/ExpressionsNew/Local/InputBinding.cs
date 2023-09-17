@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CompactMPC.ExpressionsNew
+namespace CompactMPC.ExpressionsNew.Local
 {
     public class InputBinding<T> : IInputBinding
     {

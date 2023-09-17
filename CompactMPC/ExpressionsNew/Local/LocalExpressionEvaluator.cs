@@ -3,7 +3,7 @@ using System.Linq;
 using CompactMPC.Circuits;
 using CompactMPC.Circuits.Batching;
 
-namespace CompactMPC.ExpressionsNew
+namespace CompactMPC.ExpressionsNew.Local
 {
     public class LocalExpressionEvaluator
     {

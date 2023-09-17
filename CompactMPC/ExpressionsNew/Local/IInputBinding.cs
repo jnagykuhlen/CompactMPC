@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CompactMPC.ExpressionsNew
+namespace CompactMPC.ExpressionsNew.Local
 {
     public interface IInputBinding
     {
