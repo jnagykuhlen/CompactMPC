@@ -4,34 +4,24 @@ using System.Linq;
 
 namespace CompactMPC.ExpressionsNew.Local
 {
-    public class InputBinding<T> : IInputBinding
+    public class InputBinding
     {
-        private readonly IInputExpression<T> _expression;
-        private readonly T _value;
-
-        public InputBinding(IInputExpression<T> expression, T value)
+        public static InputBinding From<T>(IInputExpression<T> expression, T value)
         {
             if (expression.Wires.Any(wire => wire.IsConstant))
                 throw new ArgumentException("Cannot create input binding for constant expression.", nameof(expression));
 
-            _expression = expression;
-            _value = value;
+            return new InputBinding(expression.Wires, expression.ToBits(value));
         }
 
-        public IReadOnlyList<Wire> Wires
+        private InputBinding(IReadOnlyList<Wire> wires, IReadOnlyList<Bit> bits)
         {
-            get
-            {
-                return _expression.Wires;
-            }
+            Wires = wires;
+            Bits = bits;
         }
 
-        public IReadOnlyList<Bit> Bits
-        {
-            get
-            {
-                return _expression.ToBits(_value);
-            }
-        }
+        public IReadOnlyList<Wire> Wires { get; }
+
+        public IReadOnlyList<Bit> Bits { get; }
     }
 }
