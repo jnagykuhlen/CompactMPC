@@ -80,19 +80,21 @@ namespace CompactMPC.ExpressionsNew
             return new Wire(new ForwardInputGate());
         }
 
-        public ForwardGate Gate
-        {
-            get
-            {
-                return _gate ?? throw new NotSupportedException("Constant wires are not associated with a gate.");
-            }
-        }
+        public ForwardGate Gate => _gate ?? throw new NotSupportedException("Constant wires are not associated with a gate.");
 
-        public bool IsConstant
+        public bool IsConstant => _gate == null;
+
+        public Bit? ConstantValue
         {
             get
             {
-                return _gate == null;
+                if (this == Zero)
+                    return Bit.Zero;
+
+                if (this == One)
+                    return Bit.One;
+
+                return null;
             }
         }
     }

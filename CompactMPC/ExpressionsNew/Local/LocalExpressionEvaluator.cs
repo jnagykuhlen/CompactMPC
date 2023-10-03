@@ -9,42 +9,25 @@ namespace CompactMPC.ExpressionsNew.Local
     {
         public T Evaluate<T>(IOutputExpression<T> expression, params ExpressionInputBinding[] inputBindings)
         {
-            IReadOnlyList<ForwardGate> inputGates = inputBindings
-                .SelectMany(inputBinding => inputBinding.Wires)
-                .Select(wire => wire.Gate)
-                .ToList();
-
-            IReadOnlyList<ForwardGate> outputGates = expression.Wires
+            IReadOnlySet<ForwardGate> outputGates = expression.Wires
                 .Where(wire => !wire.IsConstant)
                 .Select(wire => wire.Gate)
-                .ToList();
+                .ToHashSet();
 
-            IReadOnlyList<Bit> inputBits = inputBindings
-                .SelectMany(inputBinding => inputBinding.Bits)
-                .ToList();
+            IReadOnlyDictionary<ForwardGate, Bit> gateInputs = new Dictionary<ForwardGate, Bit>(
+                inputBindings.SelectMany(inputBinding => inputBinding.Wires
+                    .Select(wire => wire.Gate)
+                    .Zip(inputBinding.Bits, KeyValuePair.Create))
+            );
 
-            ForwardCircuit circuit = new ForwardCircuit(inputGates, outputGates);
-            IReadOnlyList<Bit> nonConstantOutputBits = circuit.Evaluate(LocalCircuitEvaluator.Instance, inputBits);
-
-            int nextNonConstantOutputBitIndex = 0;
-            Bit NextNonConstantOutputBit() => nonConstantOutputBits[nextNonConstantOutputBitIndex++];
+            IReadOnlyDictionary<ForwardGate, Bit> gateOutputs =
+                ForwardCircuit.Evaluate(LocalCircuitEvaluator.Instance, gateInputs, outputGates);
 
             IReadOnlyList<Bit> outputBits = expression.Wires
-                .Select(wire => GetConstantValue(wire) ?? NextNonConstantOutputBit())
+                .Select(wire => wire.ConstantValue ?? gateOutputs[wire.Gate])
                 .ToList();
 
             return expression.FromBits(outputBits);
-        }
-
-        private static Bit? GetConstantValue(Wire wire)
-        {
-            if (wire == Wire.Zero)
-                return Bit.Zero;
-
-            if (wire == Wire.One)
-                return Bit.One;
-
-            return null;
         }
     }
 }
