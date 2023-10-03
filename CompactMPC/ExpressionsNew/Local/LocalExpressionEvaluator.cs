@@ -7,7 +7,7 @@ namespace CompactMPC.ExpressionsNew.Local
 {
     public class LocalExpressionEvaluator
     {
-        public T Evaluate<T>(IOutputExpression<T> expression, params InputBinding[] inputBindings)
+        public T Evaluate<T>(IOutputExpression<T> expression, params ExpressionInputBinding[] inputBindings)
         {
             IReadOnlyList<ForwardGate> inputGates = inputBindings
                 .SelectMany(inputBinding => inputBinding.Wires)
