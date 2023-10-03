@@ -26,13 +26,5 @@
 
         protected abstract void ReceiveInputValues<T>(T leftValue, T rightValue, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState);
         protected abstract void Visit(ICircuitVisitor visitor);
-        
-        public override bool IsAssignable
-        {
-            get
-            {
-                return false;
-            }
-        }
     }
 }

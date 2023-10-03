@@ -27,6 +27,6 @@ namespace CompactMPC.Circuits.Batching
 
         protected abstract void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState);
         protected abstract void ReceiveVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState);
-        public abstract bool IsAssignable { get; }
+        public virtual bool IsAssignable => false;
     }
 }

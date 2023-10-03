@@ -14,12 +14,6 @@ namespace CompactMPC.Circuits.Batching.Internal
             throw new InvalidOperationException("Input gate cannot receive visiting requests.");
         }
         
-        public override bool IsAssignable
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool IsAssignable => true;
     }
 }
