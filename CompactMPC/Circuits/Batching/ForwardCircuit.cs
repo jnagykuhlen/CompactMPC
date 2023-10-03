@@ -15,16 +15,16 @@ namespace CompactMPC.Circuits.Batching
         {
             if (inputGates.Any(gate => !gate.IsAssignable))
                 throw new ArgumentException("Cannot assign input to unassignable gate.", nameof(inputGates));
-            
+
             if (inputGates.Distinct().Count() < inputGates.Count)
                 throw new ArgumentException("Cannot assign input gate more than once.", nameof(inputGates));
-            
+
             _inputGates = inputGates;
             _outputGates = outputGates;
             _context = null;
         }
 
-        // TODO: For compatibility only
+        [Obsolete("For compatibility only")]
         public static ForwardCircuit FromCircuit(IEvaluableCircuit circuit)
         {
             return ForwardCircuitBuilder.Build(circuit);
@@ -34,10 +34,10 @@ namespace CompactMPC.Circuits.Batching
         {
             CountingCircuitVisitor visitor = new CountingCircuitVisitor();
             ForwardVisitingState visitingState = new ForwardVisitingState();
-            
+
             foreach (ForwardGate inputGate in inputGates)
                 inputGate.SendVisitingRequest(visitor, visitingState);
-            
+
             return new CircuitContext(
                 visitor.NumberOfAndGates,
                 visitor.NumberOfXorGates,
@@ -57,7 +57,13 @@ namespace CompactMPC.Circuits.Batching
             if (input.Count != _inputGates.Count)
                 throw new ArgumentException("Number of provided inputs does not match the number of input wires in the circuit.", nameof(input));
 
-            ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>(_outputGates);
+            ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>();
+            Dictionary<ForwardGate, T> outputByGate = new Dictionary<ForwardGate, T>(_outputGates.Count);
+            evaluationState.OnOutputEvaluated += (gate, value) =>
+            {
+                if (_outputGates.Contains(gate))
+                    outputByGate.Add(gate, value);
+            };
 
             for (int i = 0; i < _inputGates.Count; ++i)
                 _inputGates[i].SendOutputValue(input[i], evaluator, evaluationState);
@@ -78,14 +84,15 @@ namespace CompactMPC.Circuits.Batching
             T[] output = new T[_outputGates.Count];
             for (int i = 0; i < output.Length; ++i)
             {
-                if (!evaluationState.GetOutputValue(_outputGates[i], out output[i]))
+                if (!outputByGate.TryGetValue(_outputGates[i], out output[i]))
                     throw new CircuitEvaluationException($"Output at index {i + 1} could not be evaluated from the given input.");
             }
 
             return output;
         }
 
-        public CircuitContext Context {
+        public CircuitContext Context
+        {
             get
             {
                 if (_context == null)
