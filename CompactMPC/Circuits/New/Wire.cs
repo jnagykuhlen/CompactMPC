@@ -2,7 +2,7 @@
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Circuits.Batching.Internal;
 
-namespace CompactMPC.ExpressionsNew
+namespace CompactMPC.Circuits.New
 {
     public sealed class Wire
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CompactMPC.Circuits.New;
 using CompactMPC.Expressions;
 using CompactMPC.ExpressionsNew.Internal;
 

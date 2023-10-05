@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CompactMPC.Circuits.New;
 
 namespace CompactMPC.ExpressionsNew
 {
