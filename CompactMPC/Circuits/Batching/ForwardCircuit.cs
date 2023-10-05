@@ -47,13 +47,13 @@ namespace CompactMPC.Circuits.Batching
             );
         }
 
-        [Obsolete("Use static Evaluate method instead.")]
+        [Obsolete("Use ForwardCircuitEvaluation class instead.")]
         public IReadOnlyList<T> Evaluate<T>(ICircuitEvaluator<T> evaluator, IReadOnlyList<T> input)
         {
             return Evaluate(new BatchCircuitEvaluator<T>(evaluator), input);
         }
 
-        [Obsolete("Use static Evaluate method instead.")]
+        [Obsolete("Use ForwardCircuitEvaluation class instead.")]
         public IReadOnlyList<T> Evaluate<T>(IBatchCircuitEvaluator<T> evaluator, IReadOnlyList<T> input)
         {
             if (input.Count != _inputGates.Count)
@@ -102,46 +102,6 @@ namespace CompactMPC.Circuits.Batching
 
                 return _context;
             }
-        }
-
-        public static IReadOnlyDictionary<ForwardGate, T> Evaluate<T>(ICircuitEvaluator<T> evaluator, IReadOnlyDictionary<ForwardGate, T> gateInputs, IReadOnlySet<ForwardGate> outputGates)
-        {
-            return Evaluate(new BatchCircuitEvaluator<T>(evaluator), gateInputs, outputGates);
-        }
-
-        public static IReadOnlyDictionary<ForwardGate, T> Evaluate<T>(IBatchCircuitEvaluator<T> evaluator, IReadOnlyDictionary<ForwardGate, T> gateInputs, IReadOnlySet<ForwardGate> outputGates)
-        {
-            if (gateInputs.Keys.Any(gate => !gate.IsAssignable))
-                throw new ArgumentException("Cannot assign input to unassignable gate.", nameof(gateInputs));
-            
-            ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>();
-            Dictionary<ForwardGate, T> gateOutputs = new Dictionary<ForwardGate, T>(outputGates.Count);
-            evaluationState.OnOutputEvaluated += (gate, value) =>
-            {
-                if (outputGates.Contains(gate))
-                    gateOutputs.Add(gate, value);
-            };
-
-            foreach ((ForwardGate gate, T value) in gateInputs)
-                gate.SendOutputValue(value, evaluator, evaluationState);
-
-            GateEvaluation<T>[] delayedAndGateEvaluations;
-            while ((delayedAndGateEvaluations = evaluationState.NextDelayedAndGateEvaluations()).Length > 0)
-            {
-                GateEvaluationInput<T>[] evaluationInputs = delayedAndGateEvaluations.Select(evaluation => evaluation.Input).ToArray();
-                T[] evaluationOutputs = evaluator.EvaluateAndGateBatch(evaluationInputs);
-
-                if (evaluationOutputs.Length != evaluationInputs.Length)
-                    throw new CircuitEvaluationException("Batch circuit evaluator must provide exactly one output value for each gate evaluation.");
-
-                for (int i = 0; i < delayedAndGateEvaluations.Length; ++i)
-                    delayedAndGateEvaluations[i].Gate.SendOutputValue(evaluationOutputs[i], evaluator, evaluationState);
-            }
-
-            if (gateOutputs.Count < outputGates.Count)
-                throw new CircuitEvaluationException($"Could not evaluate {outputGates.Count - gateOutputs.Count} output gate values from given inputs.");
-
-            return gateOutputs;
         }
     }
 }
