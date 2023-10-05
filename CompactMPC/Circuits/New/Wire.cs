@@ -97,5 +97,7 @@ namespace CompactMPC.Circuits.New
                 return null;
             }
         }
+
+        public bool IsAssignable => _gate is { IsAssignable: true };
     }
 }

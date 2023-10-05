@@ -5,65 +5,75 @@ using CompactMPC.Circuits.Batching.Internal;
 
 namespace CompactMPC.Circuits.New
 {
-    public class ForwardCircuitEvaluation<T>
+    public static class ForwardCircuitEvaluation
     {
-        private readonly IBatchCircuitEvaluator<T> _evaluator;
-        private readonly Dictionary<ForwardGate, T> _gateInputs;
-        private readonly HashSet<ForwardGate> _outputGates;
-
-        private ForwardCircuitEvaluation(IBatchCircuitEvaluator<T> evaluator)
-        {
-            _evaluator = evaluator;
-            _gateInputs = new Dictionary<ForwardGate, T>();
-            _outputGates = new HashSet<ForwardGate>();
-        }
-
-        public static ForwardCircuitEvaluation<T> From(IBatchCircuitEvaluator<T> evaluator)
+        public static ForwardCircuitEvaluation<T> From<T>(IBatchCircuitEvaluator<T> evaluator)
         {
             return new ForwardCircuitEvaluation<T>(evaluator);
         }
 
-        public static ForwardCircuitEvaluation<T> From(ICircuitEvaluator<T> evaluator)
+        public static ForwardCircuitEvaluation<T> From<T>(ICircuitEvaluator<T> evaluator)
         {
             return new ForwardCircuitEvaluation<T>(new BatchCircuitEvaluator<T>(evaluator));
         }
+    }
 
-        public ForwardCircuitEvaluation<T> Input(ForwardGate gate, T value)
+    public class ForwardCircuitEvaluation<T>
+    {
+        private readonly IBatchCircuitEvaluator<T> _evaluator;
+        private readonly Dictionary<Wire, T> _wireInputs;
+        private readonly Dictionary<ForwardGate, Wire> _outputWiresByGate;
+
+        public ForwardCircuitEvaluation(IBatchCircuitEvaluator<T> evaluator)
         {
-            if (!gate.IsAssignable)
-                throw new CircuitEvaluationException("Cannot assign input to unassignable gate.");
+            _evaluator = evaluator;
+            _wireInputs = new Dictionary<Wire, T>();
+            _outputWiresByGate = new Dictionary<ForwardGate, Wire>();
+        }
 
-            if (!_gateInputs.TryAdd(gate, value))
-                throw new CircuitEvaluationException("Gate value has already been assigned.");
+        public ForwardCircuitEvaluation<T> Input(WireValue<T> wireValue)
+        {
+            if (!_wireInputs.TryAdd(wireValue.Wire, wireValue.Value))
+                throw new CircuitEvaluationException("Wire value has already been assigned.");
 
             return this;
         }
 
-        public ForwardCircuitEvaluation<T> Output(ForwardGate gate)
+        public ForwardCircuitEvaluation<T> Input(IEnumerable<WireValue<T>> wireValues)
         {
-            _outputGates.Add(gate);
+            foreach (WireValue<T> wireValue in wireValues)
+                Input(wireValue);
+
             return this;
         }
 
-        public ForwardCircuitEvaluation<T> Output(IEnumerable<ForwardGate> gates)
+        public ForwardCircuitEvaluation<T> Output(Wire wire)
         {
-            foreach (ForwardGate gate in gates)
-                _outputGates.Add(gate);
+            _outputWiresByGate.Add(wire.Gate, wire);
             return this;
         }
 
-        public IReadOnlyDictionary<ForwardGate, T> Execute()
+        public ForwardCircuitEvaluation<T> Output(IEnumerable<Wire> wires)
+        {
+            foreach (Wire wire in wires)
+                Output(wire);
+
+            return this;
+        }
+
+        // TODO: Return custom type instead of Dictionary
+        public IReadOnlyDictionary<Wire, T> Execute()
         {
             ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>();
-            Dictionary<ForwardGate, T> gateOutputs = new Dictionary<ForwardGate, T>(_outputGates.Count);
+            Dictionary<Wire, T> wireOutputs = new Dictionary<Wire, T>(_outputWiresByGate.Count);
             evaluationState.OnOutputEvaluated += (gate, value) =>
             {
-                if (_outputGates.Contains(gate))
-                    gateOutputs.Add(gate, value);
+                if (_outputWiresByGate.TryGetValue(gate, out Wire? wire))
+                    wireOutputs.Add(wire, value);
             };
 
-            foreach ((ForwardGate gate, T value) in _gateInputs)
-                gate.SendOutputValue(value, _evaluator, evaluationState);
+            foreach ((Wire wire, T value) in _wireInputs)
+                wire.Gate.SendOutputValue(value, _evaluator, evaluationState);
 
             GateEvaluation<T>[] delayedAndGateEvaluations;
             while ((delayedAndGateEvaluations = evaluationState.NextDelayedAndGateEvaluations()).Length > 0)
@@ -78,10 +88,10 @@ namespace CompactMPC.Circuits.New
                     delayedAndGateEvaluations[i].Gate.SendOutputValue(evaluationOutputs[i], _evaluator, evaluationState);
             }
 
-            if (gateOutputs.Count < _outputGates.Count)
-                throw new CircuitEvaluationException($"Could not evaluate {_outputGates.Count - gateOutputs.Count} output gate values from given inputs.");
+            if (wireOutputs.Count < _outputWiresByGate.Count)
+                throw new CircuitEvaluationException($"Could not evaluate {_outputWiresByGate.Count - wireOutputs.Count} output gate values from given inputs.");
 
-            return gateOutputs;
+            return wireOutputs;
         }
     }
 }
