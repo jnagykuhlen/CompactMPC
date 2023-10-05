@@ -5,18 +5,18 @@ using CompactMPC.Circuits.New;
 
 namespace CompactMPC.ExpressionsNew.Local
 {
-    public class ExpressionInputBinding
+    public class ExpressionValue
     {
-        public static ExpressionInputBinding From<T>(IInputExpression<T> expression, T value)
+        public static ExpressionValue From<T>(IInputExpression<T> expression, T value)
         {
             List<WireValue<Bit>> wireValues = expression.Wires
                 .Zip(expression.ToBits(value), WireValue.Create)
                 .ToList();
             
-            return new ExpressionInputBinding(wireValues);
+            return new ExpressionValue(wireValues);
         }
 
-        private ExpressionInputBinding(IReadOnlyList<WireValue<Bit>> wireValues)
+        private ExpressionValue(IReadOnlyList<WireValue<Bit>> wireValues)
         {
             WireValues = wireValues;
         }

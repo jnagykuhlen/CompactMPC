@@ -10,25 +10,25 @@ namespace CompactMPC.ExpressionsNew.Local
     // TODO: Rename to LocalExpressionEvaluation and implement as builder
     public class LocalExpressionEvaluator
     {
-        public T Evaluate<T>(IOutputExpression<T> expression, params ExpressionInputBinding[] inputBindings)
+        public T Evaluate<T>(IOutputExpression<T> outputExpression, params ExpressionValue[] inputExpressionValues)
         {
-            IEnumerable<WireValue<Bit>> wireInputs = inputBindings.SelectMany(
-                inputBinding => inputBinding.WireValues
+            IEnumerable<WireValue<Bit>> wireInputs = inputExpressionValues.SelectMany(
+                inputExpressionValue => inputExpressionValue.WireValues
             );
             
-            IEnumerable<Wire> outputWires = expression.Wires
+            IEnumerable<Wire> outputWires = outputExpression.Wires
                 .Where(wire => !wire.IsConstant);
             
-            IReadOnlyDictionary<Wire, Bit> gateOutputs = ForwardCircuitEvaluation.From(LocalCircuitEvaluator.Instance)
+            IReadOnlyDictionary<Wire, Bit> wireOutputs = ForwardCircuitEvaluation.From(LocalCircuitEvaluator.Instance)
                 .Input(wireInputs)
                 .Output(outputWires)
                 .Execute();
             
-            IReadOnlyList<Bit> outputBits = expression.Wires
-                .Select(wire => wire.ConstantValue ?? gateOutputs[wire])
+            IReadOnlyList<Bit> outputBits = outputExpression.Wires
+                .Select(wire => wire.ConstantValue ?? wireOutputs[wire])
                 .ToList();
 
-            return expression.FromBits(outputBits);
+            return outputExpression.FromBits(outputBits);
         }
     }
 }
