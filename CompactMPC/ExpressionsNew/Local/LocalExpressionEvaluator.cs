@@ -7,12 +7,13 @@ using Wire = CompactMPC.Circuits.New.Wire;
 
 namespace CompactMPC.ExpressionsNew.Local
 {
+    // TODO: Rename to LocalExpressionEvaluation and implement as builder
     public class LocalExpressionEvaluator
     {
         public T Evaluate<T>(IOutputExpression<T> expression, params ExpressionInputBinding[] inputBindings)
         {
             IEnumerable<WireValue<Bit>> wireInputs = inputBindings.SelectMany(
-                inputBinding => inputBinding.Wires.Zip(inputBinding.Bits, WireValue.Create)
+                inputBinding => inputBinding.WireValues
             );
             
             IEnumerable<Wire> outputWires = expression.Wires

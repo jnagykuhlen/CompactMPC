@@ -9,20 +9,18 @@ namespace CompactMPC.ExpressionsNew.Local
     {
         public static ExpressionInputBinding From<T>(IInputExpression<T> expression, T value)
         {
-            if (expression.Wires.Any(wire => wire.IsConstant))
-                throw new ArgumentException("Cannot create input binding for constant expression.", nameof(expression));
-
-            return new ExpressionInputBinding(expression.Wires, expression.ToBits(value));
+            List<WireValue<Bit>> wireValues = expression.Wires
+                .Zip(expression.ToBits(value), WireValue.Create)
+                .ToList();
+            
+            return new ExpressionInputBinding(wireValues);
         }
 
-        private ExpressionInputBinding(IReadOnlyList<Wire> wires, IReadOnlyList<Bit> bits)
+        private ExpressionInputBinding(IReadOnlyList<WireValue<Bit>> wireValues)
         {
-            Wires = wires;
-            Bits = bits;
+            WireValues = wireValues;
         }
 
-        public IReadOnlyList<Wire> Wires { get; }
-
-        public IReadOnlyList<Bit> Bits { get; }
+        public IReadOnlyList<WireValue<Bit>> WireValues { get; }
     }
 }
