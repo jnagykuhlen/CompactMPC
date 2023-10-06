@@ -6,10 +6,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CompactMPC.ExpressionsNew.Local
 {
     [TestClass]
-    public class LocalExpressionEvaluatorTest
+    public class LocalExpressionEvaluationTest
     {
-        private readonly LocalExpressionEvaluator _localExpressionEvaluator = new LocalExpressionEvaluator();
-
         [TestMethod]
         public void TestEvaluateFromInputs()
         {
@@ -20,10 +18,21 @@ namespace CompactMPC.ExpressionsNew.Local
             BooleanExpression e = b > a;
             BooleanExpression f = c && e;
 
-            _localExpressionEvaluator.Evaluate(a, a.Bind(113)).Should().Be(113);
-            _localExpressionEvaluator.Evaluate(d, a.Bind(42), b.Bind(137), c.Bind(true)).Should().Be(180);
-            _localExpressionEvaluator.Evaluate(e, a.Bind(42), b.Bind(137), c.Bind(true)).Should().BeTrue();
-            _localExpressionEvaluator.Evaluate(f, a.Bind(42), b.Bind(137), c.Bind(false)).Should().BeFalse();
+            new LocalExpressionEvaluation().Input(a, 113).ExecuteFor(a)
+                .Should().Be(113);
+
+            new LocalExpressionEvaluation()
+                .Input(a, 42).Input(b, 137).Input(c, true)
+                .Output(d).Output(e)
+                .Execute()
+                .Value(d, out int dValue)
+                .Value(e, out bool eValue);
+
+            dValue.Should().Be(180);
+            eValue.Should().BeTrue();
+            
+            new LocalExpressionEvaluation().Input(a, 42).Input(b, 137).Input(c, false).ExecuteFor(f)
+                .Should().BeFalse();
         }
 
         [TestMethod]
@@ -33,7 +42,7 @@ namespace CompactMPC.ExpressionsNew.Local
             IntegerExpression b = IntegerExpression.FromInput(140);
             IntegerExpression c = a + b;
 
-            Action evaluate = () => _localExpressionEvaluator.Evaluate(c, a.Bind(113));
+            Action evaluate = () => new LocalExpressionEvaluation().Input(a, 113).ExecuteFor(c);
 
             evaluate.Should().Throw<CircuitEvaluationException>();
         }
@@ -45,8 +54,8 @@ namespace CompactMPC.ExpressionsNew.Local
             IntegerExpression constant = IntegerExpression.FromConstant(42);
             IntegerExpression sum = input + constant;
 
-            _localExpressionEvaluator.Evaluate(constant).Should().Be(42);
-            _localExpressionEvaluator.Evaluate(sum, input.Bind(3)).Should().Be(45);
+            new LocalExpressionEvaluation().ExecuteFor(constant).Should().Be(42);
+            new LocalExpressionEvaluation().Input(input, 3).ExecuteFor(sum).Should().Be(45);
         }
 
         [TestMethod]
@@ -54,7 +63,7 @@ namespace CompactMPC.ExpressionsNew.Local
         {
             IntegerExpression constant = IntegerExpression.FromConstant(42);
 
-            Action evaluate = () => _localExpressionEvaluator.Evaluate(constant, constant.Bind(21));
+            Action evaluate = () => new LocalExpressionEvaluation().Input(constant, 21).Execute();
 
             evaluate.Should().Throw<ArgumentException>();
         }
