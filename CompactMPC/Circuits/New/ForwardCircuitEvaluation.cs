@@ -61,8 +61,7 @@ namespace CompactMPC.Circuits.New
             return this;
         }
 
-        // TODO: Return custom type instead of Dictionary
-        public IReadOnlyDictionary<Wire, T> Execute()
+        public ForwardCircuitEvaluationResult<T> Execute()
         {
             ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>();
             Dictionary<Wire, T> wireOutputs = new Dictionary<Wire, T>(_outputWiresByGate.Count);
@@ -91,7 +90,7 @@ namespace CompactMPC.Circuits.New
             if (wireOutputs.Count < _outputWiresByGate.Count)
                 throw new CircuitEvaluationException($"Could not evaluate {_outputWiresByGate.Count - wireOutputs.Count} output gate values from given inputs.");
 
-            return wireOutputs;
+            return new ForwardCircuitEvaluationResult<T>(wireOutputs);
         }
     }
 }

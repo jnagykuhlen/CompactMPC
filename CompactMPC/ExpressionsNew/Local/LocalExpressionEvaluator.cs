@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using CompactMPC.Circuits;
-using CompactMPC.Circuits.Batching;
 using CompactMPC.Circuits.New;
 using Wire = CompactMPC.Circuits.New.Wire;
 
@@ -15,17 +14,17 @@ namespace CompactMPC.ExpressionsNew.Local
             IEnumerable<WireValue<Bit>> wireInputs = inputExpressionValues.SelectMany(
                 inputExpressionValue => inputExpressionValue.WireValues
             );
-            
+
             IEnumerable<Wire> outputWires = outputExpression.Wires
                 .Where(wire => !wire.IsConstant);
-            
-            IReadOnlyDictionary<Wire, Bit> wireOutputs = ForwardCircuitEvaluation.From(LocalCircuitEvaluator.Instance)
+
+            ForwardCircuitEvaluationResult<Bit> result = ForwardCircuitEvaluation.From(LocalCircuitEvaluator.Instance)
                 .Input(wireInputs)
                 .Output(outputWires)
                 .Execute();
-            
+
             IReadOnlyList<Bit> outputBits = outputExpression.Wires
-                .Select(wire => wire.ConstantValue ?? wireOutputs[wire])
+                .Select(wire => wire.ConstantValue ?? result.Value(wire))
                 .ToList();
 
             return outputExpression.FromBits(outputBits);
