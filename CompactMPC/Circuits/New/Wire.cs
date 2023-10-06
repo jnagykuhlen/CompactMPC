@@ -75,7 +75,7 @@ namespace CompactMPC.Circuits.New
             return new Wire(new ForwardNotGate(wire.Gate));
         }
 
-        public static Wire Input()
+        public static Wire Assignable()
         {
             return new Wire(new ForwardInputGate());
         }

@@ -11,9 +11,9 @@ namespace CompactMPC.ExpressionsNew.Local
         [TestMethod]
         public void TestEvaluateFromInputs()
         {
-            IntegerExpression a = IntegerExpression.FromInput(120);
-            IntegerExpression b = IntegerExpression.FromInput(140);
-            BooleanExpression c = BooleanExpression.FromInput();
+            IntegerExpression a = IntegerExpression.AssignableUpTo(120);
+            IntegerExpression b = IntegerExpression.AssignableUpTo(140);
+            BooleanExpression c = BooleanExpression.Assignable();
             IntegerExpression d = IntegerExpression.Sum(a, b, IntegerExpression.FromBoolean(c));
             BooleanExpression e = b > a;
             BooleanExpression f = c && e;
@@ -38,8 +38,8 @@ namespace CompactMPC.ExpressionsNew.Local
         [TestMethod]
         public void TestEvaluateWithMissingInputValues()
         {
-            IntegerExpression a = IntegerExpression.FromInput(120);
-            IntegerExpression b = IntegerExpression.FromInput(140);
+            IntegerExpression a = IntegerExpression.AssignableUpTo(120);
+            IntegerExpression b = IntegerExpression.AssignableUpTo(140);
             IntegerExpression c = a + b;
 
             Action evaluate = () => new LocalExpressionEvaluation().Input(a, 113).ExecuteFor(c);
@@ -50,8 +50,8 @@ namespace CompactMPC.ExpressionsNew.Local
         [TestMethod]
         public void TestEvaluateWithConstants()
         {
-            IntegerExpression input = IntegerExpression.FromInput(4);
-            IntegerExpression constant = IntegerExpression.FromConstant(42);
+            IntegerExpression input = IntegerExpression.AssignableUpTo(4);
+            IntegerExpression constant = IntegerExpression.Constant(42);
             IntegerExpression sum = input + constant;
 
             new LocalExpressionEvaluation().ExecuteFor(constant).Should().Be(42);
@@ -59,9 +59,9 @@ namespace CompactMPC.ExpressionsNew.Local
         }
 
         [TestMethod]
-        public void TestConstantWithConstantBinding()
+        public void TestConstantWithConstantAssignment()
         {
-            IntegerExpression constant = IntegerExpression.FromConstant(42);
+            IntegerExpression constant = IntegerExpression.Constant(42);
 
             Action evaluate = () => new LocalExpressionEvaluation().Input(constant, 21).Execute();
 

@@ -23,9 +23,9 @@ namespace CompactMPC.ExpressionsNew
             return BooleanBitConverter.Instance.FromBits(bits);
         }
 
-        public static BooleanExpression FromInput()
+        public static BooleanExpression Assignable()
         {
-            return new BooleanExpression(Wire.Input());
+            return new BooleanExpression(Wire.Assignable());
         }
 
         public static BooleanExpression operator &(BooleanExpression left, BooleanExpression right)

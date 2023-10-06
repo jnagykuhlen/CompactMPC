@@ -40,7 +40,7 @@ namespace CompactMPC.ExpressionsNew
             return new IntegerExpression(expression.Wires, 1);
         }
 
-        public static IntegerExpression FromConstant(int value)
+        public static IntegerExpression Constant(int value)
         {
             if (value < 0)
                 throw new ArgumentOutOfRangeException(nameof(value), "Constant value must not be negative.");
@@ -134,11 +134,11 @@ namespace CompactMPC.ExpressionsNew
             return !(left > right);
         }
 
-        public static IntegerExpression FromInput(int maxValue)
+        public static IntegerExpression AssignableUpTo(int maxValue)
         {
             Wire[] wires = Enumerable
                 .Range(0, RequiredNumberOfBits(maxValue))
-                .Select(i => Wire.Input())
+                .Select(i => Wire.Assignable())
                 .ToArray();
 
             return new IntegerExpression(wires, maxValue);
