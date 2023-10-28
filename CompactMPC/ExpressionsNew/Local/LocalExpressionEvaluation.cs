@@ -26,14 +26,14 @@ namespace CompactMPC.ExpressionsNew.Local
             return this;
         }
 
-        public LocalExpressionEvaluationResult Execute()
+        public LocalExpressionEvaluationResult Evaluate()
         {
             return new LocalExpressionEvaluationResult(_circuitEvaluation.Execute().ToDictionary());
         }
         
-        public T ExecuteFor<T>(IOutputExpression<T> expression)
+        public T Evaluate<T>(IOutputExpression<T> expression)
         {
-            return Output(expression).Execute().Value(expression);
+            return Output(expression).Evaluate().Value(expression);
         }
     }
 }

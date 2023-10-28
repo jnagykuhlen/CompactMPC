@@ -18,20 +18,20 @@ namespace CompactMPC.ExpressionsNew.Local
             BooleanExpression e = b > a;
             BooleanExpression f = c && e;
 
-            new LocalExpressionEvaluation().Input(a, 113).ExecuteFor(a)
+            new LocalExpressionEvaluation().Input(a, 113).Evaluate(a)
                 .Should().Be(113);
 
             new LocalExpressionEvaluation()
                 .Input(a, 42).Input(b, 137).Input(c, true)
                 .Output(d).Output(e)
-                .Execute()
+                .Evaluate()
                 .Value(d, out int dValue)
                 .Value(e, out bool eValue);
 
             dValue.Should().Be(180);
             eValue.Should().BeTrue();
             
-            new LocalExpressionEvaluation().Input(a, 42).Input(b, 137).Input(c, false).ExecuteFor(f)
+            new LocalExpressionEvaluation().Input(a, 42).Input(b, 137).Input(c, false).Evaluate(f)
                 .Should().BeFalse();
         }
 
@@ -42,7 +42,7 @@ namespace CompactMPC.ExpressionsNew.Local
             IntegerExpression b = IntegerExpression.AssignableUpTo(140);
             IntegerExpression c = a + b;
 
-            Action evaluate = () => new LocalExpressionEvaluation().Input(a, 113).ExecuteFor(c);
+            Action evaluate = () => new LocalExpressionEvaluation().Input(a, 113).Evaluate(c);
 
             evaluate.Should().Throw<CircuitEvaluationException>();
         }
@@ -54,8 +54,8 @@ namespace CompactMPC.ExpressionsNew.Local
             IntegerExpression constant = IntegerExpression.Constant(42);
             IntegerExpression sum = input + constant;
 
-            new LocalExpressionEvaluation().ExecuteFor(constant).Should().Be(42);
-            new LocalExpressionEvaluation().Input(input, 3).ExecuteFor(sum).Should().Be(45);
+            new LocalExpressionEvaluation().Evaluate(constant).Should().Be(42);
+            new LocalExpressionEvaluation().Input(input, 3).Evaluate(sum).Should().Be(45);
         }
 
         [TestMethod]
@@ -63,7 +63,7 @@ namespace CompactMPC.ExpressionsNew.Local
         {
             IntegerExpression constant = IntegerExpression.Constant(42);
 
-            Action evaluate = () => new LocalExpressionEvaluation().Input(constant, 21).Execute();
+            Action evaluate = () => new LocalExpressionEvaluation().Input(constant, 21).Evaluate();
 
             evaluate.Should().Throw<ArgumentException>();
         }
