@@ -33,17 +33,17 @@ namespace CompactMPC.Networking
             firstSession.LocalParty.Should().Be(FirstParty);
             firstSession.RemotePartySessions.Select(session => session.RemoteParty)
                 .Should()
-                .BeEquivalentTo(SecondParty, ThirdParty);
+                .BeEquivalentTo(new[] { SecondParty, ThirdParty });
 
             secondSession.LocalParty.Should().Be(SecondParty);
             secondSession.RemotePartySessions.Select(session => session.RemoteParty)
                 .Should()
-                .BeEquivalentTo(FirstParty, ThirdParty);
+                .BeEquivalentTo(new[] { FirstParty, ThirdParty });
 
             thirdSession.LocalParty.Should().Be(ThirdParty);
             thirdSession.RemotePartySessions.Select(session => session.RemoteParty)
                 .Should()
-                .BeEquivalentTo(FirstParty, SecondParty);
+                .BeEquivalentTo(new[] { FirstParty, SecondParty });
         }
 
         private static async Task<T> Delay<T>(int millisecondsDelay, Func<Task<T>> taskFactory)
