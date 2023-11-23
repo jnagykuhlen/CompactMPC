@@ -13,7 +13,7 @@ namespace CompactMPC.Circuits.New
 
         public T Value(Wire wire)
         {
-            if (_valuesByWire.TryGetValue(wire, out T value))
+            if (_valuesByWire.TryGetValue(wire, out T? value))
                 return value;
 
             throw new CircuitEvaluationException("Wire value was not evaluated.");
