@@ -20,30 +20,28 @@ namespace CompactMPC
         private static async Task PerformObliviousTransfer(ITwoPartyNetworkSession session)
         {
             Quadruple<Message>[] options =
-            {
-                new Quadruple<Message>(
+            [
+                new(
                     CreateMessage("Zebra"),
                     CreateMessage("Mouse"),
                     CreateMessage("Whale"),
                     CreateMessage("Sheep")
                 ),
-                new Quadruple<Message>(
+                new(
                     CreateMessage("China"),
                     CreateMessage("India"),
                     CreateMessage("Japan"),
                     CreateMessage("Nepal")
                 ),
-                new Quadruple<Message>(
+                new(
                     CreateMessage("Apple"),
                     CreateMessage("Pizza"),
                     CreateMessage("Melon"),
                     CreateMessage("Bread")
                 )
-            };
+            ];
 
-            IMessageObliviousTransfer obliviousTransfer = new NaorPinkasObliviousTransfer(
-                SecurityParameters.CreateDefault768Bit()
-            );
+            var obliviousTransfer = new NaorPinkasObliviousTransfer(SecurityParameters.CreateDefault768Bit());
 
             if (session.LocalParty.Id == 0)
             {
@@ -51,16 +49,13 @@ namespace CompactMPC
             }
             else
             {
-                QuadrupleIndexArray indices = new QuadrupleIndexArray(new[] { 0, 3, 2 });
-                Message[] results = await obliviousTransfer.ReceiveAsync(session.Channel, indices, 3, 5);
+                var indices = new QuadrupleIndexArray([0, 3, 2]);
+                var results = await obliviousTransfer.ReceiveAsync(session.Channel, indices, 3, 5);
 
-                results.Should().BeEquivalentTo(new[] { options[0][0], options[1][3], options[2][2] });
+                results.Should().Equal([options[0][0], options[1][3], options[2][2]]);
             }
         }
 
-        private static Message CreateMessage(string messageText)
-        {
-            return new Message(Encoding.ASCII.GetBytes(messageText));
-        }
+        private static Message CreateMessage(string messageText) => new(Encoding.ASCII.GetBytes(messageText));
     }
 }
