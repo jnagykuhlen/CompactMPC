@@ -26,9 +26,9 @@ namespace CompactMPC.ExpressionsNew.Local
             return this;
         }
 
-        public LocalExpressionEvaluationResult Evaluate()
+        public ExpressionEvaluationResult Evaluate()
         {
-            return new LocalExpressionEvaluationResult(_circuitEvaluation.Execute().ToDictionary());
+            return new ExpressionEvaluationResult(_circuitEvaluation.Execute().ToDictionary());
         }
         
         public T Evaluate<T>(IOutputExpression<T> expression)
