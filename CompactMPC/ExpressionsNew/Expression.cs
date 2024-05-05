@@ -3,13 +3,8 @@ using CompactMPC.Circuits.New;
 
 namespace CompactMPC.ExpressionsNew
 {
-    public abstract class Expression : IExpression
+    public abstract class Expression(IReadOnlyList<Wire> wires) : IExpression
     {
-        public IReadOnlyList<Wire> Wires { get; }
-
-        protected Expression(IReadOnlyList<Wire> wires)
-        {
-            Wires = wires;
-        }
+        public IReadOnlyList<Wire> Wires { get; } = wires;
     }
 }

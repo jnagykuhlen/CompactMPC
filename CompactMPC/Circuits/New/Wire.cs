@@ -6,8 +6,8 @@ namespace CompactMPC.Circuits.New
 {
     public sealed class Wire
     {
-        public static readonly Wire Zero = new Wire(null);
-        public static readonly Wire One = new Wire(null);
+        public static readonly Wire Zero = new(null);
+        public static readonly Wire One = new(null);
 
         private readonly ForwardGate? _gate;
 
@@ -75,10 +75,7 @@ namespace CompactMPC.Circuits.New
             return new Wire(new ForwardNotGate(wire.Gate));
         }
 
-        public static Wire Assignable()
-        {
-            return new Wire(new ForwardInputGate());
-        }
+        public static Wire Assignable() => new(new ForwardInputGate());
 
         public ForwardGate Gate => _gate ?? throw new NotSupportedException("Constant wires are not associated with a gate.");
 

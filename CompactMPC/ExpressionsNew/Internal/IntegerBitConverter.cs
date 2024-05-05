@@ -5,7 +5,7 @@ namespace CompactMPC.ExpressionsNew.Internal
 {
     public class IntegerBitConverter : IBitConverter<int>
     {
-        public static readonly IntegerBitConverter Instance = new IntegerBitConverter();
+        public static readonly IntegerBitConverter Instance = new();
 
         public IReadOnlyList<Bit> ToBits(int value, int numberOfBits)
         {
@@ -23,7 +23,7 @@ namespace CompactMPC.ExpressionsNew.Internal
         {
             int maxNumberOfBits = 8 * sizeof(int);
             if (bits.Count > maxNumberOfBits)
-                throw new ArgumentException($"Can not convert more than {maxNumberOfBits} bits to integer.", nameof(bits));
+                throw new ArgumentException($"Cannot convert more than {maxNumberOfBits} bits to integer.", nameof(bits));
             
             int result = 0;
             for (int i = 0; i < bits.Count; ++i)

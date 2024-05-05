@@ -7,38 +7,23 @@ using CompactMPC.ExpressionsNew.Internal;
 
 namespace CompactMPC.ExpressionsNew
 {
-    public class IntegerExpression : Expression, IInputExpression<int>, IOutputExpression<int>
+    public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expression(wires),
+        IInputExpression<int>, IOutputExpression<int>
     {
-        public static readonly IntegerExpression Zero = new IntegerExpression(new Wire[] { }, 0);
-        public static readonly IntegerExpression One = new IntegerExpression(new[] { Wire.One }, 1);
+        public static readonly IntegerExpression Zero = new([], 0);
+        public static readonly IntegerExpression One = new([Wire.One], 1);
 
-        public int MaxValue { get; }
+        public int MaxValue { get; } = maxValue;
 
-        public IntegerExpression(IReadOnlyList<Wire> wires, int maxValue)
-            : base(wires)
-        {
-            MaxValue = maxValue;
-        }
+        public IReadOnlyList<Bit> ToBits(int value) =>
+            IntegerBitConverter.Instance.ToBits(value, Wires.Count);
 
-        public IReadOnlyList<Bit> ToBits(int value)
-        {
-            return IntegerBitConverter.Instance.ToBits(value, Wires.Count);
-        }
+        public int FromBits(IReadOnlyList<Bit> bits) => IntegerBitConverter.Instance.FromBits(bits);
 
-        public int FromBits(IReadOnlyList<Bit> bits)
-        {
-            return IntegerBitConverter.Instance.FromBits(bits);
-        }
+        public static IntegerExpression Sum(params IntegerExpression[] values) =>
+            values.AggregateDepthEfficient((x, y) => x + y);
 
-        public static IntegerExpression Sum(params IntegerExpression[] values)
-        {
-            return values.AggregateDepthEfficient((x, y) => x + y);
-        }
-
-        public static IntegerExpression FromBoolean(BooleanExpression expression)
-        {
-            return new IntegerExpression(expression.Wires, 1);
-        }
+        public static IntegerExpression FromBoolean(BooleanExpression expression) => new(expression.Wires, 1);
 
         public static IntegerExpression Constant(int value)
         {
@@ -51,8 +36,8 @@ namespace CompactMPC.ExpressionsNew
             if (value == 1)
                 return One;
 
-            Wire[] wires = new Wire[RequiredNumberOfBits(value)];
-            for (int i = 0; i < wires.Length; ++i)
+            var wires = new Wire[RequiredNumberOfBits(value)];
+            for (var i = 0; i < wires.Length; ++i)
                 wires[i] = (value & (1 << i)) != 0 ? Wire.One : Wire.Zero;
 
             return new IntegerExpression(wires, value);
@@ -69,16 +54,16 @@ namespace CompactMPC.ExpressionsNew
 
         public static IntegerExpression operator +(IntegerExpression left, IntegerExpression right)
         {
-            int maxValue = left.MaxValue + right.MaxValue;
-            int numberOfBits = RequiredNumberOfBits(maxValue);
+            var maxValue = left.MaxValue + right.MaxValue;
+            var numberOfBits = RequiredNumberOfBits(maxValue);
 
-            Wire[] result = new Wire[numberOfBits];
-            Wire carryover = Wire.Zero;
+            var result = new Wire[numberOfBits];
+            var carryover = Wire.Zero;
 
-            for (int i = 0; i < numberOfBits; ++i)
+            for (var i = 0; i < numberOfBits; ++i)
             {
-                Wire leftWire = i < left.Wires.Count ? left.Wires[i] : Wire.Zero;
-                Wire rightWire = i < right.Wires.Count ? right.Wires[i] : Wire.Zero;
+                var leftWire = i < left.Wires.Count ? left.Wires[i] : Wire.Zero;
+                var rightWire = i < right.Wires.Count ? right.Wires[i] : Wire.Zero;
 
                 result[i] = Wire.Xor(Wire.Xor(leftWire, rightWire), carryover);
 
@@ -99,13 +84,13 @@ namespace CompactMPC.ExpressionsNew
 
         public static BooleanExpression operator >(IntegerExpression left, IntegerExpression right)
         {
-            int maxLength = Math.Max(left.Wires.Count, right.Wires.Count);
+            var maxLength = Math.Max(left.Wires.Count, right.Wires.Count);
 
-            Wire result = Wire.Zero;
-            for (int i = 0; i < maxLength; ++i)
+            var result = Wire.Zero;
+            for (var i = 0; i < maxLength; ++i)
             {
-                Wire leftWire = i < left.Wires.Count ? left.Wires[i] : Wire.Zero;
-                Wire rightWire = i < right.Wires.Count ? right.Wires[i] : Wire.Zero;
+                var leftWire = i < left.Wires.Count ? left.Wires[i] : Wire.Zero;
+                var rightWire = i < right.Wires.Count ? right.Wires[i] : Wire.Zero;
 
                 result = Wire.Xor(
                     leftWire,
@@ -119,26 +104,15 @@ namespace CompactMPC.ExpressionsNew
             return new BooleanExpression(result);
         }
 
-        public static BooleanExpression operator <(IntegerExpression left, IntegerExpression right)
-        {
-            return right > left;
-        }
-
-        public static BooleanExpression operator >=(IntegerExpression left, IntegerExpression right)
-        {
-            return !(right > left);
-        }
-
-        public static BooleanExpression operator <=(IntegerExpression left, IntegerExpression right)
-        {
-            return !(left > right);
-        }
+        public static BooleanExpression operator <(IntegerExpression left, IntegerExpression right) => right > left;
+        public static BooleanExpression operator >=(IntegerExpression left, IntegerExpression right) => !(right > left);
+        public static BooleanExpression operator <=(IntegerExpression left, IntegerExpression right) => !(left > right);
 
         public static IntegerExpression AssignableUpTo(int maxValue)
         {
-            Wire[] wires = Enumerable
+            var wires = Enumerable
                 .Range(0, RequiredNumberOfBits(maxValue))
-                .Select(i => Wire.Assignable())
+                .Select(_ => Wire.Assignable())
                 .ToArray();
 
             return new IntegerExpression(wires, maxValue);

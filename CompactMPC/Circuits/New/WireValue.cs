@@ -4,10 +4,7 @@ namespace CompactMPC.Circuits.New
 {
     public static class WireValue
     {
-        public static WireValue<T> Create<T>(Wire wire, T value)
-        {
-            return new WireValue<T>(wire, value);
-        }
+        public static WireValue<T> Create<T>(Wire wire, T value) => new(wire, value);
     }
     
     public class WireValue<T>

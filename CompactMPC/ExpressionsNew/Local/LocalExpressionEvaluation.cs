@@ -15,10 +15,8 @@ namespace CompactMPC.ExpressionsNew.Local
             return this;
         }
 
-        public LocalExpressionEvaluation Input<T>(IInputExpression<T> expression, T value)
-        {
-            return Input(ExpressionValue.From(expression, value));
-        }
+        public LocalExpressionEvaluation Input<T>(IInputExpression<T> expression, T value) => 
+            Input(ExpressionValue.From(expression, value));
 
         public LocalExpressionEvaluation Output<T>(IOutputExpression<T> expression)
         {
@@ -26,14 +24,10 @@ namespace CompactMPC.ExpressionsNew.Local
             return this;
         }
 
-        public ExpressionEvaluationResult Evaluate()
-        {
-            return new ExpressionEvaluationResult(_circuitEvaluation.Execute().ToDictionary());
-        }
-        
-        public T Evaluate<T>(IOutputExpression<T> expression)
-        {
-            return Output(expression).Evaluate().Value(expression);
-        }
+        public ExpressionEvaluationResult Evaluate() => 
+            new(_circuitEvaluation.Execute().ToDictionary());
+
+        public T Evaluate<T>(IOutputExpression<T> expression) => 
+            Output(expression).Evaluate().Value(expression);
     }
 }

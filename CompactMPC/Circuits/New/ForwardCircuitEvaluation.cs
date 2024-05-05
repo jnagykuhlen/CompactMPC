@@ -7,29 +7,16 @@ namespace CompactMPC.Circuits.New
 {
     public static class ForwardCircuitEvaluation
     {
-        public static ForwardCircuitEvaluation<T> From<T>(IBatchCircuitEvaluator<T> evaluator)
-        {
-            return new ForwardCircuitEvaluation<T>(evaluator);
-        }
+        public static ForwardCircuitEvaluation<T> From<T>(IBatchCircuitEvaluator<T> evaluator) => new(evaluator);
 
-        public static ForwardCircuitEvaluation<T> From<T>(ICircuitEvaluator<T> evaluator)
-        {
-            return new ForwardCircuitEvaluation<T>(new BatchCircuitEvaluator<T>(evaluator));
-        }
+        public static ForwardCircuitEvaluation<T> From<T>(ICircuitEvaluator<T> evaluator) =>
+            new(new BatchCircuitEvaluator<T>(evaluator));
     }
 
-    public class ForwardCircuitEvaluation<T>
+    public class ForwardCircuitEvaluation<T>(IBatchCircuitEvaluator<T> evaluator)
     {
-        private readonly IBatchCircuitEvaluator<T> _evaluator;
-        private readonly Dictionary<Wire, T> _wireInputs;
-        private readonly Dictionary<ForwardGate, Wire> _outputWiresByGate;
-
-        public ForwardCircuitEvaluation(IBatchCircuitEvaluator<T> evaluator)
-        {
-            _evaluator = evaluator;
-            _wireInputs = new Dictionary<Wire, T>();
-            _outputWiresByGate = new Dictionary<ForwardGate, Wire>();
-        }
+        private readonly Dictionary<Wire, T> _wireInputs = new();
+        private readonly Dictionary<ForwardGate, Wire> _outputWiresByGate = new();
 
         public ForwardCircuitEvaluation<T> Input(WireValue<T> wireValue)
         {
@@ -63,28 +50,31 @@ namespace CompactMPC.Circuits.New
 
         public ForwardCircuitEvaluationResult<T> Execute()
         {
-            ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>();
-            Dictionary<Wire, T> wireOutputs = new Dictionary<Wire, T>(_outputWiresByGate.Count);
+            var evaluationState = new ForwardEvaluationState<T>();
+            var wireOutputs = new Dictionary<Wire, T>(_outputWiresByGate.Count);
             evaluationState.OnOutputEvaluated += (gate, value) =>
             {
-                if (_outputWiresByGate.TryGetValue(gate, out Wire? wire))
+                if (_outputWiresByGate.TryGetValue(gate, out var wire))
                     wireOutputs.Add(wire, value);
             };
 
-            foreach ((Wire wire, T value) in _wireInputs)
-                wire.Gate.SendOutputValue(value, _evaluator, evaluationState);
+            foreach (var (wire, value) in _wireInputs)
+                wire.Gate.SendOutputValue(value, evaluator, evaluationState);
 
             GateEvaluation<T>[] delayedAndGateEvaluations;
             while ((delayedAndGateEvaluations = evaluationState.NextDelayedAndGateEvaluations()).Length > 0)
             {
-                GateEvaluationInput<T>[] evaluationInputs = delayedAndGateEvaluations.Select(evaluation => evaluation.Input).ToArray();
-                T[] evaluationOutputs = _evaluator.EvaluateAndGateBatch(evaluationInputs);
+                var evaluationInputs = delayedAndGateEvaluations
+                    .Select(evaluation => evaluation.Input)
+                    .ToArray();
+                
+                var evaluationOutputs = evaluator.EvaluateAndGateBatch(evaluationInputs);
 
                 if (evaluationOutputs.Length != evaluationInputs.Length)
                     throw new CircuitEvaluationException("Batch circuit evaluator must provide exactly one output value for each gate evaluation.");
 
-                for (int i = 0; i < delayedAndGateEvaluations.Length; ++i)
-                    delayedAndGateEvaluations[i].Gate.SendOutputValue(evaluationOutputs[i], _evaluator, evaluationState);
+                for (var i = 0; i < delayedAndGateEvaluations.Length; ++i)
+                    delayedAndGateEvaluations[i].Gate.SendOutputValue(evaluationOutputs[i], evaluator, evaluationState);
             }
 
             if (wireOutputs.Count < _outputWiresByGate.Count)
