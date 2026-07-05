@@ -4,6 +4,7 @@ using System.Linq;
 using CompactMPC.Circuits.New;
 using CompactMPC.Expressions;
 using CompactMPC.ExpressionsNew.Internal;
+using CompactMPC.Protocol.New;
 
 namespace CompactMPC.ExpressionsNew
 {
@@ -107,6 +108,9 @@ namespace CompactMPC.ExpressionsNew
         public static BooleanExpression operator <(IntegerExpression left, IntegerExpression right) => right > left;
         public static BooleanExpression operator >=(IntegerExpression left, IntegerExpression right) => !(right > left);
         public static BooleanExpression operator <=(IntegerExpression left, IntegerExpression right) => !(left > right);
+
+        public static Input<IntegerExpression> Input(int maxValue) => new(() => AssignableUpTo(maxValue));
+        public static Output<IntegerExpression> Output() => new();
 
         public static IntegerExpression AssignableUpTo(int maxValue)
         {

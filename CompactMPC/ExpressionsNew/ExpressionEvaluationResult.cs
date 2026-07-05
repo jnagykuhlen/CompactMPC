@@ -16,18 +16,18 @@ namespace CompactMPC.ExpressionsNew
             return expression.FromBits(bits);
         }
 
+        public ExpressionEvaluationResult Value<T>(IOutputExpression<T> expression, out T value)
+        {
+            value = Value(expression);
+            return this;
+        }
+
         private Bit GetValue(Wire wire)
         {
             if (valuesByWire.TryGetValue(wire, out var value))
                 return value;
             
             throw new CircuitEvaluationException("Expression value was not evaluated.");
-        }
-
-        public ExpressionEvaluationResult Value<T>(IOutputExpression<T> expression, out T value)
-        {
-            value = Value(expression);
-            return this;
         }
     }
 }
