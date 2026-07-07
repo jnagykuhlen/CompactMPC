@@ -16,12 +16,22 @@ namespace CompactMPC.ExpressionsNew
 
         public int MaxValue { get; } = maxValue;
 
-        public IReadOnlyList<Bit> ToBits(int value) =>
-            IntegerBitConverter.Instance.ToBits(value, Wires.Count);
+        public void WriteBits(int value, BitArray destination, int position)
+        {
+            var numberOfBits = Wires.Count;
+            if (value >= 1 << numberOfBits)
+                throw new ArgumentException($"Integer {value} is too large to represent by {numberOfBits} bits.", nameof(value));
+            
+            for (var i = 0; i < numberOfBits; ++i)
+                destination[position + i] = new Bit((value & (1 << i)) != 0);
+        }
 
         public int FromBits(IReadOnlyList<Bit> bits) => IntegerBitConverter.Instance.FromBits(bits);
 
         public static IntegerExpression Sum(params IntegerExpression[] values) =>
+            Sum((IReadOnlyList<IntegerExpression>)values);
+        
+        public static IntegerExpression Sum(IReadOnlyList<IntegerExpression> values) =>
             values.AggregateDepthEfficient((x, y) => x + y);
 
         public static IntegerExpression FromBoolean(BooleanExpression expression) => new(expression.Wires, 1);

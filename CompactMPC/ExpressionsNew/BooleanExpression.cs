@@ -9,7 +9,8 @@ namespace CompactMPC.ExpressionsNew
         public static readonly BooleanExpression False = new(Wire.Zero);
         public static readonly BooleanExpression True = new(Wire.One);
 
-        public IReadOnlyList<Bit> ToBits(bool value) => BooleanBitConverter.Instance.ToBits(value, 1);
+        public void WriteBits(bool value, BitArray destination, int position) => destination[position] = new Bit(value);
+
         public bool FromBits(IReadOnlyList<Bit> bits) => BooleanBitConverter.Instance.FromBits(bits);
 
         public static BooleanExpression Assignable() => new(Wire.Assignable());
