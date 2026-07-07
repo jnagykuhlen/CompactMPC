@@ -75,3 +75,6 @@ dotnet run --project Application/Application.csproj
 ## Canonical Example
 `SampleCircuits/SetIntersectionSecureProgram.cs` shows the full stack: `SecureMultiPartyProgram` → `SecureBoolean` gates → `IBatchEvaluableCircuit` → `SecretSharingSecureComputation`. Study this before adding new secure programs.
 
+## Code Style
+- NEVER use abbreviations: `message` instead of `msg`, `exception` instead of `ex`.
+- Use default C# naming conventions: PascalCase for types, methods, and properties; camelCase for local variables and parameters.
