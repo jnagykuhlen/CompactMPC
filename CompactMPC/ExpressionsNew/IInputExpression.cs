@@ -1,9 +1,6 @@
-using System.Collections.Generic;
+namespace CompactMPC.ExpressionsNew;
 
-namespace CompactMPC.ExpressionsNew
+public interface IInputExpression<in T> : IExpression
 {
-    public interface IInputExpression<in T> : IExpression
-    {
-        void WriteBits(T value, BitArray destination, int position);
-    }
+    void WriteBits(T value, BitArray destination, int position);
 }

@@ -74,32 +74,25 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
         private class PerPartyInput : IPerPartyInput
         {
             private int _totalNumberOfBits;
-            private readonly List<IExpressionDescription> _expressionDescriptions = new();
+            private readonly List<ExpressionDescription> _expressionDescriptions = new();
 
             public void AddExpression<TExpression>(Input<TExpression> input, TExpression expression) where TExpression : IExpression
             {
                 _totalNumberOfBits += expression.Wires.Count;
-                _expressionDescriptions.Add(new ExpressionDescription<TExpression>(input, expression));
+                _expressionDescriptions.Add(
+                    new ExpressionDescription(expression, programInput => programInput.GetValue(input, expression))
+                );
             }
 
             public int TotalNumberOfBits => _totalNumberOfBits;
-            public IReadOnlyList<IExpressionDescription> ExpressionDescriptions => _expressionDescriptions;
-        }
-
-        private class ExpressionDescription<TExpression>(Input<TExpression> input, TExpression expression) : IExpressionDescription
-            where TExpression : IExpression
-        {
-            public void WriteBits(SecureProgramInput programInput, BitArray destination, int position) =>
-                programInput.WriteBits(input, expression, destination, position);
-
-            public IExpression Expression { get; } = expression;
+            public IReadOnlyList<ExpressionDescription> ExpressionDescriptions => _expressionDescriptions;
         }
     }
 
     private interface IPerPartyInput
     {
         int TotalNumberOfBits { get; }
-        IReadOnlyList<IExpressionDescription> ExpressionDescriptions { get; }
+        IReadOnlyList<ExpressionDescription> ExpressionDescriptions { get; }
 
         BitArray GetBits(SecureProgramInput programInput)
         {
@@ -108,17 +101,17 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
 
             foreach (var expressionDescription in ExpressionDescriptions)
             {
-                expressionDescription.WriteBits(programInput, bits, position);
+                expressionDescription.GetInputValue(programInput).WriteTo(bits, position);
                 position += expressionDescription.Expression.Wires.Count;
             }
             
             return bits;
         }
     }
-
-    private interface IExpressionDescription
+    
+    private class ExpressionDescription(IExpression expression, Func<SecureProgramInput, IInputValue> inputValueSelector)
     {
-        void WriteBits(SecureProgramInput programInput, BitArray destination, int position);
-        IExpression Expression { get; }
+        public IInputValue GetInputValue(SecureProgramInput programInput) => inputValueSelector(programInput);
+        public IExpression Expression { get; } = expression;
     }
 }

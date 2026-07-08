@@ -1,31 +1,38 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CompactMPC.ExpressionsNew;
 
 namespace CompactMPC.Protocol.New;
 
 public class SecureProgramInput
 {
-    private readonly Dictionary<object, IInputInfo> _inputs = new();
+    private readonly Dictionary<object, Func<IExpression, IInputValue>> _inputValueFactoriesByInput = new();
 
     public SecureProgramInput SetValue<TValue>(IInput<IInputExpression<TValue>> input, TValue value)
     {
-        if (!_inputs.TryAdd(input, new InputInfo<TValue>(value)))
+        if (!_inputValueFactoriesByInput.TryAdd(input, expression => new InputValue<TValue>((IInputExpression<TValue>)expression, value)))
             throw new ProtocolException("Input has already been assigned.");
 
         return this;
     }
 
-    public void WriteBits<TExpression>(IInput<TExpression> input, TExpression expression, BitArray destination, int position) where TExpression: IExpression =>
-        (_inputs.GetValueOrDefault(input) ?? throw new ProtocolException("Input has not been assigned.")).WriteBits(expression, destination, position);
-
-    private interface IInputInfo
+    public IInputValue GetValue<TExpression>(IInput<TExpression> input, TExpression expression) where TExpression : IExpression
     {
-        void WriteBits(IExpression expression, BitArray destination, int position);
+        var inputValueFactory =
+            _inputValueFactoriesByInput.GetValueOrDefault(input) ?? throw new ProtocolException("Input has not been assigned.");
+
+        return inputValueFactory(expression);
     }
     
-    private record InputInfo<TValue>(TValue Value) : IInputInfo
+    private class InputValue<TValue>(IInputExpression<TValue> expression, TValue value) : IInputValue
     {
-        public void WriteBits(IExpression expression, BitArray destination, int position) =>
-            ((IInputExpression<TValue>)expression).WriteBits(Value, destination, position);
+        public void WriteTo(BitArray destination, int position) => expression.WriteBits(value, destination, position);
     }
 }
+
+public interface IInputValue
+{
+    void WriteTo(BitArray destination, int position);
+}
+
+
