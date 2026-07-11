@@ -17,7 +17,7 @@ namespace CompactMPC
             for (int i = 0; i < elements.Count; ++i)
                 WriteElement(elements[i], i);
         }
-        
+
         private BitArray(byte[] bytes, int numberOfElements, int elementsPerByte)
             : base(bytes, numberOfElements, elementsPerByte) { }
 
@@ -67,6 +67,19 @@ namespace CompactMPC
         {
             for (int i = 0; i < Buffer.Length; ++i)
                 Buffer[i] = (byte)~Buffer[i];
+        }
+
+        public static BitArray Xor(IReadOnlyList<BitArray> bitArrays)
+        {
+            if (bitArrays.Count == 0)
+                throw new ArgumentException("Bit array list is empty.", nameof(bitArrays));
+
+            var result = new BitArray(bitArrays[0].Length);
+
+            foreach (var bitArray in bitArrays)
+                result.Xor(bitArray);
+
+            return result;
         }
 
         public static BitArray FromBinaryString(string bitString)

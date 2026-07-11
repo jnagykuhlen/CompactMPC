@@ -1,15 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using CompactMPC.ExpressionsNew;
 
 namespace CompactMPC.Protocol.New;
 
-public class SecureProgramOutput
+public class SecureProgramOutput(Func<object, (IExpression, IReadOnlyList<Bit>)> selector)
 {
-    public T Value<T>(IOutput<IOutputExpression<T>> output) => throw new NotImplementedException();
-
-    public SecureProgramOutput Value<T>(IOutput<IOutputExpression<T>> output, out T value)
+    public TValue GetValue<TValue>(IOutput<IOutputExpression<TValue>> output)
     {
-        value = Value(output);
+        var (expression, source) = selector(output);
+        return ((IOutputExpression<TValue>)expression).ReadFrom(source);
+    }
+
+    public SecureProgramOutput GetValue<TValue>(IOutput<IOutputExpression<TValue>> output, out TValue value)
+    {
+        value = GetValue(output);
         return this;
     }
 }
