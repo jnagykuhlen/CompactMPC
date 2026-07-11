@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Numerics;
 using System.Threading.Tasks;
+using CompactMPC.Collections;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;

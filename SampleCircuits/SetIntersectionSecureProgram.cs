@@ -14,7 +14,7 @@ namespace CompactMPC.SampleCircuits
         {
             _numberOfParties = numberOfParties;
             _numberOfElements = numberOfElements;
-            _numberOfCounterBits = CounterHelper.RequiredNumberOfBits(numberOfElements);
+            _numberOfCounterBits = CounterExtensions.RequiredNumberOfBits(numberOfElements);
         }
 
         protected override SecurePrimitive[] Run(CircuitBuilder builder, SecurePrimitive[] inputs)

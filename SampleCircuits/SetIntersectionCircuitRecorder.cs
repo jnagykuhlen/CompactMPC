@@ -14,7 +14,7 @@ namespace CompactMPC.SampleCircuits
         {
             _numberOfParties = numberOfParties;
             _numberOfElements = numberOfElements;
-            _numberOfCounterBits = CounterHelper.RequiredNumberOfBits(_numberOfElements);
+            _numberOfCounterBits = CounterExtensions.RequiredNumberOfBits(_numberOfElements);
         }
 
         public void Record(CircuitBuilder builder)

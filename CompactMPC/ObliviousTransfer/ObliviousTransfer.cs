@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CompactMPC.Buffers;
+using CompactMPC.Collections;
 using CompactMPC.Networking;
 
 namespace CompactMPC.ObliviousTransfer

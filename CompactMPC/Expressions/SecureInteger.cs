@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CompactMPC.Circuits;
+using CompactMPC.Collections;
 
 namespace CompactMPC.Expressions
 {

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CompactMPC.Collections;
 
 namespace CompactMPC.Networking
 {
