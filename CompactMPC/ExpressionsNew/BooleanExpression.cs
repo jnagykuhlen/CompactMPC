@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CompactMPC.Circuits.New;
+using CompactMPC.Collections;
 
 namespace CompactMPC.ExpressionsNew;
 
@@ -8,8 +9,8 @@ public class BooleanExpression(Wire wire) : Expression([wire]), IInputExpression
     public static readonly BooleanExpression False = new(Wire.Zero);
     public static readonly BooleanExpression True = new(Wire.One);
 
-    public void WriteBits(bool value, BitArray destination, int position) => destination[position] = new Bit(value);
-    public bool ReadValue(IReadOnlyList<Bit> source, int position) => source[position].IsSet;
+    public void WriteTo(bool value, IWriteOnlyList<Bit> destination) => destination[0] = new Bit(value);
+    public bool ReadFrom(IReadOnlyList<Bit> source) => source[0].IsSet;
 
     public static BooleanExpression Assignable() => new(Wire.Assignable());
 

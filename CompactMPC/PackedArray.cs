@@ -2,10 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using CompactMPC.Collections;
 
 namespace CompactMPC
 {
-    public abstract class PackedArray<T> : IReadOnlyList<T>
+    public abstract class PackedArray<T> : IReadOnlyList<T>, IWriteOnlyList<T>
     {
         protected byte[] Buffer { get; }
         public int Length { get; }
@@ -100,12 +101,7 @@ namespace CompactMPC
             }
         }
 
-        int IReadOnlyCollection<T>.Count
-        {
-            get
-            {
-                return Length;
-            }
-        }
+        int IReadOnlyCollection<T>.Count => Length;
+        int IWriteOnlyList<T>.Count => Length;
     }
 }

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CompactMPC.Cryptography;
 using CompactMPC.ExpressionsNew;
 using CompactMPC.Networking;
+using CompactMPC.Protocol.Internal;
 
 namespace CompactMPC.Protocol.New;
 
@@ -97,18 +99,18 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
         BitArray GetBits(SecureProgramInput programInput)
         {
             var bits = new BitArray(TotalNumberOfBits);
-            var position = 0;
+            var bitsWriter = bits.GetWriter();
 
             foreach (var expressionDescription in ExpressionDescriptions)
             {
-                expressionDescription.GetInputValue(programInput).WriteTo(bits, position);
-                position += expressionDescription.Expression.Wires.Count;
+                expressionDescription.GetInputValue(programInput)
+                    .WriteTo(bitsWriter.NextSlice(expressionDescription.Expression.Wires.Count));
             }
-            
+
             return bits;
         }
     }
-    
+
     private class ExpressionDescription(IExpression expression, Func<SecureProgramInput, IInputValue> inputValueSelector)
     {
         public IInputValue GetInputValue(SecureProgramInput programInput) => inputValueSelector(programInput);

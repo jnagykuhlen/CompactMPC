@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CompactMPC.Collections;
 using CompactMPC.ExpressionsNew;
 
 namespace CompactMPC.Protocol.New;
@@ -26,13 +27,13 @@ public class SecureProgramInput
     
     private class InputValue<TValue>(IInputExpression<TValue> expression, TValue value) : IInputValue
     {
-        public void WriteTo(BitArray destination, int position) => expression.WriteBits(value, destination, position);
+        public void WriteTo(IWriteOnlyList<Bit> destination) => expression.WriteTo(value, destination);
     }
 }
 
 public interface IInputValue
 {
-    void WriteTo(BitArray destination, int position);
+    void WriteTo(IWriteOnlyList<Bit> destination);
 }
 
 

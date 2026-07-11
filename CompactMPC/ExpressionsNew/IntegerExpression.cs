@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CompactMPC.Circuits.New;
+using CompactMPC.Collections;
 using CompactMPC.Expressions;
 using CompactMPC.Protocol.New;
 
@@ -10,36 +11,29 @@ namespace CompactMPC.ExpressionsNew;
 public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expression(wires),
     IInputExpression<int>, IOutputExpression<int>
 {
+    private const int IntegerBitSize = 8 * sizeof(int);
+    
     public static readonly IntegerExpression Zero = new([], 0);
     public static readonly IntegerExpression One = new([Wire.One], 1);
 
     public int MaxValue { get; } = maxValue;
 
-    public void WriteBits(int value, BitArray destination, int position)
+    public void WriteTo(int value, IWriteOnlyList<Bit> destination)
     {
         var numberOfBits = Wires.Count;
         if (value >= 1 << numberOfBits)
             throw new ArgumentException($"Integer {value} is too large to represent by {numberOfBits} bits.", nameof(value));
 
         for (var i = 0; i < numberOfBits; ++i)
-            destination[position + i] = new Bit((value & (1 << i)) != 0);
+            destination[i] = new Bit((value & (1 << i)) != 0);
     }
 
-    public int ReadValue(IReadOnlyList<Bit> source, int position)
+    public int ReadFrom(IReadOnlyList<Bit> source)
     {
-        var numberOfBits = Wires.Count;
-        var maxNumberOfBits = 8 * sizeof(int);
-        if (numberOfBits > maxNumberOfBits)
-            throw new OverflowException($"Cannot convert more than {maxNumberOfBits} bits to integer.");
-
-        var result = 0;
-        for (var i = 0; i < numberOfBits; ++i)
-        {
-            if (source[position + i].IsSet)
-                result |= 1 << i;
-        }
-
-        return result;
+        if (Wires.Count > IntegerBitSize)
+            throw new OverflowException($"Cannot convert more than {IntegerBitSize} bits to integer.");
+        
+        return source.Select((bit, index) => bit.IsSet ? 1 << index : 0).Sum();
     }
 
     public static IntegerExpression Sum(params IntegerExpression[] values) =>

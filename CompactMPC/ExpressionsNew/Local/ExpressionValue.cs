@@ -9,7 +9,7 @@ namespace CompactMPC.ExpressionsNew.Local
         public static ExpressionValue From<T>(IInputExpression<T> expression, T value)
         {
             var bits = new BitArray(expression.Wires.Count);
-            expression.WriteBits(value, bits, 0);
+            expression.WriteTo(value, bits);
             
             var wireValues = expression.Wires
                 .Zip(bits, WireValue.Create)

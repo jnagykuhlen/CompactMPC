@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using CompactMPC.Collections;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.ExpressionsNew;
@@ -12,10 +13,10 @@ public class BooleanExpressionTest
         var expression = BooleanExpression.False;
         var bits = BitArray.FromBinaryString("011");
 
-        expression.WriteBits(false, bits, 1);
+        expression.WriteTo(false, bits.WriteOnlySlice(1, 1));
         bits.ToBinaryString().Should().Be("001");
 
-        expression.WriteBits(true, bits, 0);
+        expression.WriteTo(true, bits.WriteOnlySlice(0, 1));
         bits.ToBinaryString().Should().Be("101");
     }
 
@@ -25,7 +26,7 @@ public class BooleanExpressionTest
         var expression = BooleanExpression.False;
         var bits = BitArray.FromBinaryString("011");
 
-        expression.ReadValue(bits, 0).Should().Be(false);
-        expression.ReadValue(bits, 1).Should().Be(true);
+        expression.ReadFrom(bits.ReadOnlySlice(0, 1)).Should().Be(false);
+        expression.ReadFrom(bits.ReadOnlySlice(1, 1)).Should().Be(true);
     }
 }

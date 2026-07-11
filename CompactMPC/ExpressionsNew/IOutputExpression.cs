@@ -4,5 +4,5 @@ namespace CompactMPC.ExpressionsNew;
 
 public interface IOutputExpression<out T> : IExpression
 {
-    T ReadValue(IReadOnlyList<Bit> source, int position);
+    T ReadFrom(IReadOnlyList<Bit> source);
 }

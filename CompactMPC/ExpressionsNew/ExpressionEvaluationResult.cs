@@ -11,9 +11,9 @@ public class ExpressionEvaluationResult(IReadOnlyDictionary<Wire, Bit> valuesByW
     {
         var bits = expression.Wires
             .Select(wire => wire.ConstantValue ?? GetValue(wire))
-            .ToList();
+            .ToArray();
 
-        return expression.ReadValue(bits, 0);
+        return expression.ReadFrom(bits);
     }
 
     public ExpressionEvaluationResult Value<T>(IOutputExpression<T> expression, out T value)

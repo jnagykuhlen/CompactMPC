@@ -1,6 +1,8 @@
+using CompactMPC.Collections;
+
 namespace CompactMPC.ExpressionsNew;
 
 public interface IInputExpression<in T> : IExpression
 {
-    void WriteBits(T value, BitArray destination, int position);
+    void WriteTo(T value, IWriteOnlyList<Bit> destination);
 }
