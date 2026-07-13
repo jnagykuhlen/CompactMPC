@@ -21,10 +21,8 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
         var context = new SecureProgramContext(MultiPartySession);
         program.Compile(context);
 
-        var perPartyInputLocalShares = await Task.WhenAll(
-            MultiPartySession.RemotePartySessions
-                .Select(session => ReceiveInputLocalSharesAsync(session, context))
-                .Append(SendInputRemoteSharesAsync(context, programInput))
+        var perPartyInputLocalShares = await SendInputRemoteSharesAsync(context, programInput).AndThenAll(
+            MultiPartySession.RemotePartySessions.Select(session => ReceiveInputLocalSharesAsync(session, context))
         );
 
         var circuitEvaluator = new SecretSharingBooleanCircuitEvaluator(MultiPartySession, multiplicativeSharing);
@@ -43,10 +41,8 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
 
         var circuitEvaluationResult = circuitEvaluation.Execute();
 
-        var perPartyOutputShares = await Task.WhenAll(
-            MultiPartySession.RemotePartySessions
-                .Select(session => ReceiveOutputRemoteSharesAsync(session, context))
-                .Append(SendOutputLocalSharesAsync(context, circuitEvaluationResult))
+        var perPartyOutputShares = await SendOutputLocalSharesAsync(context, circuitEvaluationResult).AndThenAll(
+            MultiPartySession.RemotePartySessions.Select(session => ReceiveOutputRemoteSharesAsync(session, context))
         );
 
         var outputBits = BitArray.Xor(perPartyOutputShares);

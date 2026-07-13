@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CompactMPC;
@@ -25,4 +28,10 @@ public static class TaskExtensions
 
     public static Task<TSuper> ToSuperTask<TSub, TSuper>(this Task<TSub>[] subTasks, Func<TSub[], TSuper> selector) =>
         subTasks.ToSuperTask().ContinueWith(task => selector(task.Result));
+
+    public static async Task<T[]> AndThenAll<T>(this Task<T> task, IEnumerable<Task<T>> otherTasks)
+    {
+        await task;
+        return await Task.WhenAll(otherTasks.Prepend(task));
+    }
 }
