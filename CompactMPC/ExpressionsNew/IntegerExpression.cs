@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using CompactMPC.Circuits.New;
 using CompactMPC.Collections;
-using CompactMPC.Expressions;
 using CompactMPC.Protocol.New;
 
 namespace CompactMPC.ExpressionsNew;
@@ -11,8 +10,6 @@ namespace CompactMPC.ExpressionsNew;
 public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expression(wires),
     IInputExpression<int>, IOutputExpression<int>
 {
-    private const int IntegerBitSize = 8 * sizeof(int);
-    
     public static readonly IntegerExpression Zero = new([], 0);
     public static readonly IntegerExpression One = new([Wire.One], 1);
 
@@ -20,20 +17,25 @@ public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expres
 
     public void WriteTo(int value, IWriteOnlyList<Bit> destination)
     {
-        var numberOfBits = Wires.Count;
-        if (value >= 1 << numberOfBits)
-            throw new ArgumentException($"Integer {value} is too large to represent by {numberOfBits} bits.", nameof(value));
+        if (value > MaxValue)
+            throw new ArgumentOutOfRangeException(nameof(value), $"Integer {value} cannot be written since it exceeds the expression's maximum value {MaxValue}.");
 
+        var numberOfBits = Wires.Count;
         for (var i = 0; i < numberOfBits; ++i)
             destination[i] = new Bit((value & (1 << i)) != 0);
     }
 
     public int ReadFrom(IReadOnlyList<Bit> source)
     {
-        if (Wires.Count > IntegerBitSize)
-            throw new OverflowException($"Cannot convert more than {IntegerBitSize} bits to integer.");
-        
-        return source.Select((bit, index) => bit.IsSet ? 1 << index : 0).Sum();
+        if (Wires.Count > 32)
+            throw new OverflowException($"{Wires.Count}-bit integer cannot be read as a 32-bit integer.");
+
+        var value = source.Select((bit, index) => bit.IsSet ? 1 << index : 0).Sum();
+
+        if (value > MaxValue)
+            throw new OverflowException($"Read integer {value} exceeds the expression's maximum value {MaxValue}.");
+
+        return value;
     }
 
     public static IntegerExpression Sum(params IntegerExpression[] values) =>
