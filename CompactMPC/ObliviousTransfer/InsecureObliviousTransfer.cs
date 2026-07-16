@@ -12,7 +12,7 @@ namespace CompactMPC.ObliviousTransfer
             for (int i = 0; i < numberOfInvocations; ++i)
             {
                 for (int j = 0; j < 4; ++j)
-                    packedOptions.Write(options[i][j]);
+                    packedOptions = packedOptions.Write(options[i][j]);
             }
 
             return channel.WriteMessageAsync(packedOptions);
