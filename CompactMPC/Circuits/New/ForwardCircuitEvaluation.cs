@@ -58,7 +58,7 @@ namespace CompactMPC.Circuits.New
                     wireOutputs.Add(wire, value);
             };
 
-            foreach (var (wire, value) in _wireInputs)
+            foreach (var (wire, value) in _wireInputs.AsEnumerable().OrderBy(wire => wire.Key.Id))
                 wire.Gate.SendOutputValue(value, evaluator, evaluationState);
 
             GateEvaluation<T>[] delayedAndGateEvaluations;

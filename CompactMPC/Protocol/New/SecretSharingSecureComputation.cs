@@ -122,7 +122,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
         {
             var expressions = new List<TExpression>(multiPartySession.NumberOfParties);
 
-            foreach (var party in multiPartySession.Parties)
+            foreach (var party in multiPartySession.Parties.OrderBy(party => party.Guid))
             {
                 var expression = input.Create();
 

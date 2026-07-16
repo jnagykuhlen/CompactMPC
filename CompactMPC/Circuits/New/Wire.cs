@@ -6,14 +6,18 @@ namespace CompactMPC.Circuits.New
 {
     public sealed class Wire
     {
+        private static int NextId;
+        
         public static readonly Wire Zero = new(null);
         public static readonly Wire One = new(null);
 
         private readonly ForwardGate? _gate;
+        private readonly int _id;
 
         private Wire(ForwardGate? gate)
         {
             _gate = gate;
+            _id = NextId++;
         }
 
         public static Wire And(Wire leftWire, Wire rightWire)
@@ -96,5 +100,9 @@ namespace CompactMPC.Circuits.New
         }
 
         public bool IsAssignable => _gate is { IsAssignable: true };
+
+        public override string ToString() => $"Wire({_id})";
+
+        public int Id => _id;
     }
 }
