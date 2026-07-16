@@ -90,8 +90,6 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
 
     private async Task<BitArray> ReceiveOutputRemoteSharesAsync(ITwoPartyNetworkSession session, SecureProgramContext context)
     {
-        Console.WriteLine($"RECEIVING OUTPUT SHARES: {context.GetOutputs().TotalNumberOfBits} BITS");
-        
         var message = await session.Channel.ReadMessageAsync();
         return BitArray.FromBytes(message.ToBuffer(), context.GetOutputs().TotalNumberOfBits);
     }
