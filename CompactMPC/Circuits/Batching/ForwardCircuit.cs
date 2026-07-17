@@ -59,13 +59,7 @@ namespace CompactMPC.Circuits.Batching
             if (input.Count != _inputGates.Count)
                 throw new ArgumentException("Number of provided inputs does not match the number of input wires in the circuit.", nameof(input));
 
-            ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>();
-            Dictionary<ForwardGate, T> outputByGate = new Dictionary<ForwardGate, T>(_outputGates.Count);
-            evaluationState.OnOutputEvaluated += (gate, value) =>
-            {
-                if (_outputGates.Contains(gate))
-                    outputByGate.Add(gate, value);
-            };
+            ForwardEvaluationState<T> evaluationState = new ForwardEvaluationState<T>(_outputGates);
 
             for (int i = 0; i < _inputGates.Count; ++i)
                 _inputGates[i].SendOutputValue(input[i], evaluator, evaluationState);
@@ -86,8 +80,7 @@ namespace CompactMPC.Circuits.Batching
             T[] output = new T[_outputGates.Count];
             for (int i = 0; i < output.Length; ++i)
             {
-                if (!outputByGate.TryGetValue(_outputGates[i], out output[i]))
-                    throw new CircuitEvaluationException($"Output at index {i + 1} could not be evaluated from the given input.");
+                output[i] = evaluationState.GetOutputValue(_outputGates[i]);
             }
 
             return output;

@@ -18,3 +18,8 @@ public class SecureProgramOutput(Func<object, (IExpression, IReadOnlyList<Bit>)>
         return this;
     }
 }
+
+public interface IExpressionSource
+{
+    TExpression GetExpression<TExpression>(IOutput<TExpression> output) where TExpression : IExpression;
+}

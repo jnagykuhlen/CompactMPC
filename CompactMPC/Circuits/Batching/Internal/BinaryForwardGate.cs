@@ -4,7 +4,7 @@
     {
         protected sealed override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
         {
-            if (evaluationState.ReadInputValueFromCache(this, out T cachedInputValue))
+            if (evaluationState.ReadInputValueFromCache(this, out var cachedInputValue))
                 ReceiveInputValues(cachedInputValue, value, evaluator, evaluationState);
             else
                 evaluationState.WriteInputValueToCache(this, value);

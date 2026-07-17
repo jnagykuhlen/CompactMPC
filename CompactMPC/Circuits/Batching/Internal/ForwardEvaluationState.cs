@@ -1,55 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
-namespace CompactMPC.Circuits.Batching.Internal
+namespace CompactMPC.Circuits.Batching.Internal;
+
+public class ForwardEvaluationState<T>(IEnumerable<ForwardGate> outputGates)
 {
-    public class ForwardEvaluationState<T>
+    private readonly Dictionary<ForwardGate, T> _cachedInputValuesByGate = new();
+    private readonly Queue<GateEvaluation<T>> _delayedAndGateEvaluations = new();
+
+    private readonly Dictionary<ForwardGate, OptionalOutputValue> _outputValuesByGate =
+        outputGates.ToDictionary(gate => gate, _ => new OptionalOutputValue());
+
+    public void SetOutputValue(ForwardGate gate, T value)
     {
-        private readonly Dictionary<ForwardGate, T> _cachedInputValuesByGate = new Dictionary<ForwardGate, T>();
-        private readonly Queue<GateEvaluation<T>> _delayedAndGateEvaluations = new Queue<GateEvaluation<T>>();
+        if (_outputValuesByGate.TryGetValue(gate, out var optionalOutputValue))
+            optionalOutputValue.Value = value;
+    }
 
-        public void SetOutputValue(ForwardGate gate, T value)
-        {
-            OnOutputEvaluated?.Invoke(gate, value);
-        }
-
-        public void WriteInputValueToCache(ForwardGate gate, T value)
-        {
-            try
-            {
-                _cachedInputValuesByGate.Add(gate, value);
-            }
-            catch (ArgumentException exception)
-            {
-                throw new InvalidOperationException("Another cached input value is already present.", exception);
-            }
-        }
-
-        public bool ReadInputValueFromCache(ForwardGate gate, out T value)
-        {
-            if (_cachedInputValuesByGate.TryGetValue(gate, out value))
-            {
-                _cachedInputValuesByGate.Remove(gate);
-                return true;
-            }
-
-            return false;
-        }
-
-        public void DelayAndGateEvaluation(GateEvaluation<T> evaluation)
-        {
-            _delayedAndGateEvaluations.Enqueue(evaluation);
-        }
-
-        public GateEvaluation<T>[] NextDelayedAndGateEvaluations()
-        {
-            GateEvaluation<T>[] nextDelayedAndGateEvaluations = _delayedAndGateEvaluations.ToArray();
-            _delayedAndGateEvaluations.Clear();
-            return nextDelayedAndGateEvaluations;
-        }
-
-        public event OutputEvaluatedHandler? OnOutputEvaluated;
+    public T GetOutputValue(ForwardGate gate)
+    {
+        if (!_outputValuesByGate.TryGetValue(gate, out var optionalOutputValue))
+            throw new ArgumentException("The given gate is not an output gate.", nameof(gate));
         
-        public delegate void OutputEvaluatedHandler(ForwardGate gate, T value);
+        return optionalOutputValue.Value;
+    }
+
+    public void WriteInputValueToCache(ForwardGate gate, T value)
+    {
+        if (!_cachedInputValuesByGate.TryAdd(gate, value))
+            throw new InvalidOperationException("Another cached input value is already present.");
+    }
+
+    public bool ReadInputValueFromCache(ForwardGate gate, [MaybeNullWhen(false)] out T value) =>
+        _cachedInputValuesByGate.Remove(gate, out value);
+
+    public void DelayAndGateEvaluation(GateEvaluation<T> evaluation) => _delayedAndGateEvaluations.Enqueue(evaluation);
+
+    public GateEvaluation<T>[] NextDelayedAndGateEvaluations()
+    {
+        var nextDelayedAndGateEvaluations = _delayedAndGateEvaluations.ToArray();
+        _delayedAndGateEvaluations.Clear();
+        return nextDelayedAndGateEvaluations;
+    }
+
+    private class OptionalOutputValue
+    {
+        private T _value = default!;
+        private bool _isPresent;
+
+        public T Value
+        {
+            get => _isPresent ? _value : throw new InvalidOperationException("No output value is present for the given gate.");
+
+            set
+            {
+                if (_isPresent)
+                    throw new InvalidOperationException("Another output value is already present for the given gate.");
+
+                _isPresent = true;
+                _value = value;
+            }
+        }
     }
 }
