@@ -8,6 +8,8 @@ public static class ReadOnlyListExtensions
 {
     public static IReadOnlyList<T> ReadOnlySlice<T>(this IReadOnlyList<T> list, int start, int count) =>
         new ReadOnlyListSlice<T>(list, start, count);
+    
+    public static ListReader<T> GetReader<T>(this IReadOnlyList<T> list) => new(list);
 
     private class ReadOnlyListSlice<T> : IReadOnlyList<T>
     {

@@ -46,15 +46,13 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
         var outputBits = BitArray.Xor(perPartyOutputShares);
         return new SecureProgramOutput(output =>
             {
-                var position = 0;
+                var outputBitsReader = outputBits.GetReader();
                 foreach (var expressionDescription in context.GetOutputs().ExpressionDescriptions)
                 {
                     var numberOfBits = expressionDescription.Expression.Wires.Count;
 
                     if (expressionDescription.Output == output)
-                        return (expressionDescription.Expression, outputBits.ReadOnlySlice(position, numberOfBits));
-
-                    position += numberOfBits;
+                        return (expressionDescription.Expression, outputBitsReader.NextSlice(numberOfBits));
                 }
 
                 throw new InvalidOperationException("Output not found.");
