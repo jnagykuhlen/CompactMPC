@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CompactMPC.ExpressionsNew;
 
 namespace CompactMPC.Protocol.New;
 
-public class SecureProgramOutput(Func<object, (IExpression, IReadOnlyList<Bit>)> selector)
+public class SecureProgramOutput(IReadOnlyDictionary<IOutput<IExpression>, (IExpression Expression, IReadOnlyList<Bit> Bits)> outputValues)
 {
     public TValue GetValue<TValue>(IOutput<IOutputExpression<TValue>> output)
     {
-        var (expression, source) = selector(output);
-        return ((IOutputExpression<TValue>)expression).ReadFrom(source);
+        var (expression, bits) = outputValues[output];
+        return ((IOutputExpression<TValue>)expression).ReadFrom(bits);
     }
 
     public SecureProgramOutput GetValue<TValue>(IOutput<IOutputExpression<TValue>> output, out TValue value)
@@ -17,9 +16,4 @@ public class SecureProgramOutput(Func<object, (IExpression, IReadOnlyList<Bit>)>
         value = GetValue(output);
         return this;
     }
-}
-
-public interface IExpressionSource
-{
-    TExpression GetExpression<TExpression>(IOutput<TExpression> output) where TExpression : IExpression;
 }

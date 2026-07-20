@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CompactMPC.Buffers;
 using CompactMPC.Circuits.New;
 using CompactMPC.Collections;
 using CompactMPC.Cryptography;
-using CompactMPC.ExpressionsNew;
 using CompactMPC.Networking;
 using CompactMPC.Protocol.Internal;
 
@@ -16,84 +14,84 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
 {
     public IMultiPartyNetworkSession MultiPartySession { get; } = multiPartySession;
 
+    public SecureComputationRun<TProgram> Run<TProgram>(TProgram program) where TProgram : SecureProgram =>
+        new(this, program);
+
     public async Task<SecureProgramOutput> RunAsync(SecureProgram program, SecureProgramInput programInput)
     {
         var context = new SecureProgramContext(MultiPartySession);
         program.Compile(context);
 
-        var perPartyInputLocalShares = await SendInputRemoteSharesAsync(context, programInput).AndThenAll(
+        var perPartyShares = await SendInputRemoteSharesAsync(context, programInput).AndThenAll(
             MultiPartySession.RemotePartySessions.Select(session => ReceiveInputLocalSharesAsync(session, context))
         );
 
         var circuitEvaluator = new SecretSharingAsyncBatchCircuitEvaluator(MultiPartySession, multiplicativeSharing);
+        var evaluationResult = await new ForwardCircuitEvaluation<Bit>(circuitEvaluator)
+            .ExecuteAsync(GetInputWireValues(context, perPartyShares), GetOutputWires(context));
 
-        var inputWireValues = perPartyInputLocalShares.OrderBy(perParty => perParty.Party.Guid)
-            .SelectMany(perParty => context.GetPerPartyInput(perParty.Party).ExpressionDescriptions
-                .SelectMany(expressionDescription => expressionDescription.Expression.Wires)
-                .Select((wire, index) => new WireValue<Bit>(wire, perParty.LocalShares[index]))
-            )
-            .ToArray();
-
-        var outputWires = context.GetOutputs().Wires;
-
-        var circuitEvaluationResult =
-            await new ForwardCircuitEvaluation<Bit>(circuitEvaluator).ExecuteAsync(inputWireValues, outputWires);
-
-        var perPartyOutputShares = await SendOutputLocalSharesAsync(context, circuitEvaluationResult).AndThenAll(
+        var perPartyOutputShares = await SendOutputLocalSharesAsync(context, evaluationResult).AndThenAll(
             MultiPartySession.RemotePartySessions.Select(session => ReceiveOutputRemoteSharesAsync(session, context))
         );
 
-        var outputBits = BitArray.Xor(perPartyOutputShares);
-        return new SecureProgramOutput(output =>
-            {
-                var outputBitsReader = outputBits.GetReader();
-                foreach (var expressionDescription in context.GetOutputs().ExpressionDescriptions)
-                {
-                    var numberOfBits = expressionDescription.Expression.Wires.Count;
+        return CreateProgramOutput(context, BitArray.Xor(perPartyOutputShares));
+    }
 
-                    if (expressionDescription.Output == output)
-                        return (expressionDescription.Expression, outputBitsReader.NextSlice(numberOfBits));
-                }
+    private static IEnumerable<WireValue<Bit>> GetInputWireValues(SecureProgramContext context, PerPartyShares[] perPartyShares) =>
+        perPartyShares
+            .OrderBy(shares => shares.Party.Guid)
+            .SelectMany(shares => context.GetInputContext(shares.Party).ExpressionDescriptions
+                .SelectMany(description => description.Expression.Wires)
+                .Select((wire, index) => new WireValue<Bit>(wire, shares.Shares[index]))
+            );
 
-                throw new InvalidOperationException("Output not found.");
-            }
+    private static IEnumerable<Wire> GetOutputWires(SecureProgramContext context) => context.GetOutputContext().Wires;
+
+    private static SecureProgramOutput CreateProgramOutput(SecureProgramContext context, BitArray outputBits)
+    {
+        var outputBitsReader = outputBits.GetReader();
+        return new SecureProgramOutput(
+            context.GetOutputContext().ExpressionDescriptions
+                .ToDictionary(
+                    description => description.Output,
+                    description => (description.Expression, outputBitsReader.NextSlice(description.Expression.Wires.Count))
+                )
         );
     }
 
-    private async Task<PerPartyLocalShares> ReceiveInputLocalSharesAsync(ITwoPartyNetworkSession session, SecureProgramContext context)
+    private async Task<PerPartyShares> ReceiveInputLocalSharesAsync(ITwoPartyNetworkSession session, SecureProgramContext context)
     {
         var message = await session.Channel.ReadMessageAsync();
-        return new PerPartyLocalShares(
+        return new PerPartyShares(
             session.RemoteParty,
-            BitArray.FromBytes(message.ToBuffer(), context.GetPerPartyInput(session.RemoteParty).TotalNumberOfBits)
+            BitArray.FromBytes(message.ToBuffer(), context.GetInputContext(session.RemoteParty).TotalNumberOfBits)
         );
     }
 
-    private async Task<PerPartyLocalShares> SendInputRemoteSharesAsync(SecureProgramContext context, SecureProgramInput programInput)
+    private async Task<PerPartyShares> SendInputRemoteSharesAsync(SecureProgramContext context, SecureProgramInput programInput)
     {
-        var localShares = context.GetPerPartyInput(MultiPartySession.LocalParty).GetBits(programInput);
+        var localShares = context.GetInputContext(MultiPartySession.LocalParty).GetInputBits(programInput);
 
         foreach (var session in MultiPartySession.RemotePartySessions)
         {
             var remoteShares = RandomNumberGenerator.GetBits(localShares.Length);
             localShares.Xor(remoteShares);
-
             await session.Channel.WriteMessageAsync(new Message(remoteShares.ToBytes()));
         }
 
-        return new PerPartyLocalShares(MultiPartySession.LocalParty, localShares);
+        return new PerPartyShares(MultiPartySession.LocalParty, localShares);
     }
 
     private async Task<BitArray> ReceiveOutputRemoteSharesAsync(ITwoPartyNetworkSession session, SecureProgramContext context)
     {
         var message = await session.Channel.ReadMessageAsync();
-        return BitArray.FromBytes(message.ToBuffer(), context.GetOutputs().TotalNumberOfBits);
+        return BitArray.FromBytes(message.ToBuffer(), context.GetOutputContext().TotalNumberOfBits);
     }
 
-    private async Task<BitArray> SendOutputLocalSharesAsync(SecureProgramContext context, ForwardCircuitEvaluationResult<Bit> circuitEvaluationResult)
+    private async Task<BitArray> SendOutputLocalSharesAsync(SecureProgramContext context, ForwardCircuitEvaluationResult<Bit> evaluationResult)
     {
         var localShares = new BitArray(
-            context.GetOutputs().Wires.Select(circuitEvaluationResult.Value).ToArray()
+            context.GetOutputContext().Wires.Select(evaluationResult.Value).ToArray()
         );
 
         foreach (var session in MultiPartySession.RemotePartySessions)
@@ -102,107 +100,5 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
         return localShares;
     }
 
-    public SecureComputationRun<TProgram> Run<TProgram>(TProgram program) where TProgram : SecureProgram =>
-        new(this, program);
-
-    private class SecureProgramContext(IMultiPartyNetworkSession multiPartySession) : ISecureProgramContext
-    {
-        private readonly Dictionary<Party, PerPartyInput> _perPartyInputs =
-            multiPartySession.Parties.ToDictionary(party => party, _ => new PerPartyInput());
-
-        private readonly PerPartyOutput _outputs = new();
-
-        public IReadOnlyList<TExpression> Share<TExpression>(Input<TExpression> input) where TExpression : IExpression
-        {
-            var expressions = new List<TExpression>(multiPartySession.NumberOfParties);
-
-            foreach (var party in multiPartySession.Parties.OrderBy(party => party.Guid))
-            {
-                var expression = input.Create();
-
-                _perPartyInputs[party].AddExpression(input, expression);
-                expressions.Add(expression);
-            }
-
-            return expressions;
-        }
-
-        public TExpression ShareSingle<TExpression>(Input<TExpression> input) where TExpression : IExpression
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Reveal<TExpression>(Output<TExpression> output, TExpression expression) where TExpression : IExpression =>
-            _outputs.AddExpression(output, expression);
-
-        public IPerPartyInput GetPerPartyInput(Party party) => _perPartyInputs[party];
-        public PerPartyOutput GetOutputs() => _outputs;
-
-        private class PerPartyInput : IPerPartyInput
-        {
-            private int _totalNumberOfBits;
-            private readonly List<InputExpressionDescription> _expressionDescriptions = new();
-
-            public void AddExpression<TExpression>(Input<TExpression> input, TExpression expression) where TExpression : IExpression
-            {
-                _totalNumberOfBits += expression.Wires.Count;
-                _expressionDescriptions.Add(
-                    new InputExpressionDescription(expression, programInput => programInput.GetValue(input, expression))
-                );
-            }
-
-            public int TotalNumberOfBits => _totalNumberOfBits;
-            public IReadOnlyList<InputExpressionDescription> ExpressionDescriptions => _expressionDescriptions;
-        }
-    }
-
-    private interface IPerPartyInput
-    {
-        int TotalNumberOfBits { get; }
-        IReadOnlyList<InputExpressionDescription> ExpressionDescriptions { get; }
-
-        BitArray GetBits(SecureProgramInput programInput)
-        {
-            var bits = new BitArray(TotalNumberOfBits);
-            var bitsWriter = bits.GetWriter();
-
-            foreach (var expressionDescription in ExpressionDescriptions)
-            {
-                expressionDescription.GetInputValue(programInput)
-                    .WriteTo(bitsWriter.NextSlice(expressionDescription.Expression.Wires.Count));
-            }
-
-            return bits;
-        }
-    }
-
-    private class InputExpressionDescription(IExpression expression, Func<SecureProgramInput, IInputValue> inputValueSelector)
-    {
-        public IInputValue GetInputValue(SecureProgramInput programInput) => inputValueSelector(programInput);
-        public IExpression Expression { get; } = expression;
-    }
-
-    private class PerPartyOutput
-    {
-        private int _totalNumberOfBits;
-        private readonly List<OutputExpressionDescription> _expressionDescriptions = new();
-
-        public void AddExpression<TExpression>(Output<TExpression> output, TExpression expression) where TExpression : IExpression
-        {
-            _totalNumberOfBits += expression.Wires.Count;
-            _expressionDescriptions.Add(new OutputExpressionDescription(output, expression));
-        }
-
-        public int TotalNumberOfBits => _totalNumberOfBits;
-        public IReadOnlyList<OutputExpressionDescription> ExpressionDescriptions => _expressionDescriptions;
-        public IEnumerable<Wire> Wires => ExpressionDescriptions.SelectMany(expressionDescription => expressionDescription.Expression.Wires).ToArray();
-    }
-
-    private class OutputExpressionDescription(object output, IExpression expression)
-    {
-        public object Output { get; } = output;
-        public IExpression Expression { get; } = expression;
-    }
-
-    private record PerPartyLocalShares(Party Party, BitArray LocalShares);
+    private record PerPartyShares(Party Party, BitArray Shares);
 }
