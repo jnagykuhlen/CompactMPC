@@ -25,19 +25,19 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
             MultiPartySession.RemotePartySessions.Select(session => ReceiveInputLocalSharesAsync(session, context))
         );
 
-        var circuitEvaluator = new SecretSharingBooleanCircuitEvaluator(MultiPartySession, multiplicativeSharing);
+        var circuitEvaluator = new SecretSharingAsyncBatchCircuitEvaluator(MultiPartySession, multiplicativeSharing);
 
         var inputWireValues = perPartyInputLocalShares.OrderBy(perParty => perParty.Party.Guid)
             .SelectMany(perParty => context.GetPerPartyInput(perParty.Party).ExpressionDescriptions
                 .SelectMany(expressionDescription => expressionDescription.Expression.Wires)
-                .Select((wire, index) => new WireValue<Task<Bit>>(wire, Task.FromResult(perParty.LocalShares[index])))
+                .Select((wire, index) => new WireValue<Bit>(wire, perParty.LocalShares[index]))
             )
             .ToArray();
 
         var outputWires = context.GetOutputs().Wires;
 
         var circuitEvaluationResult =
-            new ForwardCircuitEvaluation<Task<Bit>>(circuitEvaluator).Execute(inputWireValues, outputWires);
+            await new ForwardCircuitEvaluation<Bit>(circuitEvaluator).ExecuteAsync(inputWireValues, outputWires);
 
         var perPartyOutputShares = await SendOutputLocalSharesAsync(context, circuitEvaluationResult).AndThenAll(
             MultiPartySession.RemotePartySessions.Select(session => ReceiveOutputRemoteSharesAsync(session, context))
@@ -92,10 +92,10 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
         return BitArray.FromBytes(message.ToBuffer(), context.GetOutputs().TotalNumberOfBits);
     }
 
-    private async Task<BitArray> SendOutputLocalSharesAsync(SecureProgramContext context, ForwardCircuitEvaluationResult<Task<Bit>> circuitEvaluationResult)
+    private async Task<BitArray> SendOutputLocalSharesAsync(SecureProgramContext context, ForwardCircuitEvaluationResult<Bit> circuitEvaluationResult)
     {
         var localShares = new BitArray(
-            await Task.WhenAll(context.GetOutputs().Wires.Select(circuitEvaluationResult.Value))
+            context.GetOutputs().Wires.Select(circuitEvaluationResult.Value).ToArray()
         );
 
         foreach (var session in MultiPartySession.RemotePartySessions)

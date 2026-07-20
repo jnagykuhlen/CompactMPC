@@ -6,7 +6,7 @@ namespace CompactMPC.Protocol
 {
     public interface ISecureComputation
     {
-        Task<BitArray> EvaluateAsync(IBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputs);
+        Task<BitArray> EvaluateAsync(IAsyncBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputs);
         IMultiPartyNetworkSession MultiPartySession { get; }
     }
 }

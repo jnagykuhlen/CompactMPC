@@ -4,7 +4,7 @@ namespace CompactMPC.Circuits.Batching.Internal
 {
     public sealed class ForwardInputGate : ForwardGate
     {
-        protected override void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
+        protected override void ReceiveInputValue<T>(T value, IAsyncBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
         {
             throw new InvalidOperationException("Input gate cannot receive input values.");
         }

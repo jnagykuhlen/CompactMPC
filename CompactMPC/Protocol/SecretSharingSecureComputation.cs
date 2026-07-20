@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using CompactMPC.Buffers;
 using CompactMPC.Circuits.Batching;
@@ -15,14 +14,14 @@ namespace CompactMPC.Protocol
         private readonly IMultiplicativeSharing _multiplicativeSharing;
 
         public IMultiPartyNetworkSession MultiPartySession { get; }
-        
+
         public SecretSharingSecureComputation(IMultiPartyNetworkSession multiPartySession, IMultiplicativeSharing multiplicativeSharing)
         {
             MultiPartySession = multiPartySession;
             _multiplicativeSharing = multiplicativeSharing;
         }
 
-        public async Task<BitArray> EvaluateAsync(IBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
+        public async Task<BitArray> EvaluateAsync(IAsyncBatchEvaluableCircuit evaluable, InputPartyMapping inputMapping, OutputPartyMapping outputMapping, BitArray localInputValues)
         {
             if (inputMapping.NumberOfInputs != evaluable.Context.NumberOfInputWires)
                 throw new ArgumentException(
@@ -36,15 +35,13 @@ namespace CompactMPC.Protocol
                     nameof(outputMapping)
                 );
 
-            SecretSharingBooleanCircuitEvaluator evaluator = new SecretSharingBooleanCircuitEvaluator(MultiPartySession, _multiplicativeSharing);
+            SecretSharingAsyncBatchCircuitEvaluator evaluator = new SecretSharingAsyncBatchCircuitEvaluator(MultiPartySession, _multiplicativeSharing);
 
             BitArray maskedInputs = await MaskInputs(inputMapping, localInputValues);
 
-            IReadOnlyList<Task<Bit>> inputTasks = maskedInputs.Select(Task.FromResult).ToArray();
-            IReadOnlyList<Task<Bit>> outputTasks = evaluable.Evaluate(evaluator, inputTasks);
-            BitArray maskedOutputs = new BitArray(await Task.WhenAll(outputTasks));
+            var maskedOutputs = await evaluable.EvaluateAsync(evaluator, maskedInputs);
 
-            return await UnmaskOutputs(outputMapping, maskedOutputs);
+            return await UnmaskOutputs(outputMapping, new BitArray(maskedOutputs));
         }
 
         private async Task<BitArray> MaskInputs(InputPartyMapping inputMapping, BitArray localInputValues)
@@ -75,7 +72,7 @@ namespace CompactMPC.Protocol
             if (localInputIds.Count > 0)
             {
                 BitArray localSharesOfLocalInput = localInputValues.Clone();
-                
+
                 foreach (ITwoPartyNetworkSession session in MultiPartySession.RemotePartySessions)
                 {
                     BitArray remoteSharesOfLocalInput = RandomNumberGenerator.GetBits(localInputIds.Count);
@@ -83,11 +80,11 @@ namespace CompactMPC.Protocol
 
                     await session.Channel.WriteMessageAsync(new Message(remoteSharesOfLocalInput.ToBytes()));
                 }
-                
+
                 for (int localInputId = 0; localInputId < localInputIds.Count; ++localInputId)
                     localSharesOfInput[localInputIds[localInputId]] = localSharesOfLocalInput[localInputId];
             }
-            
+
             // --- Receive shares of remote inputs via network ---
             foreach (ITwoPartyNetworkSession session in MultiPartySession.RemotePartySessions)
             {

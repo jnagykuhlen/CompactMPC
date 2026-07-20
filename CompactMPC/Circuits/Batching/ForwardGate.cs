@@ -7,7 +7,7 @@ public abstract class ForwardGate
 {
     private readonly List<ForwardGate> _successors = new();
 
-    public void SendOutputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
+    public void SendOutputValue<T>(T value, IAsyncBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
     {
         evaluationState.SetOutputValue(this, value);
         foreach (ForwardGate successor in _successors)
@@ -25,7 +25,7 @@ public abstract class ForwardGate
         predecessor._successors.Add(this);
     }
 
-    protected abstract void ReceiveInputValue<T>(T value, IBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState);
+    protected abstract void ReceiveInputValue<T>(T value, IAsyncBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState);
     protected abstract void ReceiveVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState);
     public virtual bool IsAssignable => false;
 }

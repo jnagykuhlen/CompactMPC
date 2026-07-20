@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CompactMPC.Circuits.Batching;
 using CompactMPC.Circuits.Batching.Internal;
 
 namespace CompactMPC.Circuits.New;
 
-public class ForwardCircuitEvaluation<T>(IBatchCircuitEvaluator<T> evaluator)
+public class ForwardCircuitEvaluation<T>(IAsyncBatchCircuitEvaluator<T> evaluator)
 {
-    public ForwardCircuitEvaluationResult<T> Execute(IEnumerable<WireValue<T>> inputWireValues, IEnumerable<Wire> outputWires)
+    public async Task<ForwardCircuitEvaluationResult<T>> ExecuteAsync(IEnumerable<WireValue<T>> inputWireValues, IEnumerable<Wire> outputWires)
     {
         var evaluationState = new ForwardEvaluationState<T>(outputWires.Select(wire => wire.Gate));
         
@@ -21,7 +22,7 @@ public class ForwardCircuitEvaluation<T>(IBatchCircuitEvaluator<T> evaluator)
                 .Select(evaluation => evaluation.Input)
                 .ToArray();
                 
-            var evaluationOutputs = evaluator.EvaluateAndGateBatch(evaluationInputs);
+            var evaluationOutputs = await evaluator.EvaluateAndGateBatchAsync(evaluationInputs);
 
             if (evaluationOutputs.Length != evaluationInputs.Length)
                 throw new CircuitEvaluationException("Batch circuit evaluator must provide exactly one output value for each gate evaluation.");

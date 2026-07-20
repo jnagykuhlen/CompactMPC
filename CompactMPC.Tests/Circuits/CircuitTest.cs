@@ -32,11 +32,11 @@ namespace CompactMPC.Circuits
             ForwardCircuit forwardCircuit = ForwardCircuit.FromCircuit(circuit);
 
             ICircuitEvaluator<Bit> evaluator = new LocalCircuitEvaluator();
-            ReportingBatchCircuitEvaluator<Bit> batchCircuitEvaluator =
-                new ReportingBatchCircuitEvaluator<Bit>(new BatchCircuitEvaluator<Bit>(evaluator));
+            ReportingAsyncBatchCircuitEvaluator<Bit> batchCircuitEvaluator =
+                new ReportingAsyncBatchCircuitEvaluator<Bit>(new AsyncBatchCircuitEvaluator<Bit>(evaluator));
 
             circuit.Evaluate(evaluator, sequentialInput).Should().Equal(expectedOutput);
-            forwardCircuit.Evaluate(batchCircuitEvaluator, sequentialInput).Should().Equal(expectedOutput);
+            forwardCircuit.EvaluateAsync(batchCircuitEvaluator, sequentialInput).Result.Should().Equal(expectedOutput);
 
             batchCircuitEvaluator.BatchSizes.Should().Equal(10, 10, 9, 9, 8);
         }

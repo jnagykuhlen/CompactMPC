@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CompactMPC.Circuits.Batching.Internal;
 
 namespace CompactMPC.Circuits.Batching
 {
-    public class ForwardCircuit : IEvaluableCircuit, IBatchEvaluableCircuit
+    public class ForwardCircuit : IEvaluableCircuit, IAsyncBatchEvaluableCircuit
     {
         private readonly IReadOnlyList<ForwardGate> _inputGates;
         private readonly IReadOnlyList<ForwardGate> _outputGates;
@@ -48,13 +49,11 @@ namespace CompactMPC.Circuits.Batching
         }
 
         [Obsolete("Use ForwardCircuitEvaluation class instead.")]
-        public IReadOnlyList<T> Evaluate<T>(ICircuitEvaluator<T> evaluator, IReadOnlyList<T> input)
-        {
-            return Evaluate(new BatchCircuitEvaluator<T>(evaluator), input);
-        }
+        public IReadOnlyList<T> Evaluate<T>(ICircuitEvaluator<T> evaluator, IReadOnlyList<T> input) =>
+            EvaluateAsync(new AsyncBatchCircuitEvaluator<T>(evaluator), input).Result;
 
         [Obsolete("Use ForwardCircuitEvaluation class instead.")]
-        public IReadOnlyList<T> Evaluate<T>(IBatchCircuitEvaluator<T> evaluator, IReadOnlyList<T> input)
+        public async Task<IReadOnlyList<T>> EvaluateAsync<T>(IAsyncBatchCircuitEvaluator<T> evaluator, IReadOnlyList<T> input)
         {
             if (input.Count != _inputGates.Count)
                 throw new ArgumentException("Number of provided inputs does not match the number of input wires in the circuit.", nameof(input));
@@ -68,7 +67,7 @@ namespace CompactMPC.Circuits.Batching
             while ((delayedAndGateEvaluations = evaluationState.NextDelayedAndGateEvaluations()).Length > 0)
             {
                 GateEvaluationInput<T>[] evaluationInputs = delayedAndGateEvaluations.Select(evaluation => evaluation.Input).ToArray();
-                T[] evaluationOutputs = evaluator.EvaluateAndGateBatch(evaluationInputs);
+                var evaluationOutputs = await evaluator.EvaluateAndGateBatchAsync(evaluationInputs);
 
                 if (evaluationOutputs.Length != evaluationInputs.Length)
                     throw new CircuitEvaluationException("Batch circuit evaluator must provide exactly one output value for each gate evaluation.");
