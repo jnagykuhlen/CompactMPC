@@ -1,6 +1,6 @@
 ﻿using System;
 using CompactMPC.Collections;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.Expressions;

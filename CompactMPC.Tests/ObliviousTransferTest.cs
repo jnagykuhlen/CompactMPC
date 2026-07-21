@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using CompactMPC.Buffers;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC
