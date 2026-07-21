@@ -22,23 +22,23 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
         var context = new SecureProgramContext(MultiPartySession);
         program.Compile(context);
 
-        var perPartyShares = await SendInputRemoteSharesAsync(context, programInput).AndThenAll(
+        var perPartyInputShares = await SendInputRemoteSharesAsync(context, programInput).AndThenAll(
             MultiPartySession.RemotePartySessions.Select(session => ReceiveInputLocalSharesAsync(session, context))
         );
 
         var circuitEvaluator = new SecretSharingAsyncBatchCircuitEvaluator(MultiPartySession, multiplicativeSharing);
         var evaluationResult = await new ForwardCircuitEvaluation<Bit>(circuitEvaluator)
-            .ExecuteAsync(GetInputWireValues(context, perPartyShares), GetOutputWires(context));
+            .ExecuteAsync(GetInputWireValues(context, perPartyInputShares), GetOutputWires(context));
 
         var perPartyOutputShares = await SendOutputLocalSharesAsync(context, evaluationResult).AndThenAll(
             MultiPartySession.RemotePartySessions.Select(session => ReceiveOutputRemoteSharesAsync(session, context))
         );
 
-        return CreateProgramOutput(context, BitArray.Xor(perPartyOutputShares));
+        return CreateProgramOutput(context, perPartyOutputShares);
     }
 
-    private static IEnumerable<WireValue<Bit>> GetInputWireValues(SecureProgramContext context, PerPartyShares[] perPartyShares) =>
-        perPartyShares
+    private static IEnumerable<WireValue<Bit>> GetInputWireValues(SecureProgramContext context, PerPartyShares[] perPartyInputShares) =>
+        perPartyInputShares
             .OrderBy(shares => shares.Party.Guid)
             .SelectMany(shares => context.GetInputContext(shares.Party).ExpressionDescriptions
                 .SelectMany(description => description.Expression.Wires)
@@ -47,8 +47,9 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
 
     private static IEnumerable<Wire> GetOutputWires(SecureProgramContext context) => context.GetOutputContext().Wires;
 
-    private static SecureProgramOutput CreateProgramOutput(SecureProgramContext context, BitArray outputBits)
+    private static SecureProgramOutput CreateProgramOutput(SecureProgramContext context, BitArray[] perPartyOutputShares)
     {
+        var outputBits = BitArray.Xor(perPartyOutputShares);
         var outputBitsReader = outputBits.GetReader();
         return new SecureProgramOutput(
             context.GetOutputContext().ExpressionDescriptions
@@ -82,7 +83,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
         return new PerPartyShares(MultiPartySession.LocalParty, localShares);
     }
 
-    private async Task<BitArray> ReceiveOutputRemoteSharesAsync(ITwoPartyNetworkSession session, SecureProgramContext context)
+    private static async Task<BitArray> ReceiveOutputRemoteSharesAsync(ITwoPartyNetworkSession session, SecureProgramContext context)
     {
         var message = await session.Channel.ReadMessageAsync();
         return BitArray.FromBytes(message.ToBuffer(), context.GetOutputContext().TotalNumberOfBits);
