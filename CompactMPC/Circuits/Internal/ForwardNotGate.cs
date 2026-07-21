@@ -1,20 +1,12 @@
 ﻿namespace CompactMPC.Circuits.Internal;
 
-public class ForwardNotGate : UnaryForwardGate
+public class ForwardNotGate : ForwardGate
 {
-    public ForwardNotGate(ForwardGate inputGate)
-    {
-        AddPredecessor(inputGate);
-    }
+    public ForwardNotGate(ForwardGate inputGate) => AddPredecessor(inputGate);
 
     protected override void ReceiveInputValue<T>(T value, IAsyncBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState)
     {
-        T outputValue = evaluator.EvaluateNotGate(value);
+        var outputValue = evaluator.EvaluateNotGate(value);
         SendOutputValue(outputValue, evaluator, evaluationState);
-    }
-
-    protected override void Visit(ICircuitVisitor visitor)
-    {
-        visitor.VisitNotGate();
     }
 }

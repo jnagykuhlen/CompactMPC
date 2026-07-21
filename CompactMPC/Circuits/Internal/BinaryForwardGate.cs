@@ -10,20 +10,5 @@ public abstract class BinaryForwardGate : ForwardGate
             evaluationState.WriteInputValueToCache(this, value);
     }
 
-    protected sealed override void ReceiveVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState)
-    {
-        if (visitingState.HasVisitingRequest(this))
-        {
-            visitingState.RemoveVisitingRequest(this);
-            Visit(visitor);
-            SendVisitingRequest(visitor, visitingState);
-        }
-        else
-        {
-            visitingState.AddVisitingRequest(this);
-        }
-    }
-
     protected abstract void ReceiveInputValues<T>(T leftValue, T rightValue, IAsyncBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState);
-    protected abstract void Visit(ICircuitVisitor visitor);
 }

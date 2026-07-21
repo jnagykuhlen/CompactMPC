@@ -1,16 +1,3 @@
-﻿namespace CompactMPC.Circuits
-{
-    public class GateEvaluationInput<T>
-    {
-        public T LeftValue { get; }
-        public T RightValue { get; }
-        
-        public GateEvaluationInput(T leftValue, T rightValue)
-        {
-            LeftValue = leftValue;
-            RightValue = rightValue;
-        }
+﻿namespace CompactMPC.Circuits;
 
-        
-    }
-}
+public record GateEvaluationInput<T>(T LeftValue, T RightValue);
