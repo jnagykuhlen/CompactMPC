@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>CompactMPC.Application</RootNamespace>
     <AssemblyName>CompactMPC.Application</AssemblyName>
-    <AssemblyVersion>0.1.0</AssemblyVersion>
+    <AssemblyVersion>0.9.0</AssemblyVersion>
     <Title>CompactMPC Application</Title>
     <Authors>Jonas Nagy-Kuhlen</Authors>
     <Description>Sample Application for CompactMPC Library</Description>
-    <Copyright>Copyright © 2019 Jonas Nagy-Kuhlen</Copyright>
-    <LangVersion>12</LangVersion>
+    <Copyright>Copyright © 2026 Jonas Nagy-Kuhlen</Copyright>
+    <LangVersion>14</LangVersion>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>CS8600;CS8602;CS8603;CS8625;CS8653</WarningsAsErrors>
   </PropertyGroup>
