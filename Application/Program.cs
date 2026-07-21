@@ -20,7 +20,7 @@ async Task PerformSecureComputation(IMultiPartyNetworkSession networkSession)
 
     var multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(obliviousTransfer);
 
-    var secureComputation = new CompactMPC.Protocol.New.SecretSharingSecureComputation(
+    var secureComputation = new SecretSharingSecureComputation(
         networkSession,
         multiplicativeSharing
     );

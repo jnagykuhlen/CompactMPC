@@ -42,7 +42,7 @@ public class NewSecureComputationTest
 
         var multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(obliviousTransfer);
 
-        var secureComputation = new Protocol.New.SecretSharingSecureComputation(
+        var secureComputation = new SecretSharingSecureComputation(
             networkSession,
             multiplicativeSharing
         );

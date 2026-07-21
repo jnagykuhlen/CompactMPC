@@ -20,10 +20,7 @@ public abstract class ForwardGate
             successor.ReceiveVisitingRequest(visitor, visitingState);
     }
 
-    protected void AddPredecessor(ForwardGate predecessor)
-    {
-        predecessor._successors.Add(this);
-    }
+    protected void AddPredecessor(ForwardGate predecessor) => predecessor._successors.Add(this);
 
     protected abstract void ReceiveInputValue<T>(T value, IAsyncBatchCircuitEvaluator<T> evaluator, ForwardEvaluationState<T> evaluationState);
     protected abstract void ReceiveVisitingRequest(ICircuitVisitor visitor, ForwardVisitingState visitingState);

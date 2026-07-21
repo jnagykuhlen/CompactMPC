@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CompactMPC\CompactMPC.csproj" />
-    <ProjectReference Include="..\SampleCircuits\SampleCircuits.csproj" />
   </ItemGroup>
 
 </Project>
