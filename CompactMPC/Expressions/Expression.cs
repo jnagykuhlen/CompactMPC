@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using CompactMPC.Circuits;
 
-namespace CompactMPC.Expressions
+namespace CompactMPC.Expressions;
+
+public abstract class Expression(IReadOnlyList<Wire> wires) : IExpression
 {
-    public abstract class Expression(IReadOnlyList<Wire> wires) : IExpression
-    {
-        public IReadOnlyList<Wire> Wires { get; } = wires;
-    }
+    public IReadOnlyList<Wire> Wires { get; } = wires;
 }

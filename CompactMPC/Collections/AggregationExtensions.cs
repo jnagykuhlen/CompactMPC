@@ -24,10 +24,10 @@ public static class AggregationExtensions
 
     private static IEnumerable<T> Reduce<T>(IEnumerable<T> source, Func<T, T, T> func)
     {
-        T previous = default!;
-        bool parity = false;
+        var previous = default(T)!;
+        var parity = false;
 
-        foreach (T current in source)
+        foreach (var current in source)
         {
             if (parity)
                 yield return func(previous, current);

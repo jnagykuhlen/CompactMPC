@@ -1,7 +1,6 @@
-﻿namespace CompactMPC.Cryptography
+﻿namespace CompactMPC.Cryptography;
+
+public interface IRandomOracleProvider
 {
-    public interface IRandomOracleProvider
-    {
-        RandomOracle Create();
-    }
+    RandomOracle Create();
 }
