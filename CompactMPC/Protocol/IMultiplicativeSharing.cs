@@ -1,10 +1,9 @@
 ﻿using System.Threading.Tasks;
 using CompactMPC.Networking;
 
-namespace CompactMPC.Protocol
+namespace CompactMPC.Protocol;
+
+public interface IMultiplicativeSharing
 {
-    public interface IMultiplicativeSharing
-    {
-        Task<BitArray> ComputeMultiplicativeSharesAsync(IMultiPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations);
-    }
+    Task<BitArray> ComputeMultiplicativeSharesAsync(IMultiPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations);
 }

@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CompactMPC.Circuits.New;
-using CompactMPC.ExpressionsNew;
-using CompactMPC.Protocol.New;
+using CompactMPC.Circuits;
+using CompactMPC.Expressions;
 
 namespace CompactMPC.Protocol.Internal;
 

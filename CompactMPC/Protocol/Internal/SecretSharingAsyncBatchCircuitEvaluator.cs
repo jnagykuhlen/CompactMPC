@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using CompactMPC.Circuits.Batching;
+using CompactMPC.Circuits;
 using CompactMPC.Networking;
 
 namespace CompactMPC.Protocol.Internal;
