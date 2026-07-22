@@ -2,69 +2,51 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace CompactMPC
+namespace CompactMPC;
+
+public class Quadruple<T> : IReadOnlyList<T>
 {
-    public class Quadruple<T> : IReadOnlyList<T>
+    public const int Length = 4;
+
+    private readonly T[] _values;
+
+    public Quadruple()
     {
-        public const int Length = 4;
+        _values = new T[Length];
+    }
 
-        private readonly T[] _values;
+    public Quadruple(T v0, T v1, T v2, T v3)
+    {
+        _values = [v0, v1, v2, v3];
+    }
 
-        public Quadruple()
-        {
-            _values = new T[Length];
-        }
+    public Quadruple(T[] values)
+    {
+        if (values.Length != Length)
+            throw new ArgumentException("Source array must contain exactly four values.", nameof(values));
 
-        public Quadruple(T v0, T v1, T v2, T v3)
-        {
-            _values = new[] { v0, v1, v2, v3 };
-        }
-
-        public Quadruple(T[] values)
-        {
-            if (values == null)
-                throw new ArgumentNullException(nameof(values));
-
-            if (values.Length != Length)
-                throw new ArgumentException("Source array must contain exactly four values.", nameof(values));
-
-            _values = (T[])values.Clone();
-        }
+        _values = (T[])values.Clone();
+    }
         
-        public T this[int index]
+    public T this[int index]
+    {
+        get
         {
-            get
-            {
-                if (index < 0 || index >= Length)
-                    throw new ArgumentOutOfRangeException(nameof(index));
+            if (index is < 0 or >= Length)
+                throw new ArgumentOutOfRangeException(nameof(index));
 
-                return _values[index];
-            }
-            set
-            {
-                if (index < 0 || index >= Length)
-                    throw new ArgumentOutOfRangeException(nameof(index));
-
-                _values[index] = value;
-            }
+            return _values[index];
         }
-
-        public IEnumerator<T> GetEnumerator()
+        set
         {
-            return ((IEnumerable<T>)_values).GetEnumerator();
-        }
+            if (index is < 0 or >= Length)
+                throw new ArgumentOutOfRangeException(nameof(index));
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _values.GetEnumerator();
-        }
-
-        int IReadOnlyCollection<T>.Count
-        {
-            get
-            {
-                return Length;
-            }
+            _values[index] = value;
         }
     }
+
+    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_values).GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
+    int IReadOnlyCollection<T>.Count => Length;
 }

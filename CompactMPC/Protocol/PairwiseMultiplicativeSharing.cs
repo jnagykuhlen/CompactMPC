@@ -2,34 +2,33 @@
 using System.Threading.Tasks;
 using CompactMPC.Networking;
 
-namespace CompactMPC.Protocol
+namespace CompactMPC.Protocol;
+
+public abstract class PairwiseMultiplicativeSharing : IMultiplicativeSharing
 {
-    public abstract class PairwiseMultiplicativeSharing : IMultiplicativeSharing
+    public async Task<BitArray> ComputeMultiplicativeSharesAsync(IMultiPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
     {
-        public async Task<BitArray> ComputeMultiplicativeSharesAsync(IMultiPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
+        var localMultiplicationShares = new BitArray(numberOfInvocations);
+        if (!IncludesLocalTerms || session.HasEvenNumberOfRemoteParties())
+            localMultiplicationShares = leftShares & rightShares;
+
+        var pairwiseMultiplicativeSharingTasks = new Task<BitArray>[session.NumberOfParties];
+        pairwiseMultiplicativeSharingTasks[session.LocalParty.Id] = Task.FromResult(localMultiplicationShares);
+
+        Parallel.ForEach(session.RemotePartySessions, pairwiseSession =>
         {
-            BitArray localMultiplicationShares = new BitArray(numberOfInvocations);
-            if (!IncludesLocalTerms || session.HasEvenNumberOfRemoteParties())
-                localMultiplicationShares = leftShares & rightShares;
+            pairwiseMultiplicativeSharingTasks[pairwiseSession.RemoteParty.Id] = ComputePairwiseMultiplicativeSharesAsync(
+                pairwiseSession,
+                leftShares,
+                rightShares,
+                numberOfInvocations
+            );
+        });
 
-            Task<BitArray>[] pairwiseMultiplicativeSharingTasks = new Task<BitArray>[session.NumberOfParties];
-            pairwiseMultiplicativeSharingTasks[session.LocalParty.Id] = Task.FromResult(localMultiplicationShares);
-
-            Parallel.ForEach(session.RemotePartySessions, pairwiseSession =>
-            {
-                pairwiseMultiplicativeSharingTasks[pairwiseSession.RemoteParty.Id] = ComputePairwiseMultiplicativeSharesAsync(
-                    pairwiseSession,
-                    leftShares,
-                    rightShares,
-                    numberOfInvocations
-                );
-            });
-
-            BitArray[] pairwiseMultiplicativeShares = await Task.WhenAll(pairwiseMultiplicativeSharingTasks).ConfigureAwait(false);
-            return pairwiseMultiplicativeShares.Aggregate((left, right) => left ^ right);
-        }
-
-        protected abstract Task<BitArray> ComputePairwiseMultiplicativeSharesAsync(ITwoPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations);
-        protected abstract bool IncludesLocalTerms { get; }
+        var pairwiseMultiplicativeShares = await Task.WhenAll(pairwiseMultiplicativeSharingTasks);
+        return pairwiseMultiplicativeShares.Aggregate((left, right) => left ^ right);
     }
+
+    protected abstract Task<BitArray> ComputePairwiseMultiplicativeSharesAsync(ITwoPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations);
+    protected abstract bool IncludesLocalTerms { get; }
 }

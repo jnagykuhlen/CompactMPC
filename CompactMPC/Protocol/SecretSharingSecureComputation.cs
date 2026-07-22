@@ -60,7 +60,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession multiParty
         );
     }
 
-    private async Task<PerPartyShares> ReceiveInputLocalSharesAsync(ITwoPartyNetworkSession session, SecureProgramContext context)
+    private static async Task<PerPartyShares> ReceiveInputLocalSharesAsync(ITwoPartyNetworkSession session, SecureProgramContext context)
     {
         var message = await session.Channel.ReadMessageAsync();
         return new PerPartyShares(

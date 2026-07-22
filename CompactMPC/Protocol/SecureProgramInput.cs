@@ -35,5 +35,3 @@ public interface IInputValue
 {
     void WriteTo(IWriteOnlyList<Bit> destination);
 }
-
-
