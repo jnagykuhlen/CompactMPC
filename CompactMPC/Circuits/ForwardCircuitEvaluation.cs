@@ -23,7 +23,7 @@ public class ForwardCircuitEvaluation<T>(IAsyncBatchCircuitEvaluator<T> evaluato
                 
             var evaluationOutputs = await evaluator.EvaluateAndGateBatchAsync(evaluationInputs);
 
-            if (evaluationOutputs.Length != evaluationInputs.Length)
+            if (evaluationOutputs.Count != evaluationInputs.Length)
                 throw new CircuitEvaluationException("Batch circuit evaluator must provide exactly one output value for each gate evaluation.");
 
             for (var i = 0; i < delayedAndGateEvaluations.Length; ++i)

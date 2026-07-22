@@ -1,3 +1,3 @@
 ﻿namespace CompactMPC.Circuits;
 
-public record GateEvaluationInput<T>(T LeftValue, T RightValue);
+public record struct GateEvaluationInput<T>(T LeftValue, T RightValue);

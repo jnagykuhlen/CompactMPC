@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CompactMPC.Circuits;
 using CompactMPC.Networking;
 
@@ -7,9 +8,9 @@ namespace CompactMPC.Protocol.Internal;
 public class SecretSharingAsyncBatchCircuitEvaluator(IMultiPartyNetworkSession session, IMultiplicativeSharing multiplicativeSharing)
     : IAsyncBatchCircuitEvaluator<Bit>
 {
-    public async Task<Bit[]> EvaluateAndGateBatchAsync(GateEvaluationInput<Bit>[] evaluationInputs)
+    public async Task<IReadOnlyList<Bit>> EvaluateAndGateBatchAsync(IReadOnlyList<GateEvaluationInput<Bit>> evaluationInputs)
     {
-        var numberOfInvocations = evaluationInputs.Length;
+        var numberOfInvocations = evaluationInputs.Count;
 
         var leftShares = new BitArray(numberOfInvocations);
         var rightShares = new BitArray(numberOfInvocations);
@@ -19,11 +20,7 @@ public class SecretSharingAsyncBatchCircuitEvaluator(IMultiPartyNetworkSession s
             rightShares[i] = evaluationInputs[i].RightValue;
         }
 
-        var multiplicativeShares =
-            await multiplicativeSharing.ComputeMultiplicativeSharesAsync(session, leftShares, rightShares, numberOfInvocations);
-
-        // TODO: Conversion to array necessary?
-        return multiplicativeShares.ToArray();
+        return await multiplicativeSharing.ComputeMultiplicativeSharesAsync(session, leftShares, rightShares, numberOfInvocations);
     }
 
     public Bit EvaluateXorGate(Bit leftValue, Bit rightValue) => leftValue ^ rightValue;

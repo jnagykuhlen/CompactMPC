@@ -1,13 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CompactMPC.Circuits;
 
 public class AsyncBatchCircuitEvaluator<T>(ICircuitEvaluator<T> innerEvaluator) : IAsyncBatchCircuitEvaluator<T>
 {
-    public Task<T[]> EvaluateAndGateBatchAsync(GateEvaluationInput<T>[] evaluationInputs)
+    public Task<IReadOnlyList<T>> EvaluateAndGateBatchAsync(IReadOnlyList<GateEvaluationInput<T>> evaluationInputs)
     {
-        var outputValues = new T[evaluationInputs.Length];
-        for (var i = 0; i < evaluationInputs.Length; ++i)
+        var outputValues = new T[evaluationInputs.Count];
+        for (var i = 0; i < evaluationInputs.Count; ++i)
         {
             var evaluationInput = evaluationInputs[i];
             outputValues[i] = innerEvaluator.EvaluateAndGate(
@@ -16,7 +17,7 @@ public class AsyncBatchCircuitEvaluator<T>(ICircuitEvaluator<T> innerEvaluator) 
             );
         }
 
-        return Task.FromResult(outputValues);
+        return Task.FromResult<IReadOnlyList<T>>(outputValues);
     }
 
     public T EvaluateXorGate(T leftValue, T rightValue) => innerEvaluator.EvaluateXorGate(leftValue, rightValue);
