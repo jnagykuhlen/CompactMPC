@@ -2,27 +2,19 @@
 using System.Threading.Tasks;
 using CompactMPC.Buffers;
 
-namespace CompactMPC.Networking
+namespace CompactMPC.Networking;
+
+public class StreamMessageChannel(Stream stream) : IMessageChannel
 {
-    public class StreamMessageChannel : IMessageChannel
+    public async Task<Message> ReadMessageAsync()
     {
-        private readonly Stream _stream;
+        var numberOfBytes = await stream.ReadInt32Async();
+        return new Message(await stream.ReadAsync(numberOfBytes));
+    }
 
-        public StreamMessageChannel(Stream stream)
-        {
-            _stream = stream;
-        }
-
-        public async Task<Message> ReadMessageAsync()
-        {
-            int numberOfBytes = await _stream.ReadInt32Async();
-            return new Message(await _stream.ReadAsync(numberOfBytes));
-        }
-
-        public async Task WriteMessageAsync(Message message)
-        {
-            await _stream.WriteInt32Async(message.Length);
-            await _stream.WriteAsync(message.ToBuffer());
-        }
+    public async Task WriteMessageAsync(Message message)
+    {
+        await stream.WriteInt32Async(message.Length);
+        await stream.WriteAsync(message.ToBuffer());
     }
 }

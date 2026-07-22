@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 using CompactMPC.Buffers;
 
-namespace CompactMPC.Networking
+namespace CompactMPC.Networking;
+
+public interface IMessageChannel
 {
-    public interface IMessageChannel
-    {
-        Task<Message> ReadMessageAsync();
-        Task WriteMessageAsync(Message message);
-    }
+    Task<Message> ReadMessageAsync();
+    Task WriteMessageAsync(Message message);
 }
