@@ -2,33 +2,25 @@
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
 
-namespace CompactMPC.ObliviousTransfer.Preprocessing
+namespace CompactMPC.ObliviousTransfer.Preprocessing;
+
+public class ObliviousTransferPreprocessor(IBitObliviousTransfer obliviousTransfer)
 {
-    public class ObliviousTransferPreprocessor
+    public Task<PreprocessedSenderBatch> PreprocessSenderAsync(IMessageChannel channel, int numberOfInvocations)
     {
-        private readonly IBitObliviousTransfer _obliviousTransfer;
+        var randomOptionsBuffer = RandomNumberGenerator.GetBytes(BitQuadrupleArray.RequiredBytes(numberOfInvocations));
+        var randomOptions = BitQuadrupleArray.FromBytes(randomOptionsBuffer, numberOfInvocations);
 
-        public ObliviousTransferPreprocessor(IBitObliviousTransfer obliviousTransfer)
-        {
-            _obliviousTransfer = obliviousTransfer;
-        }
+        return obliviousTransfer.SendAsync(channel, randomOptions, numberOfInvocations)
+            .ContinueWith(_ => new PreprocessedSenderBatch(randomOptions));
+    }
 
-        public Task<PreprocessedSenderBatch> PreprocessSenderAsync(IMessageChannel channel, int numberOfInvocations)
-        {
-            byte[] randomOptionsBuffer = RandomNumberGenerator.GetBytes(BitQuadrupleArray.RequiredBytes(numberOfInvocations));
-            BitQuadrupleArray randomOptions = BitQuadrupleArray.FromBytes(randomOptionsBuffer, numberOfInvocations);
+    public Task<PreprocessedReceiverBatch> PreprocessReceiverAsync(IMessageChannel channel, int numberOfInvocations)
+    {
+        var randomSelectionIndicesBuffer = RandomNumberGenerator.GetBytes(QuadrupleIndexArray.RequiredBytes(numberOfInvocations));
+        var randomSelectionIndices = QuadrupleIndexArray.FromBytes(randomSelectionIndicesBuffer, numberOfInvocations);
 
-            return _obliviousTransfer.SendAsync(channel, randomOptions, numberOfInvocations)
-                .ContinueWith(task => new PreprocessedSenderBatch(randomOptions));
-        }
-
-        public Task<PreprocessedReceiverBatch> PreprocessReceiverAsync(IMessageChannel channel, int numberOfInvocations)
-        {
-            byte[] randomSelectionIndicesBuffer = RandomNumberGenerator.GetBytes(QuadrupleIndexArray.RequiredBytes(numberOfInvocations));
-            QuadrupleIndexArray randomSelectionIndices = QuadrupleIndexArray.FromBytes(randomSelectionIndicesBuffer, numberOfInvocations);
-
-            return _obliviousTransfer.ReceiveAsync(channel, randomSelectionIndices, numberOfInvocations)
-                .ContinueWith(task => new PreprocessedReceiverBatch(randomSelectionIndices, task.Result));
-        }
+        return obliviousTransfer.ReceiveAsync(channel, randomSelectionIndices, numberOfInvocations)
+            .ContinueWith(task => new PreprocessedReceiverBatch(randomSelectionIndices, task.Result));
     }
 }

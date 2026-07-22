@@ -1,25 +1,7 @@
-﻿namespace CompactMPC.ObliviousTransfer.Preprocessing
+﻿namespace CompactMPC.ObliviousTransfer.Preprocessing;
+
+public class PreprocessedSenderBatch(BitQuadrupleArray options)
 {
-    public class PreprocessedSenderBatch
-    {
-        private readonly BitQuadrupleArray _options;
-
-        public PreprocessedSenderBatch(BitQuadrupleArray options)
-        {
-            _options = options;
-        }
-
-        public BitQuadruple GetOptions(int instanceId)
-        {
-            return _options[instanceId];
-        }
-
-        public int NumberOfInstances
-        {
-            get
-            {
-                return _options.Length;
-            }
-        }
-    }
+    public BitQuadruple GetOptions(int instanceId) => options[instanceId];
+    public int NumberOfInstances => options.Length;
 }

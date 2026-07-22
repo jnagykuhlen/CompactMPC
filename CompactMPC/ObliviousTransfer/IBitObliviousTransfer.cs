@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 using CompactMPC.Networking;
 
-namespace CompactMPC.ObliviousTransfer
+namespace CompactMPC.ObliviousTransfer;
+
+public interface IBitObliviousTransfer
 {
-    public interface IBitObliviousTransfer
-    {
-        Task SendAsync(IMessageChannel channel, BitQuadrupleArray options, int numberOfInvocations);
-        Task<BitArray> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations);
-    }
+    Task SendAsync(IMessageChannel channel, BitQuadrupleArray options, int numberOfInvocations);
+    Task<BitArray> ReceiveAsync(IMessageChannel channel, QuadrupleIndexArray selectionIndices, int numberOfInvocations);
 }
