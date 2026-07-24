@@ -29,6 +29,4 @@ public class TcpMultiPartyNetworkSession : IMultiPartyNetworkSession
     }
 
     public IEnumerable<ITwoPartyNetworkSession> RemotePartySessions => _remotePartySessions;
-
-    public int NumberOfParties => _remotePartySessions.Count + 1;
 }

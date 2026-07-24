@@ -22,7 +22,7 @@ public abstract class PairwiseMultiplicativeSharing : IMultiplicativeSharing
                 )
         );
 
-        if (!IncludesLocalTerms || session.HasOddNumberOfParties)
+        if (!IncludesLocalTerms || session.NumberOfParties.IsOdd)
             return leftShares.And(rightShares).Xor(pairwiseMultiplicativeShares);
 
         return BitArray.FromXor(pairwiseMultiplicativeShares);

@@ -15,7 +15,7 @@ public class SecureProgramContext(OrderedMultiPartyNetworkSession session) : ISe
 
     public IReadOnlyList<TExpression> Share<TExpression>(Input<TExpression> input) where TExpression : IExpression
     {
-        var expressions = new List<TExpression>(session.OrderedParties.Count);
+        var expressions = new List<TExpression>(session.NumberOfParties);
 
         foreach (var party in session.OrderedParties)
         {
