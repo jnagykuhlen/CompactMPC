@@ -27,12 +27,12 @@ public class SecureComputationTest
     private static Task RunSecureComputationParties(int numberOfParties, int expectedOutput) =>
         LocalNetworkRunner.RunMultiPartyNetwork(
             numberOfParties,
-            networkSession => PerformSecureComputation(networkSession, expectedOutput)
+            (networkSession, partyIndex) => PerformSecureComputation(networkSession, partyIndex, expectedOutput)
         );
 
-    private static async Task PerformSecureComputation(IMultiPartyNetworkSession networkSession, int expectedOutput)
+    private static async Task PerformSecureComputation(IMultiPartyNetworkSession networkSession, int partyIndex, int expectedOutput)
     {
-        var localInput = Inputs[networkSession.LocalParty.Id];
+        var localInput = Inputs[partyIndex];
 
         var obliviousTransfer = new NaorPinkasObliviousTransfer(
             new SecurityParameters(47, 23, 4, 1, 1)

@@ -9,9 +9,9 @@ int[] inputs = [5, 6, 3, 4, 5];
 
 await LocalNetworkRunner.RunMultiPartyNetwork(2, PerformSecureComputation);
 
-async Task PerformSecureComputation(IMultiPartyNetworkSession networkSession)
+async Task PerformSecureComputation(IMultiPartyNetworkSession networkSession, int partyIndex)
 {
-    var localInput = inputs[networkSession.LocalParty.Id];
+    var localInput = inputs[partyIndex];
 
     var obliviousTransfer = new NaorPinkasObliviousTransfer(
         new SecurityParameters(47, 23, 4, 1, 1)

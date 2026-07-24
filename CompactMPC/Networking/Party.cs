@@ -2,13 +2,14 @@
 
 namespace CompactMPC.Networking;
 
-public record Party(int Id, string Name, Guid Guid) : IComparable<Party>
+public record Party(Guid Guid, string Name) : IComparable<Party>
 {
-    public Party(int id) : this(id, $"Party {id + 1}", Guid.NewGuid())
-    { }
-        
-    public static bool operator>(Party first, Party second) => first.Guid.CompareTo(second.Guid) > 0;
-    public static bool operator<(Party first, Party second) => second > first;
+    public Party(Guid guid) : this(guid, $"Party {guid}") { }
+    public Party() : this(Guid.NewGuid()) { }
+
+    public static bool operator >(Party first, Party second) => first.CompareTo(second) > 0;
+    public static bool operator <(Party first, Party second) => second > first;
 
     public int CompareTo(Party? other) => Guid.CompareTo(other?.Guid ?? Guid.Empty);
+    public override string ToString() => Name;
 }

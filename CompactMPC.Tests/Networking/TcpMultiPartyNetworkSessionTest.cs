@@ -15,9 +15,9 @@ public class TcpMultiPartyNetworkSessionTest
     private static readonly IPEndPoint SecondEndPoint = new(IPAddress.Loopback, 12841);
     private static readonly IPEndPoint ThirdEndPoint = new(IPAddress.Loopback, 12842);
 
-    private static readonly Party FirstParty = new(0);
-    private static readonly Party SecondParty = new(1);
-    private static readonly Party ThirdParty = new(2);
+    private static readonly Party FirstParty = new();
+    private static readonly Party SecondParty = new();
+    private static readonly Party ThirdParty = new();
 
     [TestMethod]
     public async Task TestTcpMultiPartyNetworkSession()

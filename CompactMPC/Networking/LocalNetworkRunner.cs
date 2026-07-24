@@ -10,29 +10,29 @@ public static class LocalNetworkRunner
 {
     private const int StartPort = 16741;
 
-    public static Task RunMultiPartyNetwork(int numberOfParties, Func<IMultiPartyNetworkSession, Task> eachPartyAction) =>
+    public static Task RunMultiPartyNetwork(int numberOfParties, Func<IMultiPartyNetworkSession, int, Task> eachPartyAction) =>
         RunMultiPartyNetwork(Enumerable.Repeat(eachPartyAction, numberOfParties).ToArray());
 
-    public static Task RunMultiPartyNetwork(params Func<IMultiPartyNetworkSession, Task>[] partyActions)
+    public static Task RunMultiPartyNetwork(params Func<IMultiPartyNetworkSession, int, Task>[] partyActions)
     {
         var endPoints = partyActions
             .Select((_, index) => new IPEndPoint(IPAddress.Loopback, StartPort + index))
             .ToArray();
 
-        var sessionTasks = partyActions.Select(
-            (partyAction, index) => EstablishMultiPartyAsync(index, endPoints).AndThenAsync(partyAction)
+        return Task.WhenAll(
+            partyActions.Select((partyAction, index) =>
+                EstablishMultiPartyAsync(index, endPoints).AndThenAsync(session => partyAction(session, index))
+            )
         );
-
-        return Task.WhenAll(sessionTasks);
     }
 
     private static Task<TcpMultiPartyNetworkSession> EstablishMultiPartyAsync(int index, IPEndPoint[] endPoints) =>
-        TcpMultiPartyNetworkSession.EstablishAsync(new Party(index), endPoints[index], endPoints.Without(endPoints[index]).ToArray());
+        TcpMultiPartyNetworkSession.EstablishAsync(new Party(), endPoints[index], endPoints.Without(endPoints[index]).ToArray());
 
     public static Task RunTwoPartyNetwork(Func<ITwoPartyNetworkSession, Task> firstPartyAction, Func<ITwoPartyNetworkSession, Task> secondPartyAction)
     {
-        var firstParty = new Party(0);
-        var secondParty = new Party(1);
+        var firstParty = new Party();
+        var secondParty = new Party();
 
         var firstEndPoint = new IPEndPoint(IPAddress.Loopback, StartPort);
         var secondEndPoint = new IPEndPoint(IPAddress.Loopback, StartPort + 1);
