@@ -34,18 +34,23 @@ public class ObliviousTransferTest
 
     [TestMethod]
     public Task TestNaorPinkasObliviousTransfer() =>
-        LocalNetworkRunner.RunTwoPartyNetwork(PerformSenderAsync, PerformReceiverAsync);
+        TestObliviousTransfer(new NaorPinkasObliviousTransfer(SecurityParameters.CreateDefault768Bit()));
+    
+    [TestMethod]
+    public Task TestInsecureObliviousTransfer() =>
+        TestObliviousTransfer(new InsecureObliviousTransfer());
 
-    private static async Task PerformSenderAsync(ITwoPartyNetworkSession session)
-    {
-        var obliviousTransfer = new NaorPinkasObliviousTransfer(SecurityParameters.CreateDefault768Bit());
+    private static Task TestObliviousTransfer(IMessageObliviousTransfer obliviousTransfer) =>
+        LocalNetworkRunner.RunTwoPartyNetwork(
+            session => PerformSenderAsync(obliviousTransfer, session),
+            session => PerformReceiverAsync(obliviousTransfer, session)
+        );
+
+    private static async Task PerformSenderAsync(IMessageObliviousTransfer obliviousTransfer, ITwoPartyNetworkSession session) =>
         await obliviousTransfer.SendAsync(session.Channel, Options, 3, 5);
-    }
 
-    private static async Task PerformReceiverAsync(ITwoPartyNetworkSession session)
+    private static async Task PerformReceiverAsync(IMessageObliviousTransfer obliviousTransfer, ITwoPartyNetworkSession session)
     {
-        var obliviousTransfer = new NaorPinkasObliviousTransfer(SecurityParameters.CreateDefault768Bit());
-
         var indices = new QuadrupleIndexArray([0, 3, 2]);
         var results = await obliviousTransfer.ReceiveAsync(session.Channel, indices, 3, 5);
 
