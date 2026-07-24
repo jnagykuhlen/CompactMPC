@@ -14,10 +14,10 @@ public class OrderedMultiPartyNetworkSession(IMultiPartyNetworkSession multiPart
         .OrderBy(orderedParty => orderedParty.Party)
         .ToList();
 
-    public Task<T[]> SendAndReceiveAsync<T>(SendAsync<T> sendAsync, ReceiveAsync<T> receiveAsync) =>
-        Task.WhenAll(_orderedParties.Select(orderedParty => orderedParty.Handler.HandleAsync(sendAsync, receiveAsync)));
+    public Task<T[]> SendAndReceiveAsync<T>(SendToAllAsync<T> sendToAllAsync, ReceiveFromEachAsync<T> receiveFromEachAsync) =>
+        Task.WhenAll(_orderedParties.Select(orderedParty => orderedParty.Handler.HandleAsync(sendToAllAsync, receiveFromEachAsync)));
 
-    public Task<T[]> PairwiseSendOrReceiveAsync<T>(Func<IMessageChannel, Task<T>> sendAsync, Func<IMessageChannel, Task<T>> receiveAsync) =>
+    public Task<T[]> PairwiseSendOrReceiveAsync<T>(PairwiseSendAsync<T> sendAsync, PairwiseReceiveAsync<T> receiveAsync) =>
         Task.WhenAll(
             multiPartySession.RemotePartySessions
                 .AsParallel()
@@ -35,22 +35,23 @@ public class OrderedMultiPartyNetworkSession(IMultiPartyNetworkSession multiPart
 
     private interface ISendReceiveHandler
     {
-        Task<T> HandleAsync<T>(SendAsync<T> sendAsync, ReceiveAsync<T> receiveAsync);
+        Task<T> HandleAsync<T>(SendToAllAsync<T> sendToAll, ReceiveFromEachAsync<T> receiveFromEachAsync);
     }
 
     private class SendHandler(IMultiPartyNetworkSession multiPartySession) : ISendReceiveHandler
     {
-        public Task<T> HandleAsync<T>(SendAsync<T> sendAsync, ReceiveAsync<T> receiveAsync) =>
-            sendAsync(multiPartySession);
+        public Task<T> HandleAsync<T>(SendToAllAsync<T> sendToAll, ReceiveFromEachAsync<T> receiveFromEachAsync) =>
+            sendToAll(multiPartySession);
     }
 
     private class ReceiveHandler(ITwoPartyNetworkSession twoPartySession) : ISendReceiveHandler
     {
-        public Task<T> HandleAsync<T>(SendAsync<T> sendAsync, ReceiveAsync<T> receiveAsync) =>
-            receiveAsync(twoPartySession);
+        public Task<T> HandleAsync<T>(SendToAllAsync<T> sendToAll, ReceiveFromEachAsync<T> receiveFromEachAsync) =>
+            receiveFromEachAsync(twoPartySession);
     }
 }
 
-public delegate Task<T> SendAsync<T>(IMultiPartyNetworkSession multiPartySession);
-
-public delegate Task<T> ReceiveAsync<T>(ITwoPartyNetworkSession twoPartySession);
+public delegate Task<T> SendToAllAsync<T>(IMultiPartyNetworkSession multiPartySession);
+public delegate Task<T> ReceiveFromEachAsync<T>(ITwoPartyNetworkSession twoPartySession);
+public delegate Task<T> PairwiseSendAsync<T>(IMessageChannel channel);
+public delegate Task<T> PairwiseReceiveAsync<T>(IMessageChannel channel);
