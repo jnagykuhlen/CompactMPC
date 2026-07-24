@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CompactMPC.Networking;
 using CompactMPC.Protocol.Internal;
 
@@ -9,17 +8,9 @@ public abstract class PairwiseMultiplicativeSharing : IMultiplicativeSharing
 {
     public async Task<BitArray> ComputeMultiplicativeSharesAsync(OrderedMultiPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
     {
-        var pairwiseMultiplicativeShares = await Task.WhenAll(
-            session.RemotePartySessions
-                .AsParallel()
-                .Select(pairwiseSession =>
-                    ComputePairwiseMultiplicativeSharesAsync(
-                        pairwiseSession,
-                        leftShares,
-                        rightShares,
-                        numberOfInvocations
-                    )
-                )
+        var pairwiseMultiplicativeShares = await session.PairwiseSendOrReceiveAsync(
+            channel => ComputeSenderSharesAsync(channel, leftShares, rightShares, numberOfInvocations),
+            channel => ComputeReceiverSharesAsync(channel, leftShares, rightShares, numberOfInvocations)
         );
 
         if (!IncludesLocalTerms || session.NumberOfParties.IsOdd)
@@ -28,6 +19,7 @@ public abstract class PairwiseMultiplicativeSharing : IMultiplicativeSharing
         return BitArray.FromXor(pairwiseMultiplicativeShares);
     }
 
-    protected abstract Task<BitArray> ComputePairwiseMultiplicativeSharesAsync(ITwoPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations);
+    protected abstract Task<BitArray> ComputeSenderSharesAsync(IMessageChannel channel, BitArray leftShares, BitArray rightShares, int numberOfInvocations);
+    protected abstract Task<BitArray> ComputeReceiverSharesAsync(IMessageChannel channel, BitArray leftShares, BitArray rightShares, int numberOfInvocations);
     protected abstract bool IncludesLocalTerms { get; }
 }

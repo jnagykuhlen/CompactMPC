@@ -36,7 +36,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
     private Task<PerPartyShares[]> ExchangeInputSharesAsync(SecureProgramInput programInput, SecureProgramContext context)
     {
         var localShares = context.GetInputContext(_session.LocalParty).GetInputBits(programInput);
-        return _session.ExchangeAsync(
+        return _session.SendAndReceiveAsync(
             multiPartySession => SendInputRemoteSharesAsync(multiPartySession, localShares),
             twoPartySession => ReceiveInputLocalSharesAsync(twoPartySession, context)
         );
@@ -75,7 +75,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
     private Task<BitArray[]> ExchangeOutputSharesAsync(SecureProgramContext context, ForwardCircuitEvaluationResult<Bit> evaluationResult)
     {
         var localShares = new BitArray(context.GetOutputContext().Wires.Select(evaluationResult.Value).ToArray());
-        return _session.ExchangeAsync(
+        return _session.SendAndReceiveAsync(
             multiPartySession => SendOutputLocalSharesAsync(multiPartySession, localShares),
             twoPartySession => ReceiveOutputRemoteSharesAsync(twoPartySession, context)
         );

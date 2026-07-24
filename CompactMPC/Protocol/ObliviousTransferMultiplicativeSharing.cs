@@ -7,16 +7,10 @@ namespace CompactMPC.Protocol;
 
 public class ObliviousTransferMultiplicativeSharing(IBitObliviousTransfer obliviousTransfer) : PairwiseMultiplicativeSharing
 {
-    protected override Task<BitArray> ComputePairwiseMultiplicativeSharesAsync(ITwoPartyNetworkSession session, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
-    {
-        // Given local shares x1, y1
-        // compute share of x1 * y2 + x2 * y1
-        return session.RemoteParty < session.LocalParty ?
-            ComputeSenderSharesAsync(session.Channel, leftShares, rightShares, numberOfInvocations) :
-            ComputeReceiverSharesAsync(session.Channel, leftShares, rightShares, numberOfInvocations);
-    }
-
-    private async Task<BitArray> ComputeSenderSharesAsync(IMessageChannel channel, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
+    // Given local shares x1, y1
+    // compute share of x1 * y2 + x2 * y1
+    
+    protected override async Task<BitArray> ComputeSenderSharesAsync(IMessageChannel channel, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
     {
         var randomShares = RandomNumberGenerator.GetBits(numberOfInvocations);
         var options = new BitQuadrupleArray(numberOfInvocations);
@@ -35,7 +29,7 @@ public class ObliviousTransferMultiplicativeSharing(IBitObliviousTransfer oblivi
         return randomShares;
     }
 
-    private Task<BitArray> ComputeReceiverSharesAsync(IMessageChannel channel, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
+    protected override Task<BitArray> ComputeReceiverSharesAsync(IMessageChannel channel, BitArray leftShares, BitArray rightShares, int numberOfInvocations)
     {
         var selectionIndices = new QuadrupleIndexArray(numberOfInvocations);
         for (var i = 0; i < numberOfInvocations; ++i)

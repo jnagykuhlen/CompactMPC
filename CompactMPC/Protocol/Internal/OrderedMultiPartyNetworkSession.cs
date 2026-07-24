@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,12 +14,19 @@ public class OrderedMultiPartyNetworkSession(IMultiPartyNetworkSession multiPart
         .OrderBy(orderedParty => orderedParty.Party)
         .ToList();
 
-    public Task<T[]> ExchangeAsync<T>(SendAsync<T> sendAsync, ReceiveAsync<T> receiveAsync) =>
+    public Task<T[]> SendAndReceiveAsync<T>(SendAsync<T> sendAsync, ReceiveAsync<T> receiveAsync) =>
         Task.WhenAll(_orderedParties.Select(orderedParty => orderedParty.Handler.HandleAsync(sendAsync, receiveAsync)));
 
+    public Task<T[]> PairwiseSendOrReceiveAsync<T>(Func<IMessageChannel, Task<T>> sendAsync, Func<IMessageChannel, Task<T>> receiveAsync) =>
+        Task.WhenAll(
+            multiPartySession.RemotePartySessions
+                .AsParallel()
+                .Select(remotePartySession => remotePartySession.RemoteParty < remotePartySession.LocalParty ?
+                    sendAsync(remotePartySession.Channel) :
+                    receiveAsync(remotePartySession.Channel))
+        );
+
     public IEnumerable<Party> OrderedParties => _orderedParties.Select(orderedParty => orderedParty.Party);
-    // TODO: Still required?
-    public IEnumerable<ITwoPartyNetworkSession> RemotePartySessions => multiPartySession.RemotePartySessions;
     public Party LocalParty => multiPartySession.LocalParty;
     public int NumberOfParties => _orderedParties.Count;
     public bool IsLocalPartyLeading => _orderedParties[0].Party == LocalParty;
