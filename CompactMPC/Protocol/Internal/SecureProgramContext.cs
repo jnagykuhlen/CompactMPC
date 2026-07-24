@@ -6,18 +6,18 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.Protocol.Internal;
 
-public class SecureProgramContext(IMultiPartyNetworkSession multiPartySession) : ISecureProgramContext
+public class SecureProgramContext(OrderedMultiPartyNetworkSession session) : ISecureProgramContext
 {
     private readonly Dictionary<Party, PartyInputContext> _partyInputContexts =
-        multiPartySession.Parties.ToDictionary(party => party, _ => new PartyInputContext());
+        session.OrderedParties.ToDictionary(party => party, _ => new PartyInputContext());
 
     private readonly PartyOutputContext _outputContext = new();
 
     public IReadOnlyList<TExpression> Share<TExpression>(Input<TExpression> input) where TExpression : IExpression
     {
-        var expressions = new List<TExpression>(multiPartySession.NumberOfParties);
+        var expressions = new List<TExpression>(session.OrderedParties.Count);
 
-        foreach (var party in multiPartySession.Parties.OrderBy(party => party.Guid))
+        foreach (var party in session.OrderedParties)
         {
             var expression = input.Create();
             _partyInputContexts[party].Add(input, expression);

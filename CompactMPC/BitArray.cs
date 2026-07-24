@@ -35,41 +35,50 @@ public class BitArray : PackedArray<Bit>
             Buffer[i] |= other.Buffer[i];
     }
 
-    public void Xor(BitArray other)
+    public BitArray Xor(BitArray other)
     {
         if (other.Length != Length)
             throw new ArgumentException("Bit array length does not match.", nameof(other));
 
         for (var i = 0; i < Buffer.Length; ++i)
             Buffer[i] ^= other.Buffer[i];
+
+        return this;
     }
 
-    public void And(BitArray other)
+    public BitArray And(BitArray other)
     {
         if (other.Length != Length)
             throw new ArgumentException("Bit array length does not match.", nameof(other));
 
         for (var i = 0; i < Buffer.Length; ++i)
             Buffer[i] &= other.Buffer[i];
+
+        return this;
     }
 
-    public void Not()
+    public BitArray Not()
     {
         for (var i = 0; i < Buffer.Length; ++i)
             Buffer[i] = (byte)~Buffer[i];
+
+        return this;
     }
 
-    public static BitArray Xor(IReadOnlyList<BitArray> bitArrays)
+    public BitArray Xor(IReadOnlyList<BitArray> bitArrays)
+    {
+        foreach (var bitArray in bitArrays)
+            Xor(bitArray);
+
+        return this;
+    }
+
+    public static BitArray FromXor(IReadOnlyList<BitArray> bitArrays)
     {
         if (bitArrays.Count == 0)
             throw new ArgumentException("Bit array list is empty.", nameof(bitArrays));
 
-        var result = new BitArray(bitArrays[0].Length);
-
-        foreach (var bitArray in bitArrays)
-            result.Xor(bitArray);
-
-        return result;
+        return new BitArray(bitArrays[0].Length).Xor(bitArrays);
     }
 
     public static BitArray FromBinaryString(string bitString)
@@ -101,6 +110,7 @@ public class BitArray : PackedArray<Bit>
 
     protected sealed override void WriteElement(Bit value, int index) => WriteBits((byte)value, index, ElementsPerByte, BitMask);
 
+    // TODO: Operators still required?
     public static BitArray operator |(BitArray left, BitArray right)
     {
         var clone = left.Clone();

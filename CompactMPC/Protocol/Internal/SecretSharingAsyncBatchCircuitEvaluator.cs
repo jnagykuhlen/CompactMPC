@@ -5,7 +5,7 @@ using CompactMPC.Networking;
 
 namespace CompactMPC.Protocol.Internal;
 
-public class SecretSharingAsyncBatchCircuitEvaluator(IMultiPartyNetworkSession session, IMultiplicativeSharing multiplicativeSharing)
+public class SecretSharingAsyncBatchCircuitEvaluator(OrderedMultiPartyNetworkSession session, IMultiplicativeSharing multiplicativeSharing)
     : IAsyncBatchCircuitEvaluator<Bit>
 {
     public async Task<IReadOnlyList<Bit>> EvaluateAndGateBatchAsync(IReadOnlyList<GateEvaluationInput<Bit>> evaluationInputs)
@@ -24,5 +24,5 @@ public class SecretSharingAsyncBatchCircuitEvaluator(IMultiPartyNetworkSession s
     }
 
     public Bit EvaluateXorGate(Bit leftValue, Bit rightValue) => leftValue ^ rightValue;
-    public Bit EvaluateNotGate(Bit value) => session.LocalParty.IsFirstParty() ? ~value : value;
+    public Bit EvaluateNotGate(Bit value) => session.IsLocalPartyLeading ? ~value : value;
 }
