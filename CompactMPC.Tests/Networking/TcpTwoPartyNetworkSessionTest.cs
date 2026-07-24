@@ -3,31 +3,30 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.Networking
+namespace CompactMPC.Networking;
+
+[TestClass]
+public class TcpTwoPartyNetworkSessionTest
 {
-    [TestClass]
-    public class TcpTwoPartyNetworkSessionTest
+    private static readonly Party FirstParty = new(0);
+    private static readonly Party SecondParty = new(1);
+
+    private static readonly IPEndPoint FirstEndPoint = new(IPAddress.Loopback, 12674);
+    private static readonly IPEndPoint SecondEndPoint = new(IPAddress.Loopback, 12675);
+
+    [TestMethod]
+    public async Task TestTcpTwoPartyNetworkSession()
     {
-        private static readonly Party FirstParty = new Party(0);
-        private static readonly Party SecondParty = new Party(1);
+        var firstSessionTask = TcpTwoPartyNetworkSession.EstablishAsync(FirstParty, FirstEndPoint, SecondEndPoint);
+        var secondSessionTask = TcpTwoPartyNetworkSession.EstablishAsync(SecondParty, SecondEndPoint, FirstEndPoint);
 
-        private static readonly IPEndPoint FirstEndPoint = new IPEndPoint(IPAddress.Loopback, 12674);
-        private static readonly IPEndPoint SecondEndPoint = new IPEndPoint(IPAddress.Loopback, 12675);
+        using var firstSession = await firstSessionTask;
+        using var secondSession = await secondSessionTask;
 
-        [TestMethod]
-        public async Task TestTcpTwoPartyNetworkSession()
-        {
-            Task<TcpTwoPartyNetworkSession> firstSessionTask = TcpTwoPartyNetworkSession.EstablishAsync(FirstParty, FirstEndPoint, SecondEndPoint);
-            Task<TcpTwoPartyNetworkSession> secondSessionTask = TcpTwoPartyNetworkSession.EstablishAsync(SecondParty, SecondEndPoint, FirstEndPoint);
+        firstSession.LocalParty.Should().Be(FirstParty);
+        firstSession.RemoteParty.Should().Be(SecondParty);
 
-            using TcpTwoPartyNetworkSession firstSession = await firstSessionTask;
-            using TcpTwoPartyNetworkSession secondSession = await secondSessionTask;
-
-            firstSession.LocalParty.Should().Be(FirstParty);
-            firstSession.RemoteParty.Should().Be(SecondParty);
-
-            secondSession.LocalParty.Should().Be(SecondParty);
-            secondSession.RemoteParty.Should().Be(FirstParty);
-        }
+        secondSession.LocalParty.Should().Be(SecondParty);
+        secondSession.RemoteParty.Should().Be(FirstParty);
     }
 }

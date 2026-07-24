@@ -6,50 +6,49 @@ using AwesomeAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static CompactMPC.Networking.TcpMultiPartyNetworkSession;
 
-namespace CompactMPC.Networking
+namespace CompactMPC.Networking;
+
+[TestClass]
+public class TcpMultiPartyNetworkSessionTest
 {
-    [TestClass]
-    public class TcpMultiPartyNetworkSessionTest
+    private static readonly IPEndPoint FirstEndPoint = new(IPAddress.Loopback, 12840);
+    private static readonly IPEndPoint SecondEndPoint = new(IPAddress.Loopback, 12841);
+    private static readonly IPEndPoint ThirdEndPoint = new(IPAddress.Loopback, 12842);
+
+    private static readonly Party FirstParty = new(0);
+    private static readonly Party SecondParty = new(1);
+    private static readonly Party ThirdParty = new(2);
+
+    [TestMethod]
+    public async Task TestTcpMultiPartyNetworkSession()
     {
-        private static readonly IPEndPoint FirstEndPoint = new IPEndPoint(IPAddress.Loopback, 12840);
-        private static readonly IPEndPoint SecondEndPoint = new IPEndPoint(IPAddress.Loopback, 12841);
-        private static readonly IPEndPoint ThirdEndPoint = new IPEndPoint(IPAddress.Loopback, 12842);
+        var firstSessionTask = Delay(0, () => EstablishAsync(FirstParty, FirstEndPoint, [SecondEndPoint, ThirdEndPoint]));
+        var secondSessionTask = Delay(200, () => EstablishAsync(SecondParty, SecondEndPoint, [FirstEndPoint, ThirdEndPoint]));
+        var thirdSessionTask = Delay(400, () => EstablishAsync(ThirdParty, ThirdEndPoint, [FirstEndPoint, SecondEndPoint]));
 
-        private static readonly Party FirstParty = new Party(0);
-        private static readonly Party SecondParty = new Party(1);
-        private static readonly Party ThirdParty = new Party(2);
+        using var firstSession = await firstSessionTask;
+        using var secondSession = await secondSessionTask;
+        using var thirdSession = await thirdSessionTask;
 
-        [TestMethod]
-        public async Task TestTcpMultiPartyNetworkSession()
-        {
-            Task<TcpMultiPartyNetworkSession> firstSessionTask = Delay(0, () => EstablishAsync(FirstParty, FirstEndPoint, new[] { SecondEndPoint, ThirdEndPoint }));
-            Task<TcpMultiPartyNetworkSession> secondSessionTask = Delay(2000, () => EstablishAsync(SecondParty, SecondEndPoint, new[] { FirstEndPoint, ThirdEndPoint }));
-            Task<TcpMultiPartyNetworkSession> thirdSessionTask = Delay(4000, () => EstablishAsync(ThirdParty, ThirdEndPoint, new[] { FirstEndPoint, SecondEndPoint }));
+        firstSession.LocalParty.Should().Be(FirstParty);
+        firstSession.RemotePartySessions.Select(session => session.RemoteParty)
+            .Should()
+            .BeEquivalentTo([SecondParty, ThirdParty]);
 
-            using TcpMultiPartyNetworkSession firstSession = await firstSessionTask;
-            using TcpMultiPartyNetworkSession secondSession = await secondSessionTask;
-            using TcpMultiPartyNetworkSession thirdSession = await thirdSessionTask;
+        secondSession.LocalParty.Should().Be(SecondParty);
+        secondSession.RemotePartySessions.Select(session => session.RemoteParty)
+            .Should()
+            .BeEquivalentTo([FirstParty, ThirdParty]);
 
-            firstSession.LocalParty.Should().Be(FirstParty);
-            firstSession.RemotePartySessions.Select(session => session.RemoteParty)
-                .Should()
-                .BeEquivalentTo(new[] { SecondParty, ThirdParty });
+        thirdSession.LocalParty.Should().Be(ThirdParty);
+        thirdSession.RemotePartySessions.Select(session => session.RemoteParty)
+            .Should()
+            .BeEquivalentTo([FirstParty, SecondParty]);
+    }
 
-            secondSession.LocalParty.Should().Be(SecondParty);
-            secondSession.RemotePartySessions.Select(session => session.RemoteParty)
-                .Should()
-                .BeEquivalentTo(new[] { FirstParty, ThirdParty });
-
-            thirdSession.LocalParty.Should().Be(ThirdParty);
-            thirdSession.RemotePartySessions.Select(session => session.RemoteParty)
-                .Should()
-                .BeEquivalentTo(new[] { FirstParty, SecondParty });
-        }
-
-        private static async Task<T> Delay<T>(int millisecondsDelay, Func<Task<T>> taskFactory)
-        {
-            await Task.Delay(millisecondsDelay);
-            return await taskFactory();
-        }
+    private static async Task<T> Delay<T>(int millisecondsDelay, Func<Task<T>> taskFactory)
+    {
+        await Task.Delay(millisecondsDelay);
+        return await taskFactory();
     }
 }
