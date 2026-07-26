@@ -1,6 +1,6 @@
 using CompactMPC.Collections;
 
-namespace CompactMPC.Expressions;
+namespace CompactMPC.Protocol;
 
 public interface IInputExpression<in T> : IExpression
 {

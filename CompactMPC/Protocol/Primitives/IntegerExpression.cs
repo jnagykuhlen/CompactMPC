@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using CompactMPC.Circuits;
 using CompactMPC.Collections;
-using CompactMPC.Protocol;
 
-namespace CompactMPC.Expressions;
+namespace CompactMPC.Protocol.Primitives;
 
 public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expression(wires),
     IInputExpression<int>, IOutputExpression<int>

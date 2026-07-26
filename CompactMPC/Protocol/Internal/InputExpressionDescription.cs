@@ -1,5 +1,4 @@
 ﻿using System;
-using CompactMPC.Expressions;
 
 namespace CompactMPC.Protocol.Internal;
 

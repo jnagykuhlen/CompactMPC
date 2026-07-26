@@ -2,9 +2,8 @@
 using System.Linq;
 using CompactMPC.Circuits;
 using CompactMPC.Collections;
-using CompactMPC.Protocol;
 
-namespace CompactMPC.Expressions;
+namespace CompactMPC.Protocol.Primitives;
 
 public class BitArrayExpression(IReadOnlyList<Wire> wires) : Expression(wires),
     IInputExpression<IReadOnlyList<Bit>>, IOutputExpression<BitArray>

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CompactMPC.Expressions;
 
 namespace CompactMPC.Protocol;
 

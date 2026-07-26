@@ -2,6 +2,7 @@
 using AwesomeAssertions;
 using CompactMPC.Expressions;
 using CompactMPC.Protocol.Internal;
+using CompactMPC.Protocol.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.Protocol;

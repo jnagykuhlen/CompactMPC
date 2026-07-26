@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CompactMPC.Expressions;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
+using CompactMPC.Protocol.Primitives;
 
 int[] inputs = [5, 6, 3, 4, 5];
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using CompactMPC.Circuits;
 
-namespace CompactMPC.Expressions;
+namespace CompactMPC.Protocol;
 
 public abstract class Expression(IReadOnlyList<Wire> wires) : IExpression
 {

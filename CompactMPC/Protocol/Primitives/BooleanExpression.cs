@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using CompactMPC.Circuits;
 using CompactMPC.Collections;
-using CompactMPC.Protocol;
 
-namespace CompactMPC.Expressions;
+namespace CompactMPC.Protocol.Primitives;
 
 public class BooleanExpression(Wire wire) : Expression([wire]), IInputExpression<bool>, IOutputExpression<bool>
 {
