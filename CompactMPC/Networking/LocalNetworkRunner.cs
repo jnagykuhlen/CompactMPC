@@ -10,10 +10,10 @@ public static class LocalNetworkRunner
 {
     private const int StartPort = 16741;
 
-    public static Task RunMultiPartyNetwork(int numberOfParties, Func<IMultiPartyNetworkSession, int, Task> eachPartyAction) =>
-        RunMultiPartyNetwork(Enumerable.Repeat(eachPartyAction, numberOfParties).ToArray());
+    public static Task RunMultiPartyNetworkAsync(int numberOfParties, Func<IMultiPartyNetworkSession, int, Task> eachPartyAction) =>
+        RunMultiPartyNetworkAsync(Enumerable.Repeat(eachPartyAction, numberOfParties).ToArray());
 
-    public static Task RunMultiPartyNetwork(params Func<IMultiPartyNetworkSession, int, Task>[] partyActions)
+    public static Task RunMultiPartyNetworkAsync(params Func<IMultiPartyNetworkSession, int, Task>[] partyActions)
     {
         var endPoints = partyActions
             .Select((_, index) => new IPEndPoint(IPAddress.Loopback, StartPort + index))
@@ -26,10 +26,7 @@ public static class LocalNetworkRunner
         );
     }
 
-    private static Task<TcpMultiPartyNetworkSession> EstablishMultiPartyAsync(int index, IPEndPoint[] endPoints) =>
-        TcpMultiPartyNetworkSession.EstablishAsync(new Party(), endPoints[index], endPoints.Without(endPoints[index]).ToArray());
-
-    public static Task RunTwoPartyNetwork(Func<ITwoPartyNetworkSession, Task> firstPartyAction, Func<ITwoPartyNetworkSession, Task> secondPartyAction)
+    public static Task RunTwoPartyNetworkAsync(Func<ITwoPartyNetworkSession, Task> firstPartyAction, Func<ITwoPartyNetworkSession, Task> secondPartyAction)
     {
         var firstParty = new Party();
         var secondParty = new Party();
@@ -42,6 +39,9 @@ public static class LocalNetworkRunner
             TcpTwoPartyNetworkSession.EstablishAsync(secondParty, secondEndPoint, firstEndPoint).AndThenAsync(secondPartyAction)
         );
     }
+
+    private static Task<TcpMultiPartyNetworkSession> EstablishMultiPartyAsync(int index, IPEndPoint[] endPoints) =>
+        TcpMultiPartyNetworkSession.EstablishAsync(new Party(), endPoints[index], endPoints.Without(endPoints[index]).ToArray());
 
     private static async Task AndThenAsync<T>(this Task<T> sessionTask, Func<T, Task> sessionAction)
         where T : IDisposable

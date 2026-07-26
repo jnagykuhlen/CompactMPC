@@ -7,7 +7,7 @@ using CompactMPC.Protocol;
 
 int[] inputs = [5, 6, 3, 4, 5];
 
-await LocalNetworkRunner.RunMultiPartyNetwork(2, PerformSecureComputation);
+await LocalNetworkRunner.RunMultiPartyNetworkAsync(2, PerformSecureComputation);
 
 async Task PerformSecureComputation(IMultiPartyNetworkSession networkSession, int partyIndex)
 {

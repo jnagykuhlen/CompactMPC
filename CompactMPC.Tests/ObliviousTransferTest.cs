@@ -41,7 +41,7 @@ public class ObliviousTransferTest
         TestObliviousTransfer(new InsecureObliviousTransfer());
 
     private static Task TestObliviousTransfer(IMessageObliviousTransfer obliviousTransfer) =>
-        LocalNetworkRunner.RunTwoPartyNetwork(
+        LocalNetworkRunner.RunTwoPartyNetworkAsync(
             session => PerformSenderAsync(obliviousTransfer, session),
             session => PerformReceiverAsync(obliviousTransfer, session)
         );
