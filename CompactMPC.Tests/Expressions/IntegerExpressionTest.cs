@@ -1,5 +1,4 @@
 ﻿using System;
-using CompactMPC.Collections;
 using AwesomeAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,52 +7,39 @@ namespace CompactMPC.Expressions;
 [TestClass]
 public class IntegerExpressionTest
 {
+    private readonly IntegerExpression _expression = IntegerExpression.AssignableUpTo(15);
+
+    [DataRow(0, "0000")]
+    [DataRow(3, "1100")]
+    [DataRow(10, "0101")]
     [TestMethod]
-    public void TestWriteTo()
+    public void TestWriteTo(int value, string expected)
     {
-        var expression = IntegerExpression.AssignableUpTo(15);
-
-        var bits = BitArray.FromBinaryString("011011");
-
-        expression.WriteTo(10, bits.WriteOnlySlice(2, 4));
-        bits.ToBinaryString().Should().Be("010101");
-
-        expression.WriteTo(3, bits.WriteOnlySlice(0, 4));
-        bits.ToBinaryString().Should().Be("110001");
+        var bits = new BitArray(4);
+        _expression.WriteTo(value, bits);
+        bits.ToBinaryString().Should().Be(expected);
     }
-    
+
+    [TestMethod]
+    public void TestWriteToOutOfBounds()
+    {
+        var bits = new BitArray(2);
+        var writeAction = () => _expression.WriteTo(14, bits);
+        writeAction.Should().Throw<ArgumentException>();
+    }
+
     [TestMethod]
     public void TestWriteToOverflow()
     {
-        var expression = IntegerExpression.AssignableUpTo(15);
-
-        var bits = BitArray.FromBinaryString("011011");
-
-        var writeAction = () => expression.WriteTo(17, bits.WriteOnlySlice(0, 4));
-
+        var bits = new BitArray(4);
+        var writeAction = () => _expression.WriteTo(17, bits);
         writeAction.Should().Throw<ArgumentException>();
     }
-    
+
+    [DataRow("0000", 0)]
+    [DataRow("0110", 6)]
+    [DataRow("1101", 11)]
     [TestMethod]
-    public void TestWriteOutOfBounds()
-    {
-        var expression = IntegerExpression.AssignableUpTo(15);
-
-        var bits = BitArray.FromBinaryString("011011");
-
-        var writeAction = () => expression.WriteTo(3, bits.WriteOnlySlice(4, 4));
-
-        writeAction.Should().Throw<ArgumentOutOfRangeException>();
-    }
-
-    [TestMethod]
-    public void TestReadValue()
-    {
-        var expression = IntegerExpression.AssignableUpTo(15);
-        var bits = BitArray.FromBinaryString("011010");
-
-        expression.ReadFrom(bits.ReadOnlySlice(0, 4)).Should().Be(6);
-        expression.ReadFrom(bits.ReadOnlySlice(1, 4)).Should().Be(11);
-        expression.ReadFrom(bits.ReadOnlySlice(2, 4)).Should().Be(5);
-    }
+    public void TestReadValue(string bits, int expected) =>
+        _expression.ReadFrom(BitArray.FromBinaryString(bits)).Should().Be(expected);
 }

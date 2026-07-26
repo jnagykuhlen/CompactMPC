@@ -41,7 +41,7 @@ public class BitArrayExpression(IReadOnlyList<Wire> wires) : Expression(wires),
     public static Input<BitArrayExpression> Input(int numberOfBits) => new(() => Assignable(numberOfBits));
     public static Output<BitArrayExpression> Output() => new();
 
-    private static BitArrayExpression Assignable(int numberOfBits) =>
+    public static BitArrayExpression Assignable(int numberOfBits) =>
         new(
             Enumerable
                 .Range(0, numberOfBits)

@@ -1,4 +1,4 @@
-﻿using CompactMPC.Collections;
+﻿using System;
 using AwesomeAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -7,26 +7,29 @@ namespace CompactMPC.Expressions;
 [TestClass]
 public class BooleanExpressionTest
 {
+    private readonly BooleanExpression _expression = BooleanExpression.Assignable();
+
+    [DataRow(false, "0")]
+    [DataRow(true, "1")]
     [TestMethod]
-    public void TestWriteBits()
+    public void TestWriteTo(bool value, string expected)
     {
-        var expression = BooleanExpression.False;
-        var bits = BitArray.FromBinaryString("011");
-
-        expression.WriteTo(false, bits.WriteOnlySlice(1, 1));
-        bits.ToBinaryString().Should().Be("001");
-
-        expression.WriteTo(true, bits.WriteOnlySlice(0, 1));
-        bits.ToBinaryString().Should().Be("101");
+        var bits = new BitArray(1);
+        _expression.WriteTo(value, bits);
+        bits.ToBinaryString().Should().Be(expected);
     }
 
     [TestMethod]
-    public void TestReadValue()
+    public void TestWriteToEmptyList()
     {
-        var expression = BooleanExpression.False;
-        var bits = BitArray.FromBinaryString("011");
-
-        expression.ReadFrom(bits.ReadOnlySlice(0, 1)).Should().Be(false);
-        expression.ReadFrom(bits.ReadOnlySlice(1, 1)).Should().Be(true);
+        var bits = new BitArray(0);
+        var writeAction = () => _expression.WriteTo(true, bits);
+        writeAction.Should().Throw<ArgumentOutOfRangeException>();
     }
+
+    [DataRow("0", false)]
+    [DataRow("1", true)]
+    [TestMethod]
+    public void TestReadFrom(string bits, bool expected) =>
+        _expression.ReadFrom(BitArray.FromBinaryString(bits)).Should().Be(expected);
 }

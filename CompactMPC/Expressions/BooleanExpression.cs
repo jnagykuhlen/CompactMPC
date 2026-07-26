@@ -27,9 +27,11 @@ public class BooleanExpression(Wire wire) : Expression([wire]), IInputExpression
 
     public static bool operator false(BooleanExpression right) => right.Wire == Wire.Zero;
     public static bool operator true(BooleanExpression right) => right.Wire == Wire.One;
-    
-    public static Input<BooleanExpression> Input() => new(() => new BooleanExpression(Wire.Assignable()));
+
+    public static Input<BooleanExpression> Input() => new(Assignable);
     public static Output<BooleanExpression> Output() => new();
+
+    public static BooleanExpression Assignable() => new(Wire.Assignable());
 
     public Wire Wire => Wires[0];
 }
