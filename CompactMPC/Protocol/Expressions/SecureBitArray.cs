@@ -25,6 +25,8 @@ public class SecureBitArray(IReadOnlyList<Wire> wires) : Expression(wires),
     public SecureBitArray Not() =>
         new(Wires.Select(Wire.Not).ToArray());
 
+    public SecureBoolean IsBitSet(int index) => new(Wires[index]);
+
     public static SecureBitArray AllZeroes(int numberOfBits) =>
         new(Enumerable.Repeat(Wire.Zero, numberOfBits).ToArray());
 

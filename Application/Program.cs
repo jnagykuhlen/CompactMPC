@@ -1,17 +1,22 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CompactMPC;
 using CompactMPC.Networking;
 using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol;
 using CompactMPC.Protocol.Expressions;
 
-int[] inputs = [5, 6, 3, 4, 5];
+string[] inputs = [
+    "111101",
+    "110101",
+    "010110"
+];
 
-await LocalNetworkRunner.RunMultiPartyNetworkAsync(2, PerformSecureComputation);
+await LocalNetworkRunner.RunMultiPartyNetworkAsync(3, PerformSecureComputation);
 
 async Task PerformSecureComputation(IMultiPartyNetworkSession networkSession, int partyIndex)
 {
-    var localInput = inputs[partyIndex];
+    var localInput = BitArray.FromBinaryString(inputs[partyIndex]);
 
     var obliviousTransfer = new NaorPinkasObliviousTransfer(
         new SecurityParameters(47, 23, 4, 1, 1)
@@ -24,21 +29,32 @@ async Task PerformSecureComputation(IMultiPartyNetworkSession networkSession, in
         multiplicativeSharing
     );
 
-    var output = await secureComputation.Run(new SumSecureProgram())
+    var (intersection, counter) = await secureComputation.Run(new SetIntersectionSecureProgram(localInput.Length))
         .WithInput(program => program.Input, localInput)
-        .EvaluateOutputAsync(program => program.Output);
+        .EvaluateOutputsAsync(
+            program => program.IntersectionOutput,
+            program => program.CounterOutput
+        );
 
-    Console.WriteLine($"Output: {output}");
+    Console.WriteLine($"OUTPUT: Intersection {intersection}, Counter {counter}");
 }
 
-public class SumSecureProgram : SecureProgram
+public class SetIntersectionSecureProgram(int numberOfBits) : SecureProgram
 {
-    public Input<SecureInteger> Input { get; } = SecureInteger.Input(15);
-    public Output<SecureInteger> Output { get; } = SecureInteger.Output();
+    public Input<SecureBitArray> Input { get; } = SecureBitArray.Input(numberOfBits);
+    public Output<SecureBitArray> IntersectionOutput { get; } = SecureBitArray.Output();
+    public Output<SecureInteger> CounterOutput { get; } = SecureInteger.Output();
 
     public override void Compile(ISecureProgramContext context)
     {
         var allInputs = context.Share(Input);
-        context.Reveal(Output, SecureInteger.Sum(allInputs));
+        var intersection = SecureBitArray.And(allInputs);
+
+        var counter = SecureInteger.Zero;
+        for (var i = 0; i < numberOfBits; ++i)
+            counter += SecureInteger.FromBoolean(intersection.IsBitSet(i));
+
+        context.Reveal(IntersectionOutput, intersection);
+        context.Reveal(CounterOutput, counter);
     }
 }
