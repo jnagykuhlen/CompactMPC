@@ -16,6 +16,9 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
 
     public SecureComputationRun<TProgram> Run<TProgram>(TProgram program) where TProgram : SecureProgram =>
         new(this, program);
+    
+    public SecureComputationRun<TProgram> Run<TProgram>() where TProgram : SecureProgram, new() =>
+        new(this, new TProgram());
 
     public async Task<SecureProgramOutput> RunAsync(SecureProgram program, SecureProgramInput programInput)
     {
