@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AwesomeAssertions;
-using CompactMPC.Expressions;
 using CompactMPC.Protocol.Internal;
 using CompactMPC.Protocol.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -28,13 +27,13 @@ public class SumSecureComputationTest
 
     private class SumSecureProgram : SecureProgram
     {
-        public Input<IntegerExpression> Input { get; } = IntegerExpression.Input(10);
-        public Output<IntegerExpression> Output { get; } = IntegerExpression.Output();
+        public Input<SecureInteger> Input { get; } = SecureInteger.Input(10);
+        public Output<SecureInteger> Output { get; } = SecureInteger.Output();
 
         public override void Compile(ISecureProgramContext context)
         {
             var allInputs = context.Share(Input);
-            context.Reveal(Output, IntegerExpression.Sum(allInputs));
+            context.Reveal(Output, SecureInteger.Sum(allInputs));
         }
     }
 }

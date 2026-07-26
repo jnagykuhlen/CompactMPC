@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AwesomeAssertions;
-using CompactMPC.Expressions;
 using CompactMPC.Protocol.Internal;
 using CompactMPC.Protocol.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,13 +25,13 @@ public class ConstantSecureComputationTest
 
     private class ConstantSecureProgram : SecureProgram
     {
-        public Input<BitArrayExpression> Input { get; } = BitArrayExpression.Input(4);
-        public Output<BitArrayExpression> Output { get; } = BitArrayExpression.Output();
+        public Input<SecureBitArray> Input { get; } = SecureBitArray.Input(4);
+        public Output<SecureBitArray> Output { get; } = SecureBitArray.Output();
 
         public override void Compile(ISecureProgramContext context)
         {
             var allInputs = context.Share(Input);
-            context.Reveal(Output, BitArrayExpression.Xor(allInputs) & BitArrayExpression.AllZeroes(4));
+            context.Reveal(Output, SecureBitArray.Xor(allInputs) & SecureBitArray.AllZeroes(4));
         }
     }
 }

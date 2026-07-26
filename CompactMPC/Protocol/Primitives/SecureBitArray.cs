@@ -5,7 +5,7 @@ using CompactMPC.Collections;
 
 namespace CompactMPC.Protocol.Primitives;
 
-public class BitArrayExpression(IReadOnlyList<Wire> wires) : Expression(wires),
+public class SecureBitArray(IReadOnlyList<Wire> wires) : Expression(wires),
     IInputExpression<IReadOnlyList<Bit>>, IOutputExpression<BitArray>
 {
     public void WriteTo(IReadOnlyList<Bit> value, IWriteOnlyList<Bit> destination)
@@ -16,31 +16,31 @@ public class BitArrayExpression(IReadOnlyList<Wire> wires) : Expression(wires),
 
     public BitArray ReadFrom(IReadOnlyList<Bit> source) => new(source);
 
-    public static BitArrayExpression AllZeroes(int numberOfBits) =>
+    public static SecureBitArray AllZeroes(int numberOfBits) =>
         new(Enumerable.Repeat(Wire.Zero, numberOfBits).ToArray());
 
-    public static BitArrayExpression AllOnes(int numberOfBits) =>
+    public static SecureBitArray AllOnes(int numberOfBits) =>
         new(Enumerable.Repeat(Wire.One, numberOfBits).ToArray());
 
-    public static BitArrayExpression Xor(IReadOnlyList<BitArrayExpression> values) =>
+    public static SecureBitArray Xor(IReadOnlyList<SecureBitArray> values) =>
         values.AggregateDepthEfficient((x, y) => x ^ y);
 
-    public static BitArrayExpression And(IReadOnlyList<BitArrayExpression> values) =>
+    public static SecureBitArray And(IReadOnlyList<SecureBitArray> values) =>
         values.AggregateDepthEfficient((x, y) => x & y);
 
-    public static BitArrayExpression operator ^(BitArrayExpression left, BitArrayExpression right) =>
+    public static SecureBitArray operator ^(SecureBitArray left, SecureBitArray right) =>
         new(left.Wires.Zip(right.Wires, Wire.Xor).ToArray());
 
-    public static BitArrayExpression operator &(BitArrayExpression left, BitArrayExpression right) =>
+    public static SecureBitArray operator &(SecureBitArray left, SecureBitArray right) =>
         new(left.Wires.Zip(right.Wires, Wire.And).ToArray());
 
-    public static BitArrayExpression operator ~(BitArrayExpression left) =>
+    public static SecureBitArray operator ~(SecureBitArray left) =>
         new(left.Wires.Select(Wire.Not).ToArray());
 
-    public static Input<BitArrayExpression> Input(int numberOfBits) => new(() => Assignable(numberOfBits));
-    public static Output<BitArrayExpression> Output() => new();
+    public static Input<SecureBitArray> Input(int numberOfBits) => new(() => Assignable(numberOfBits));
+    public static Output<SecureBitArray> Output() => new();
 
-    public static BitArrayExpression Assignable(int numberOfBits) =>
+    public static SecureBitArray Assignable(int numberOfBits) =>
         new(
             Enumerable
                 .Range(0, numberOfBits)

@@ -33,12 +33,12 @@ async Task PerformSecureComputation(IMultiPartyNetworkSession networkSession, in
 
 public class SumSecureProgram : SecureProgram
 {
-    public Input<IntegerExpression> Input { get; } = IntegerExpression.Input(15);
-    public Output<IntegerExpression> Output { get; } = IntegerExpression.Output();
+    public Input<SecureInteger> Input { get; } = SecureInteger.Input(15);
+    public Output<SecureInteger> Output { get; } = SecureInteger.Output();
 
     public override void Compile(ISecureProgramContext context)
     {
         var allInputs = context.Share(Input);
-        context.Reveal(Output, IntegerExpression.Sum(allInputs));
+        context.Reveal(Output, SecureInteger.Sum(allInputs));
     }
 }

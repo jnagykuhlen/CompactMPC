@@ -6,11 +6,11 @@ using CompactMPC.Collections;
 
 namespace CompactMPC.Protocol.Primitives;
 
-public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expression(wires),
+public class SecureInteger(IReadOnlyList<Wire> wires, int maxValue) : Expression(wires),
     IInputExpression<int>, IOutputExpression<int>
 {
-    public static readonly IntegerExpression Zero = new([], 0);
-    public static readonly IntegerExpression One = new([Wire.One], 1);
+    public static readonly SecureInteger Zero = new([], 0);
+    public static readonly SecureInteger One = new([Wire.One], 1);
 
     public int MaxValue { get; } = maxValue;
 
@@ -37,15 +37,15 @@ public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expres
         return value;
     }
 
-    public static IntegerExpression Sum(params IntegerExpression[] values) =>
-        Sum((IReadOnlyList<IntegerExpression>)values);
+    public static SecureInteger Sum(params SecureInteger[] values) =>
+        Sum((IReadOnlyList<SecureInteger>)values);
 
-    public static IntegerExpression Sum(IReadOnlyList<IntegerExpression> values) =>
+    public static SecureInteger Sum(IReadOnlyList<SecureInteger> values) =>
         values.AggregateDepthEfficient((x, y) => x + y);
 
-    public static IntegerExpression FromBoolean(BooleanExpression expression) => new(expression.Wires, 1);
+    public static SecureInteger FromBoolean(SecureBoolean expression) => new(expression.Wires, 1);
 
-    public static IntegerExpression Constant(int value)
+    public static SecureInteger Constant(int value)
     {
         if (value < 0)
             throw new ArgumentOutOfRangeException(nameof(value), "Constant value must not be negative.");
@@ -60,7 +60,7 @@ public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expres
         for (var i = 0; i < wires.Length; ++i)
             wires[i] = (value & (1 << i)) != 0 ? Wire.One : Wire.Zero;
 
-        return new IntegerExpression(wires, value);
+        return new SecureInteger(wires, value);
     }
 
     private static int RequiredNumberOfBits(int maxValue)
@@ -72,7 +72,7 @@ public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expres
         return numberOfBits;
     }
 
-    public static IntegerExpression operator +(IntegerExpression left, IntegerExpression right)
+    public static SecureInteger operator +(SecureInteger left, SecureInteger right)
     {
         var maxValue = left.MaxValue + right.MaxValue;
         var numberOfBits = RequiredNumberOfBits(maxValue);
@@ -99,10 +99,10 @@ public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expres
             }
         }
 
-        return new IntegerExpression(result, maxValue);
+        return new SecureInteger(result, maxValue);
     }
 
-    public static BooleanExpression operator >(IntegerExpression left, IntegerExpression right)
+    public static SecureBoolean operator >(SecureInteger left, SecureInteger right)
     {
         var maxLength = Math.Max(left.Wires.Count, right.Wires.Count);
 
@@ -121,23 +121,23 @@ public class IntegerExpression(IReadOnlyList<Wire> wires, int maxValue) : Expres
             );
         }
 
-        return new BooleanExpression(result);
+        return new SecureBoolean(result);
     }
 
-    public static BooleanExpression operator <(IntegerExpression left, IntegerExpression right) => right > left;
-    public static BooleanExpression operator >=(IntegerExpression left, IntegerExpression right) => !(right > left);
-    public static BooleanExpression operator <=(IntegerExpression left, IntegerExpression right) => !(left > right);
+    public static SecureBoolean operator <(SecureInteger left, SecureInteger right) => right > left;
+    public static SecureBoolean operator >=(SecureInteger left, SecureInteger right) => !(right > left);
+    public static SecureBoolean operator <=(SecureInteger left, SecureInteger right) => !(left > right);
 
-    public static Input<IntegerExpression> Input(int maxValue) => new(() => AssignableUpTo(maxValue));
-    public static Output<IntegerExpression> Output() => new();
+    public static Input<SecureInteger> Input(int maxValue) => new(() => AssignableUpTo(maxValue));
+    public static Output<SecureInteger> Output() => new();
 
-    public static IntegerExpression AssignableUpTo(int maxValue)
+    public static SecureInteger AssignableUpTo(int maxValue)
     {
         var wires = Enumerable
             .Range(0, RequiredNumberOfBits(maxValue))
             .Select(_ => Wire.Assignable())
             .ToArray();
 
-        return new IntegerExpression(wires, maxValue);
+        return new SecureInteger(wires, maxValue);
     }
 }

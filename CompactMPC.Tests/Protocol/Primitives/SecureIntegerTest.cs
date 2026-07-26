@@ -1,14 +1,13 @@
 ﻿using System;
 using AwesomeAssertions;
-using CompactMPC.Protocol.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.Expressions;
+namespace CompactMPC.Protocol.Primitives;
 
 [TestClass]
-public class IntegerExpressionTest
+public class SecureIntegerTest
 {
-    private readonly IntegerExpression _expression = IntegerExpression.AssignableUpTo(15);
+    private readonly SecureInteger _expression = SecureInteger.AssignableUpTo(15);
 
     [DataRow(0, "0000")]
     [DataRow(3, "1100")]

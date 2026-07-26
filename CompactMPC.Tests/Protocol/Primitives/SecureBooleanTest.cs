@@ -1,14 +1,13 @@
 ﻿using System;
 using AwesomeAssertions;
-using CompactMPC.Protocol.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CompactMPC.Expressions;
+namespace CompactMPC.Protocol.Primitives;
 
 [TestClass]
-public class BooleanExpressionTest
+public class SecureBooleanTest
 {
-    private readonly BooleanExpression _expression = BooleanExpression.Assignable();
+    private readonly SecureBoolean _expression = SecureBoolean.Assignable();
 
     [DataRow(false, "0")]
     [DataRow(true, "1")]
