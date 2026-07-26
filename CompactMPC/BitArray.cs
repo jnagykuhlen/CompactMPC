@@ -109,35 +109,4 @@ public class BitArray : PackedArray<Bit>
     protected override Bit ReadElement(int index) => new(ReadBits(index, ElementsPerByte, BitMask));
 
     protected sealed override void WriteElement(Bit value, int index) => WriteBits((byte)value, index, ElementsPerByte, BitMask);
-
-    // TODO: Operators still required?
-    public static BitArray operator |(BitArray left, BitArray right)
-    {
-        var clone = left.Clone();
-        clone.Or(right);
-        return clone;
-    }
-
-    public static BitArray operator ^(BitArray left, BitArray right)
-    {
-        var clone = left.Clone();
-        clone.Xor(right);
-        return clone;
-    }
-
-    public static BitArray operator &(BitArray left, BitArray right)
-    {
-        var clone = left.Clone();
-        clone.And(right);
-        return clone;
-    }
-
-    public static BitArray operator ~(BitArray right)
-    {
-        var clone = right.Clone();
-        clone.Not();
-        return clone;
-    }
-
-    private BitArray Clone() => new(Buffer, Length, ElementsPerByte);
 }

@@ -32,12 +32,8 @@ public class BitArrayTest
     [TestMethod]
     public void TestBitwiseOperations()
     {
-        var left = BitArray.FromBinaryString("1001");
-        var right = BitArray.FromBinaryString("1010");
-
-        (left | right).ToBinaryString().Should().Be("1011");
-        (left ^ right).ToBinaryString().Should().Be("0011");
-        (left & right).ToBinaryString().Should().Be("1000");
-        (~left).ToBinaryString().Should().Be("0110");
+        BitArray.FromBinaryString("1001").Xor(BitArray.FromBinaryString("1010")).ToBinaryString().Should().Be("0011");
+        BitArray.FromBinaryString("1001").And(BitArray.FromBinaryString("1010")).ToBinaryString().Should().Be("1000");
+        BitArray.FromBinaryString("1001").Not().ToBinaryString().Should().Be("0110");
     }
 }
