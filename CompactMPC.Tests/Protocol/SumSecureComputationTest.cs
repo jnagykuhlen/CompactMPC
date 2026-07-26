@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AwesomeAssertions;
+using CompactMPC.Protocol.Expressions;
 using CompactMPC.Protocol.Internal;
 using CompactMPC.Protocol.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

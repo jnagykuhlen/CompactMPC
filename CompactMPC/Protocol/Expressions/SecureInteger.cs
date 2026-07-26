@@ -4,7 +4,7 @@ using System.Linq;
 using CompactMPC.Circuits;
 using CompactMPC.Collections;
 
-namespace CompactMPC.Protocol.Primitives;
+namespace CompactMPC.Protocol.Expressions;
 
 public class SecureInteger(IReadOnlyList<Wire> wires, int maxValue) : Expression(wires),
     IInputExpression<int>, IOutputExpression<int>

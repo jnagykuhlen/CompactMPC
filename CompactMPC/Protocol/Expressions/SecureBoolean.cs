@@ -2,7 +2,7 @@
 using CompactMPC.Circuits;
 using CompactMPC.Collections;
 
-namespace CompactMPC.Protocol.Primitives;
+namespace CompactMPC.Protocol.Expressions;
 
 public class SecureBoolean(Wire wire) : Expression([wire]), IInputExpression<bool>, IOutputExpression<bool>
 {

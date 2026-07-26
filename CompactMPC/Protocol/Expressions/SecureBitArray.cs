@@ -3,7 +3,7 @@ using System.Linq;
 using CompactMPC.Circuits;
 using CompactMPC.Collections;
 
-namespace CompactMPC.Protocol.Primitives;
+namespace CompactMPC.Protocol.Expressions;
 
 public class SecureBitArray(IReadOnlyList<Wire> wires) : Expression(wires),
     IInputExpression<IReadOnlyList<Bit>>, IOutputExpression<BitArray>

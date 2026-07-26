@@ -1,5 +1,6 @@
 ﻿using System;
 using AwesomeAssertions;
+using CompactMPC.Protocol.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.Protocol.Primitives;
