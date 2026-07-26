@@ -2,7 +2,7 @@
 
 namespace CompactMPC.Collections;
 
-public class ListReader<T>(IReadOnlyList<T> list)
+public class ReadOnlyListReader<T>(IReadOnlyList<T> list)
 {
     private int _position;
 

@@ -7,7 +7,7 @@ public static class WriteOnlyListExtensions
     public static IWriteOnlyList<T> WriteOnlySlice<T>(this IWriteOnlyList<T> list, int start, int count) =>
         new WriteOnlyListSlice<T>(list, start, count);
     
-    public static ListWriter<T> GetWriter<T>(this IWriteOnlyList<T> list) => new(list);
+    public static ReadOnlyListWriter<T> GetWriter<T>(this IWriteOnlyList<T> list) => new(list);
 
     private class WriteOnlyListSlice<T> : IWriteOnlyList<T>
     {

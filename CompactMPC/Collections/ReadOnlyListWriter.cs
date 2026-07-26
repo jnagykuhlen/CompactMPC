@@ -1,6 +1,6 @@
 ﻿namespace CompactMPC.Collections;
 
-public class ListWriter<T>(IWriteOnlyList<T> list)
+public class ReadOnlyListWriter<T>(IWriteOnlyList<T> list)
 {
     private int _position;
 
