@@ -93,6 +93,4 @@ public sealed class Wire
             return null;
         }
     }
-
-    public bool IsAssignable => _gate is { IsAssignable: true };
 }
