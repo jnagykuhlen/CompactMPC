@@ -15,9 +15,9 @@ public static class TestSecureProgramRunner
 
         return LocalNetworkRunner.RunMultiPartyNetworkAsync(
             input.Length,
-            (networkSession, partyIndex) => action(
-                input[partyIndex],
-                new SecretSharingSecureComputation(networkSession, multiplicativeSharing)
+            sessionInfo => action(
+                input[sessionInfo.LocalPartyIndex],
+                new SecretSharingSecureComputation(sessionInfo.Session, multiplicativeSharing)
             )
         );
     }

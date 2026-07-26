@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using CompactMPC.Collections;
 
@@ -10,10 +11,10 @@ public static class LocalNetworkRunner
 {
     private const int StartPort = 16741;
 
-    public static Task RunMultiPartyNetworkAsync(int numberOfParties, Func<IMultiPartyNetworkSession, int, Task> eachPartyAction) =>
+    public static Task RunMultiPartyNetworkAsync(int numberOfParties, Func<SessionInfo, Task> eachPartyAction) =>
         RunMultiPartyNetworkAsync(Enumerable.Repeat(eachPartyAction, numberOfParties).ToArray());
 
-    public static Task RunMultiPartyNetworkAsync(params Func<IMultiPartyNetworkSession, int, Task>[] partyActions)
+    public static Task RunMultiPartyNetworkAsync(params Func<SessionInfo, Task>[] partyActions)
     {
         var endPoints = partyActions
             .Select((_, index) => new IPEndPoint(IPAddress.Loopback, StartPort + index))
@@ -21,9 +22,30 @@ public static class LocalNetworkRunner
 
         return Task.WhenAll(
             partyActions.Select((partyAction, index) =>
-                EstablishMultiPartyAsync(index, endPoints).AndThenAsync(session => partyAction(session, index))
+                EstablishMultiPartyAsync(index, endPoints)
+                    .AndThenAsync(session => partyAction(new SessionInfo(session, index)))
             )
         );
+    }
+
+    public static async Task<SessionInfo> RunMultiPartyNetworkSinglePartyAsync(int numberOfParties)
+    {
+        var endPoints = Enumerable.Range(0, numberOfParties)
+            .Select(partyIndex => new IPEndPoint(IPAddress.Loopback, StartPort + partyIndex))
+            .ToArray();
+
+        for (var localPartyIndex = 0; localPartyIndex < numberOfParties; localPartyIndex++)
+        {
+            try
+            {
+                var session = await EstablishMultiPartyAsync(localPartyIndex, endPoints);
+                return new SessionInfo(session, localPartyIndex);
+            }
+            catch (SocketException socketException)
+                when (socketException.SocketErrorCode == SocketError.AddressAlreadyInUse) { }
+        }
+
+        throw new SocketException((int)SocketError.AddressAlreadyInUse, "All designated ports are already in use.");
     }
 
     public static Task RunTwoPartyNetworkAsync(Func<ITwoPartyNetworkSession, Task> firstPartyAction, Func<ITwoPartyNetworkSession, Task> secondPartyAction)
@@ -50,3 +72,5 @@ public static class LocalNetworkRunner
         await sessionAction(session);
     }
 }
+
+public record SessionInfo(IMultiPartyNetworkSession Session, int LocalPartyIndex);
