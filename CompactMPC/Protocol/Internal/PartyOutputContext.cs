@@ -9,14 +9,17 @@ public class PartyOutputContext
 {
     private readonly List<OutputExpressionDescription> _expressionDescriptions = new();
 
-    public int TotalNumberOfBits { get; private set; }
+    public int TotalNumberOfNonConstantBits { get; private set; }
 
-    public void Add<TExpression>(Output<TExpression> output, TExpression expression) where TExpression : IExpression
+    public void Add<TExpression>(IOutput<TExpression> output, TExpression expression) where TExpression : IExpression
     {
-        TotalNumberOfBits += expression.Wires.Count;
-        _expressionDescriptions.Add(new OutputExpressionDescription((IOutput<IExpression>)output, expression));
+        var expressionDescription = new OutputExpressionDescription((IOutput<IExpression>)output, expression);
+        TotalNumberOfNonConstantBits += expressionDescription.NonConstantWires.Count();
+        _expressionDescriptions.Add(expressionDescription);
     }
 
     public IReadOnlyList<OutputExpressionDescription> ExpressionDescriptions => _expressionDescriptions;
-    public IEnumerable<Wire> Wires => ExpressionDescriptions.SelectMany(description => description.Expression.Wires);
+
+    public IEnumerable<Wire> NonConstantWires =>
+        ExpressionDescriptions.SelectMany(description => description.NonConstantWires);
 }

@@ -12,4 +12,6 @@ public class ListReader<T>(IReadOnlyList<T> list)
         _position += count;
         return slice;
     }
+
+    public T Next() => list[_position++];
 }

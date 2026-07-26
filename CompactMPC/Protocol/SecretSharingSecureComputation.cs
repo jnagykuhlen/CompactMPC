@@ -73,11 +73,11 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
                 .Select((wire, index) => new WireValue<Bit>(wire, shares.Shares[index]))
         );
 
-    private static IEnumerable<Wire> GetOutputWires(SecureProgramContext context) => context.GetOutputContext().Wires;
+    private static IEnumerable<Wire> GetOutputWires(SecureProgramContext context) => context.GetOutputContext().NonConstantWires;
 
     private Task<BitArray[]> ExchangeOutputSharesAsync(SecureProgramContext context, ForwardCircuitEvaluationResult<Bit> evaluationResult)
     {
-        var localShares = new BitArray(context.GetOutputContext().Wires.Select(evaluationResult.Value).ToArray());
+        var localShares = new BitArray(context.GetOutputContext().NonConstantWires.Select(evaluationResult.Value).ToArray());
         return _session.SendAndReceiveAsync(
             multiPartySession => SendOutputLocalSharesAsync(multiPartySession, localShares),
             twoPartySession => ReceiveOutputRemoteSharesAsync(twoPartySession, context)
@@ -95,7 +95,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
     private static async Task<BitArray> ReceiveOutputRemoteSharesAsync(ITwoPartyNetworkSession session, SecureProgramContext context)
     {
         var message = await session.Channel.ReadMessageAsync();
-        return BitArray.FromBytes(message.ToBuffer(), context.GetOutputContext().TotalNumberOfBits);
+        return BitArray.FromBytes(message.ToBuffer(), context.GetOutputContext().TotalNumberOfNonConstantBits);
     }
 
     private static SecureProgramOutput CreateSecureProgramOutput(SecureProgramContext context, BitArray[] perPartyOutputShares)
@@ -106,7 +106,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
             context.GetOutputContext().ExpressionDescriptions
                 .ToDictionary(
                     description => description.Output,
-                    description => (description.Expression, outputBitsReader.NextSlice(description.Expression.Wires.Count))
+                    description => (description.Expression, description.ReadBits(outputBitsReader))
                 )
         );
     }
