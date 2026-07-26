@@ -2,7 +2,6 @@
 using AwesomeAssertions;
 using CompactMPC.Protocol.Expressions;
 using CompactMPC.Protocol.Internal;
-using CompactMPC.Protocol.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.Protocol;
@@ -32,7 +31,7 @@ public class ConstantSecureComputationTest
         public override void Compile(ISecureProgramContext context)
         {
             var allInputs = context.Share(Input);
-            context.Reveal(Output, SecureBitArray.Xor(allInputs) & SecureBitArray.AllZeroes(4));
+            context.Reveal(Output, SecureBitArray.Xor(allInputs).And(SecureBitArray.AllZeroes(4)));
         }
     }
 }
