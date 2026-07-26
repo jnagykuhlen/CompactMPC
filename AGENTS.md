@@ -6,13 +6,11 @@ A lightweight C# library for **Secure Multi-Party Computation (MPC)** using the 
 ## Architecture Overview
 
 ```
-Expressions / ExpressionsNew   ← high-level C# API (SecureBoolean, SecureInteger)
+Protocol.Primitives            ← high-level C# API (SecureBoolean, SecureInteger, SecureBitArray)
         ↓
-Circuits / Circuits.New        ← boolean circuit DAG (Circuit, Wire, Gate)
+Protocol                       ← GMW secret sharing (SecretSharingSecureComputation, SecureProgram)
         ↓
-Circuits/Batching              ← forward-order optimization (ForwardCircuit)
-        ↓
-Protocol / Protocol.New        ← GMW secret sharing (SecretSharingSecureComputation)
+Circuits                       ← boolean circuit DAG (Wire, ForwardGate) and batch evaluation
         ↓
 ObliviousTransfer              ← Naor-Pinkas OT for AND gates
         ↓
@@ -21,19 +19,11 @@ Networking                     ← async TCP channels (TcpMultiPartyNetworkSessi
 
 ## Layer Details
 
-- **`CompactMPC/Circuits/`** – Core DAG: `Circuit` → `Gate[]` → `Wire`. `CircuitBuilder` exposes `And()`, `Xor()`, `Not()`, `Or()`. `Wire` can be a constant (`Wire.Zero`/`Wire.One`) or a gate output.
-- **`CompactMPC/Circuits/Batching/`** – `ForwardCircuit` topologically sorts a `Circuit` into `ForwardGate[]` for batch AND evaluation. The protocol layer consumes `IBatchEvaluableCircuit`, not `Circuit` directly.
-- **`CompactMPC/Expressions/`** – Stable high-level API. `SecureBoolean`, `SecureInteger`, `SecureWord` let callers write arithmetic expressions that compile to circuits. `SecureMultiPartyProgram` wires inputs/outputs to parties.
-- **`CompactMPC/Protocol/`** – `SecretSharingSecureComputation` is the entry point: masks inputs with additive XOR shares, batch-evaluates AND gates via OT, unmasks outputs. `InputPartyMapping` / `OutputPartyMapping` declare ownership.
+- **`CompactMPC/Circuits/`** – Boolean circuit DAG built directly from `Wire` static factory methods: `Wire.And()`, `Wire.Xor()`, `Wire.Not()`, `Wire.Or()`. `Wire` is either a constant (`Wire.Zero`/`Wire.One`), an assignable input (`Wire.Assignable()`), or a gate output. `ForwardCircuitEvaluation` drives topological batch evaluation via `IAsyncBatchCircuitEvaluator`. Gate implementations live in `Circuits/Internal/`.
+- **`CompactMPC/Protocol/`** – `SecretSharingSecureComputation` is the entry point: masks inputs with additive XOR shares, batch-evaluates AND gates via OT, and unmasks outputs. Programs are defined by subclassing `SecureProgram` and implementing `Compile(ISecureProgramContext)`. `Input<T>` / `Output<T>` declare typed circuit inputs and outputs. The fluent `SecureComputationRun<T>` API wires party inputs and collects outputs.
+- **`CompactMPC/Protocol/Primitives/`** – High-level secure types: `SecureBoolean`, `SecureInteger`, `SecureBitArray`. These implement `IExpression` and expose C#-operator-friendly APIs that build the circuit wire DAG transparently.
 - **`CompactMPC/ObliviousTransfer/`** – `NaorPinkasObliviousTransfer` implements 1-of-4 bit OT; `InsecureObliviousTransfer` is for tests only.
 - **`CompactMPC/Networking/`** – `IMessageChannel` (async send/receive of `Message`). `TcpMultiPartyNetworkSession` creates pairwise channels between all parties.
-
-### Ongoing Migration
-
-- **`CompactMPC/ExpressionsNew/`**, **`CompactMPC/Circuits/New/`**, **`CompactMPC/Protocol/New/`** – Experimental next-generation API not yet adopted for production use. The goal is to replace the old `Expressions`, `Circuits`, and `Protocol` folders with a more modern, extensible design. Concrete future steps:
- 1. Do not change legacy `Expressions`, `Circuits`, or `Protocol` code; implement new features in the `New/` folders and copy over legacy code as needed."
- 2. When new API is fully supported, delete the old `Expressions`, `Circuits`, and `Protocol` folders and rename `New/` to the main folder name.
- 3. Consider renaming high-level types "IntegerExpression" → "SecureInteger", "BooleanExpression" → "SecureBoolean", etc.
 
 ## Key Types
 | Type | Location | Purpose |
@@ -41,9 +31,10 @@ Networking                     ← async TCP channels (TcpMultiPartyNetworkSessi
 | `Bit` | `CompactMPC/Bit.cs` | Single-bit value (readonly struct) |
 | `BitArray` | `CompactMPC/BitArray.cs` | Packed bit array (8 bits/byte) |
 | `BitQuadrupleArray` | `CompactMPC/BitQuadrupleArray.cs` | 4-option OT messages |
-| `Circuit` / `CircuitBuilder` | `Circuits/` | Build and hold boolean circuits |
-| `ForwardCircuit` | `Circuits/Batching/` | Batch-evaluable form of a circuit |
-| `SecureBoolean` / `SecureInteger` | `Expressions/` | C#-operator-friendly secure types |
+| `Wire` | `Circuits/` | Node in the boolean circuit DAG; built via static factory methods |
+| `ForwardCircuitEvaluation` | `Circuits/` | Drives topological batch evaluation of the wire DAG |
+| `SecureBoolean` / `SecureInteger` / `SecureBitArray` | `Protocol/Primitives/` | C#-operator-friendly secure types |
+| `SecureProgram` | `Protocol/` | Base class for defining a secure computation |
 | `SecretSharingSecureComputation` | `Protocol/` | Run GMW over a network session |
 
 ## Build & Test Commands
@@ -54,13 +45,13 @@ dotnet build CompactMPC.sln
 # Run unit tests
 dotnet test CompactMPC.Tests/CompactMPC.Tests.csproj
 
-# Run the sample application (starts multi-party set intersection locally)
+# Run the sample application (starts multi-party sum locally)
 dotnet run --project Application/Application.csproj
 ```
 
 ## Testing Conventions
 - Tests live in `CompactMPC.Tests/`, mirror the main project's folder structure.
-- Multi-party tests use `LocalNetworkRunner` (in-process simulation) — see `SecureComputationTest.cs`.
+- Multi-party tests use `LocalNetworkRunner` (in-process simulation) — see `Protocol/` tests.
 - Use `InsecureObliviousTransfer` (not `NaorPinkasObliviousTransfer`) for unit tests to avoid expensive crypto.
 - Framework: MSTest + FluentAssertions.
 
@@ -70,10 +61,10 @@ dotnet run --project Application/Application.csproj
 - **`*Evaluator`** suffix = strategy for evaluating circuits (e.g., `LocalCircuitEvaluator`, `BatchCircuitEvaluator`).
 - All network I/O is `async`/`await`; async methods are suffixed `Async`.
 - Nullable reference types are enabled; `CS8600`–`CS8653` are treated as errors — always handle nullable returns.
-- Target: **.NET 8.0**, C# 12, no external NuGet dependencies beyond BCL.
+- Target: **.NET 10.0**, C# 14, no external NuGet dependencies beyond BCL.
 
 ## Canonical Example
-`SampleCircuits/SetIntersectionSecureProgram.cs` shows the full stack: `SecureMultiPartyProgram` → `SecureBoolean` gates → `IBatchEvaluableCircuit` → `SecretSharingSecureComputation`. Study this before adding new secure programs.
+`Application/Program.cs` shows the full stack: subclass `SecureProgram` → declare `Input<T>`/`Output<T>` → use `SecureInteger`/`SecureBoolean` operators to build the circuit → run via `SecretSharingSecureComputation`. Study this before adding new secure programs.
 
 ## Code Style
 - NEVER use abbreviations: `message` instead of `msg`, `exception` instead of `ex`.
