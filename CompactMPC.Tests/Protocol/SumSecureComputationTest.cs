@@ -25,6 +25,20 @@ public class SumSecureComputationTest
             }
         );
 
+    [TestMethod]
+    public void TestSumSecureProgramStatistics()
+    {
+        var compiledProgram = new SumSecureProgram().Compile(new MultiPartySessionDescription(3));
+
+        var statistics = compiledProgram.GetStatistics();
+
+        statistics.TotalNumberOfGates.Should().Be(41);
+        statistics.NumberOfAndGates.Should().Be(8);
+        statistics.NumberOfXorGates.Should().Be(33);
+        statistics.NumberOfNotGates.Should().Be(0);
+        statistics.MultiplicativeDepth.Should().Be(4);
+    }
+
     private class SumSecureProgram : SecureProgram
     {
         public Input<SecureInteger> Input { get; } = SecureInteger.Input(10);
