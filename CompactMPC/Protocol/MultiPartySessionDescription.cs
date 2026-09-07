@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CompactMPC.Protocol;
 
-namespace CompactMPC.Networking;
+namespace CompactMPC.Protocol;
 
 public record MultiPartySessionDescription(int NumberOfParties)
 {

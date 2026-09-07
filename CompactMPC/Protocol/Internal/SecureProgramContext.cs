@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CompactMPC.Networking;
 
 namespace CompactMPC.Protocol.Internal;
 
@@ -31,7 +30,7 @@ public class SecureProgramContext(MultiPartySessionDescription sessionDescriptio
 
     public void Reveal<TExpression>(Output<TExpression> output, TExpression expression) where TExpression : IExpression =>
         _outputContext.Add(output, expression);
-    
+
     public CompiledSecureProgram CreateCompiledSecureProgram() =>
         new(sessionDescription, _inputContextsByPartySlot, _outputContext);
 }
