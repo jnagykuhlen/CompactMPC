@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using CompactMPC.Circuits;
 using CompactMPC.Collections;
 
 namespace CompactMPC.Protocol.Internal;
@@ -18,6 +20,7 @@ public class PartyInputContext
     }
 
     public IReadOnlyList<InputExpressionDescription> ExpressionDescriptions => _expressionDescriptions;
+    public IEnumerable<Wire> Wires => ExpressionDescriptions.SelectMany(description => description.Expression.Wires);
 
     public BitArray GetInputBits(SecureProgramInput programInput)
     {

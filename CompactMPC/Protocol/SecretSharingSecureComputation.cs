@@ -76,8 +76,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
 
     private IEnumerable<WireValue<Bit>> GetInputWireValues(PerPartyShares[] perPartyInputShares, SessionCompiledSecureProgram sessionCompiledProgram) =>
         perPartyInputShares.SelectMany(shares =>
-            sessionCompiledProgram.GetInputContext(shares.Party).ExpressionDescriptions
-                .SelectMany(description => description.Expression.Wires)
+            sessionCompiledProgram.GetInputContext(shares.Party).Wires
                 .Select((wire, index) => new WireValue<Bit>(wire, shares.Shares[index]))
         );
 
