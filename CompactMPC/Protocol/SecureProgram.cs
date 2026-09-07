@@ -1,10 +1,19 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using CompactMPC.Networking;
+using CompactMPC.Protocol.Internal;
 
 namespace CompactMPC.Protocol;
 
 public abstract class SecureProgram
 {
-    public abstract void Compile(ISecureProgramContext context);
+    protected abstract void Compile(ISecureProgramContext context);
+
+    public CompiledSecureProgram Compile(MultiPartySessionDescription sessionDescription)
+    {
+        var context = new SecureProgramContext(sessionDescription);
+        Compile(context);
+        return context.CreateCompiledSecureProgram();
+    }
 }
 
 public interface ISecureProgramContext

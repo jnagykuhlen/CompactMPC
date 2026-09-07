@@ -14,4 +14,26 @@ public static class EnumerableExtensions
 
     public static IEnumerable<T> Without<T>(this IEnumerable<T> source, T elementToExclude) =>
         source.Where(element => !Equals(element, elementToExclude));
+
+    public static IReadOnlyDictionary<TSource, TTarget> Match<TSource, TTarget>(this IEnumerable<TSource> source, IEnumerable<TTarget> target, Func<TSource, TTarget, bool> matchPredicate)
+        where TSource : notnull
+    {
+        var targetItems = target.ToHashSet();
+        var matches = source.ToDictionary(
+            item => item,
+            item =>
+            {
+                var match = targetItems.FirstOrDefault(targetItem => matchPredicate(item, targetItem)) ??
+                            throw new ArgumentException("No matching target item found for source item.", nameof(source));
+
+                targetItems.Remove(match);
+                return match;
+            }
+        );
+
+        if (targetItems.Count > 0)
+            throw new ArgumentException("Some target items were not matched to any source item.", nameof(target));
+
+        return matches;
+    }
 }

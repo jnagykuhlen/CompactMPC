@@ -2,7 +2,6 @@
 using AwesomeAssertions;
 using CompactMPC.Protocol.Expressions;
 using CompactMPC.Protocol.Internal;
-using CompactMPC.Protocol.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CompactMPC.Protocol;
@@ -31,7 +30,7 @@ public class SumSecureComputationTest
         public Input<SecureInteger> Input { get; } = SecureInteger.Input(10);
         public Output<SecureInteger> Output { get; } = SecureInteger.Output();
 
-        public override void Compile(ISecureProgramContext context)
+        protected override void Compile(ISecureProgramContext context)
         {
             var allInputs = context.Share(Input);
             context.Reveal(Output, SecureInteger.Sum(allInputs));

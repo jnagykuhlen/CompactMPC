@@ -9,7 +9,7 @@ public class SetIntersectionSecureProgram(int numberOfBits) : SecureProgram
     public Output<SecureBitArray> IntersectionOutput { get; } = SecureBitArray.Output();
     public Output<SecureInteger> CounterOutput { get; } = SecureInteger.Output();
 
-    public override void Compile(ISecureProgramContext context)
+    protected override void Compile(ISecureProgramContext context)
     {
         var allInputs = context.Share(Input);
         var intersection = SecureBitArray.And(allInputs);

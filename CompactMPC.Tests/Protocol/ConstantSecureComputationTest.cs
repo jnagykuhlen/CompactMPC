@@ -28,7 +28,7 @@ public class ConstantSecureComputationTest
         public Input<SecureBitArray> Input { get; } = SecureBitArray.Input(4);
         public Output<SecureBitArray> Output { get; } = SecureBitArray.Output();
 
-        public override void Compile(ISecureProgramContext context)
+        protected override void Compile(ISecureProgramContext context)
         {
             var allInputs = context.Share(Input);
             context.Reveal(Output, SecureBitArray.Xor(allInputs).And(SecureBitArray.AllZeroes(4)));

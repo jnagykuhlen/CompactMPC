@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -52,6 +51,9 @@ public class OrderedMultiPartyNetworkSession(IMultiPartyNetworkSession multiPart
 }
 
 public delegate Task<T> SendToAllAsync<T>(IMultiPartyNetworkSession multiPartySession);
+
 public delegate Task<T> ReceiveFromEachAsync<T>(ITwoPartyNetworkSession twoPartySession);
+
 public delegate Task<T> PairwiseSendAsync<T>(IMessageChannel channel);
+
 public delegate Task<T> PairwiseReceiveAsync<T>(IMessageChannel channel);
