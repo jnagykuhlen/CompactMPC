@@ -34,48 +34,37 @@ public class ForwardCircuitEvaluation<T>(IAsyncBatchCircuitEvaluator<T> evaluato
     }
 }
 
-public static class ForwardCircuitEvaluation
+public class ForwardCircuitEvaluation(IBatchCircuitVisitor visitor)
 {
-    public static CircuitStatistics CreateStatistics(IEnumerable<Wire> inputWires, IEnumerable<Wire> outputWires)
+    public void Execute(IEnumerable<Wire> inputWires)
     {
-        var circuitEvaluator = new StatisticsCircuitEvaluator();
+        var circuitEvaluator = new VisitingCircuitEvaluator(visitor);
 
         new ForwardCircuitEvaluation<Void>(circuitEvaluator).ExecuteAsync(
             inputWires.Select(wire => new WireValue<Void>(wire, Void.Value)),
-            outputWires
+            []
         ).Wait();
-
-        return circuitEvaluator.GetStatistics();
     }
 
-    private class StatisticsCircuitEvaluator : IAsyncBatchCircuitEvaluator<Void>
+    private class VisitingCircuitEvaluator(IBatchCircuitVisitor visitor) : IAsyncBatchCircuitEvaluator<Void>
     {
-        private int _numberOfAndGates;
-        private int _numberOfXorGates;
-        private int _numberOfNotGates;
-        private int _multiplicativeDepth;
-
         public Task<IReadOnlyList<Void>> EvaluateAndGateBatchAsync(IReadOnlyList<GateEvaluationInput<Void>> evaluationInputs)
         {
-            _numberOfAndGates += evaluationInputs.Count;
-            _multiplicativeDepth++;
+            visitor.VisitAndGateBatch(evaluationInputs.Count);
             return Task.FromResult<IReadOnlyList<Void>>(evaluationInputs.Select(_ => Void.Value).ToList());
         }
 
         public Void EvaluateXorGate(Void leftValue, Void rightValue)
         {
-            _numberOfXorGates++;
+            visitor.VisitXorGate();
             return Void.Value;
         }
 
         public Void EvaluateNotGate(Void value)
         {
-            _numberOfNotGates++;
+            visitor.VisitNotGate();
             return Void.Value;
         }
-
-        public CircuitStatistics GetStatistics() =>
-            new(_numberOfAndGates, _numberOfXorGates, _numberOfNotGates, _multiplicativeDepth);
     }
 
     private class Void

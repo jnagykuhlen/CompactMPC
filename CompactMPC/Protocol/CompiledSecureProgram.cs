@@ -15,10 +15,15 @@ public class CompiledSecureProgram(MultiPartySessionDescription sessionDescripti
 
     public CircuitStatistics GetStatistics()
     {
-        _circuitStatistics ??= ForwardCircuitEvaluation.CreateStatistics(
-            sessionDescription.PartySlots.SelectMany(partySlot => GetInputContext(partySlot).Wires).ToArray(),
-            OutputContext.NonConstantWires.ToArray()
-        );
+        if (_circuitStatistics == null)
+        {
+            var visitor = new StatisticsBatchCircuitVisitor();
+            new ForwardCircuitEvaluation(visitor).Execute(
+                sessionDescription.PartySlots.SelectMany(partySlot => GetInputContext(partySlot).Wires)
+            );
+
+            _circuitStatistics = visitor.GetCircuitStatistics();
+        }
 
         return _circuitStatistics;
     }
