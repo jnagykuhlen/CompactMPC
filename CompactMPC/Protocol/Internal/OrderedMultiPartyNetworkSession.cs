@@ -30,6 +30,8 @@ public class OrderedMultiPartyNetworkSession(IMultiPartyNetworkSession multiPart
     public int NumberOfParties => _orderedParties.Count;
     public bool IsLocalPartyLeading => _orderedParties[0].Party == LocalParty;
 
+    public MultiPartySessionDescription CreateSessionDescription() => new(NumberOfParties);
+
     private record OrderedParty(Party Party, ISendReceiveHandler Handler);
 
     private interface ISendReceiveHandler

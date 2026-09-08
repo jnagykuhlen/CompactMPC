@@ -21,7 +21,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
         new(this, new TProgram());
 
     public Task<SecureProgramOutput> RunAsync(SecureProgram program, SecureProgramInput programInput) =>
-        RunAsync(program.Compile(new MultiPartySessionDescription(session.RemotePartySessions.Count() + 1)), programInput);
+        RunAsync(program.Compile(_session.CreateSessionDescription()), programInput);
 
     public async Task<SecureProgramOutput> RunAsync(CompiledSecureProgram compiledProgram, SecureProgramInput programInput)
     {
@@ -48,9 +48,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
         );
     }
 
-    private static async Task<PerPartyShares> SendInputRemoteSharesAsync(
-        IMultiPartyNetworkSession multiPartyNetworkSession,
-        BitArray localShares)
+    private static async Task<PerPartyShares> SendInputRemoteSharesAsync(IMultiPartyNetworkSession multiPartyNetworkSession, BitArray localShares)
     {
         foreach (var remotePartySession in multiPartyNetworkSession.RemotePartySessions)
         {
