@@ -2,8 +2,9 @@
 
 namespace CompactMPC.Networking;
 
-public record Party(Guid Guid, string Name) : IComparable<Party>
+public record Party(Guid Guid, string Name, Role Role) : IComparable<Party>
 {
+    public Party(Guid guid, string name) : this(guid, name, Role.Default) { }
     public Party(Guid guid) : this(guid, $"Party {guid}") { }
     public Party() : this(Guid.NewGuid()) { }
 

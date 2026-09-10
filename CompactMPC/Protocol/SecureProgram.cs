@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CompactMPC.Networking;
 using CompactMPC.Protocol.Internal;
 
 namespace CompactMPC.Protocol;
@@ -17,7 +18,7 @@ public abstract class SecureProgram
 
 public interface ISecureProgramContext
 {
-    IReadOnlyList<TExpression> Share<TExpression>(Input<TExpression> input) where TExpression : IExpression;
-    TExpression ShareSingle<TExpression>(Input<TExpression> input) where TExpression : IExpression;
-    void Reveal<TExpression>(Output<TExpression> output, TExpression expression) where TExpression : IExpression;
+    IReadOnlyList<TExpression> Share<TExpression>(Input<TExpression> input, IReadOnlySet<Role> roles) where TExpression : IExpression;
+    TExpression ShareSingle<TExpression>(Input<TExpression> input, Role role) where TExpression : IExpression;
+    void Reveal<TExpression>(Output<TExpression> output, TExpression expression, IReadOnlySet<Role> roles) where TExpression : IExpression;
 }

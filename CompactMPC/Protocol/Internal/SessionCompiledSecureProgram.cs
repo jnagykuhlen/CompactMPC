@@ -8,7 +8,7 @@ public class SessionCompiledSecureProgram(CompiledSecureProgram compiledProgram,
 {
     private readonly IReadOnlyDictionary<Party, PartySlot> _partySlotsByParty = session.OrderedParties.Match(
         compiledProgram.SessionDescription.PartySlots,
-        (_, _) => true
+        (party, partySlot) => partySlot.Accepts(party)
     );
 
     public PartyInputContext GetInputContext(Party party) => compiledProgram.GetInputContext(_partySlotsByParty[party]);
