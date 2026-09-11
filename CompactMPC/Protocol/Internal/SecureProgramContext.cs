@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using CompactMPC.Networking;
 
 namespace CompactMPC.Protocol.Internal;
 
@@ -12,7 +10,7 @@ public class SecureProgramContext(MultiPartySessionDescription sessionDescriptio
 
     private readonly PartyOutputContext _outputContext = new();
 
-    public IReadOnlyList<TExpression> Share<TExpression>(Input<TExpression> input, IReadOnlySet<Role> roles) where TExpression : IExpression
+    public IReadOnlyList<TExpression> Share<TExpression>(Input<TExpression> input, RoleMatcher roleMatcher) where TExpression : IExpression
     {
         var expressions = new List<TExpression>(sessionDescription.NumberOfParties);
 
@@ -26,10 +24,7 @@ public class SecureProgramContext(MultiPartySessionDescription sessionDescriptio
         return expressions;
     }
 
-    public TExpression ShareSingle<TExpression>(Input<TExpression> input, Role role) where TExpression : IExpression =>
-        throw new NotImplementedException();
-
-    public void Reveal<TExpression>(Output<TExpression> output, TExpression expression, IReadOnlySet<Role> roles) where TExpression : IExpression =>
+    public void Reveal<TExpression>(Output<TExpression> output, TExpression expression, RoleMatcher roleMatcher) where TExpression : IExpression =>
         _outputContext.Add(output, expression);
 
     public CompiledSecureProgram CreateCompiledSecureProgram() =>

@@ -18,7 +18,8 @@ public abstract class SecureProgram
 
 public interface ISecureProgramContext
 {
-    IReadOnlyList<TExpression> Share<TExpression>(Input<TExpression> input, IReadOnlySet<Role> roles) where TExpression : IExpression;
-    TExpression ShareSingle<TExpression>(Input<TExpression> input, Role role) where TExpression : IExpression;
-    void Reveal<TExpression>(Output<TExpression> output, TExpression expression, IReadOnlySet<Role> roles) where TExpression : IExpression;
+    IReadOnlyList<TExpression> Share<TExpression>(Input<TExpression> input, RoleMatcher roleMatcher) where TExpression : IExpression;
+    void Reveal<TExpression>(Output<TExpression> output, TExpression expression, RoleMatcher roleMatcher) where TExpression : IExpression;
 }
+
+public delegate bool RoleMatcher(Role role);
