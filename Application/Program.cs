@@ -21,9 +21,7 @@ var (session, localPartyIndex) = await LocalNetworkRunner.RunMultiPartyNetworkSi
 var localInput = BitArray.FromBinaryString(inputs[localPartyIndex]);
 
 var securityParameters = new SecurityParameters(47, 23, 4, 1, 1);
-var obliviousTransfer = new NaorPinkasObliviousTransfer(securityParameters);
-var multiplicativeSharing = new ObliviousTransferMultiplicativeSharing(obliviousTransfer);
-var secureComputation = new SecretSharingSecureComputation(session, multiplicativeSharing);
+var secureComputation = new SecretSharingSecureComputation(session, securityParameters);
 
 var (intersection, counter) = await secureComputation.Run(new SetIntersectionSecureProgram(localInput.Length))
     .WithInput(program => program.Input, localInput)

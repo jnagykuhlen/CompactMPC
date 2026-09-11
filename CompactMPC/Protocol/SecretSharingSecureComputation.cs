@@ -6,6 +6,7 @@ using CompactMPC.Circuits;
 using CompactMPC.Collections;
 using CompactMPC.Cryptography;
 using CompactMPC.Networking;
+using CompactMPC.ObliviousTransfer;
 using CompactMPC.Protocol.Internal;
 
 namespace CompactMPC.Protocol;
@@ -13,6 +14,9 @@ namespace CompactMPC.Protocol;
 public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, IMultiplicativeSharing multiplicativeSharing)
 {
     private readonly OrderedMultiPartyNetworkSession _session = new(session);
+
+    public SecretSharingSecureComputation(IMultiPartyNetworkSession session, SecurityParameters securityParameters) :
+        this(session, new ObliviousTransferMultiplicativeSharing(new NaorPinkasObliviousTransfer(securityParameters))) { }
 
     public SecureComputationRun<TProgram> Run<TProgram>(TProgram program) where TProgram : SecureProgram =>
         new(this, program);
