@@ -11,6 +11,5 @@ public class SessionCompiledSecureProgram(CompiledSecureProgram compiledProgram,
         (party, partySlot) => partySlot.Accepts(party)
     );
 
-    public PartyInputContext GetInputContext(Party party) => compiledProgram.GetInputContext(_partySlotsByParty[party]);
-    public PartyOutputContext OutputContext => compiledProgram.OutputContext;
+    public CompiledPartyContext GetContext(Party party) => compiledProgram.GetContext(_partySlotsByParty[party]);
 }

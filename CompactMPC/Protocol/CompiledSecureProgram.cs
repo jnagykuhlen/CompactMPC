@@ -1,17 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using CompactMPC.Circuits;
-using CompactMPC.Protocol.Internal;
 
 namespace CompactMPC.Protocol;
 
-public class CompiledSecureProgram(MultiPartySessionDescription sessionDescription, IReadOnlyDictionary<PartySlot, PartyInputContext> inputContextsByPartySlot, PartyOutputContext partyOutputContext)
+public class CompiledSecureProgram(MultiPartySessionDescription sessionDescription, IReadOnlyDictionary<PartySlot, CompiledPartyContext> partyContexts)
 {
     private CircuitStatistics? _circuitStatistics;
 
-    public PartyInputContext GetInputContext(PartySlot partySlot) => inputContextsByPartySlot[partySlot];
-    public PartyOutputContext OutputContext => partyOutputContext;
-    public MultiPartySessionDescription SessionDescription => sessionDescription;
+    public MultiPartySessionDescription SessionDescription { get; } = sessionDescription;
+
+    public CompiledPartyContext GetContext(PartySlot partySlot) => partyContexts[partySlot];
 
     public CircuitStatistics GetStatistics()
     {
@@ -19,7 +18,7 @@ public class CompiledSecureProgram(MultiPartySessionDescription sessionDescripti
         {
             var visitor = new StatisticsBatchCircuitVisitor();
             new ForwardCircuitEvaluation(visitor).Execute(
-                sessionDescription.PartySlots.SelectMany(partySlot => GetInputContext(partySlot).Wires)
+                SessionDescription.PartySlots.SelectMany(partySlot => GetContext(partySlot).InputContext.Wires)
             );
 
             _circuitStatistics = visitor.GetCircuitStatistics();

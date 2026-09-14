@@ -15,6 +15,9 @@ public static class EnumerableExtensions
     public static IEnumerable<T> Without<T>(this IEnumerable<T> source, T elementToExclude) =>
         source.Where(element => !Equals(element, elementToExclude));
 
+    public static Dictionary<TKey, TValueTarget> ToDictionary<TKey, TValueSource, TValueTarget>(this IEnumerable<KeyValuePair<TKey, TValueSource>> source, Func<TValueSource, TValueTarget> valueSelector) where TKey : notnull =>
+        source.ToDictionary(keyValuePair => keyValuePair.Key, keyValuePair => valueSelector(keyValuePair.Value));
+
     public static IReadOnlyDictionary<TSource, TTarget> Match<TSource, TTarget>(this IEnumerable<TSource> source, IEnumerable<TTarget> target, Func<TSource, TTarget, bool> matchPredicate)
         where TSource : notnull
     {

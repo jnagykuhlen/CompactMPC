@@ -45,7 +45,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
 
     private Task<PerPartyShares[]> ExchangeInputSharesAsync(SecureProgramInput programInput, SessionCompiledSecureProgram sessionCompiledProgram)
     {
-        var localShares = sessionCompiledProgram.GetInputContext(session.LocalParty).GetInputBits(programInput);
+        var localShares = sessionCompiledProgram.GetContext(session.LocalParty).InputContext.GetBits(programInput);
         return _session.SendAndReceiveAsync(
             multiPartySession => SendInputRemoteSharesAsync(multiPartySession, localShares),
             twoPartySession => ReceiveInputLocalSharesAsync(twoPartySession, sessionCompiledProgram)
@@ -71,41 +71,54 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
             twoPartySession.RemoteParty,
             BitArray.FromBytes(
                 message.ToBuffer(),
-                sessionCompiledProgram.GetInputContext(twoPartySession.RemoteParty).TotalNumberOfBits
+                sessionCompiledProgram.GetContext(twoPartySession.RemoteParty).InputContext.TotalNumberOfBits
             )
         );
     }
 
     private IEnumerable<WireValue<Bit>> GetInputWireValues(PerPartyShares[] perPartyInputShares, SessionCompiledSecureProgram sessionCompiledProgram) =>
         perPartyInputShares.SelectMany(shares =>
-            sessionCompiledProgram.GetInputContext(shares.Party).Wires
+            sessionCompiledProgram.GetContext(shares.Party).InputContext.Wires
                 .Select((wire, index) => new WireValue<Bit>(wire, shares.Shares[index]))
         );
 
     private IEnumerable<Wire> GetOutputWires(SessionCompiledSecureProgram sessionCompiledProgram) =>
-        sessionCompiledProgram.OutputContext.NonConstantWires;
+        _session.OrderedParties
+            .SelectMany(party => sessionCompiledProgram.GetContext(party).OutputContext.NonConstantWires)
+            .Distinct();
 
     private Task<BitArray[]> ExchangeOutputSharesAsync(ForwardCircuitEvaluationResult<Bit> evaluationResult, SessionCompiledSecureProgram sessionCompiledProgram)
     {
-        var localShares = new BitArray(sessionCompiledProgram.OutputContext.NonConstantWires.Select(evaluationResult.Value).ToArray());
         return _session.SendAndReceiveAsync(
-            multiPartySession => SendOutputLocalSharesAsync(multiPartySession, localShares),
+            multiPartySession => SendOutputLocalSharesAsync(multiPartySession, sessionCompiledProgram, evaluationResult),
             twoPartySession => ReceiveOutputRemoteSharesAsync(twoPartySession, sessionCompiledProgram)
         );
     }
 
-    private static async Task<BitArray> SendOutputLocalSharesAsync(IMultiPartyNetworkSession multiPartySession, BitArray localShares)
+    private async Task<BitArray> SendOutputLocalSharesAsync(IMultiPartyNetworkSession multiPartySession, SessionCompiledSecureProgram sessionCompiledProgram, ForwardCircuitEvaluationResult<Bit> evaluationResult)
     {
         foreach (var remotePartySession in multiPartySession.RemotePartySessions)
+        {
+            var localShares = new BitArray(
+                sessionCompiledProgram.GetContext(remotePartySession.RemoteParty).OutputContext.NonConstantWires
+                    .Select(evaluationResult.Value)
+                    .ToArray()
+            );
+            
             await remotePartySession.Channel.WriteMessageAsync(new Message(localShares.ToBytes()));
+        }
 
-        return localShares;
+        return new BitArray(
+            sessionCompiledProgram.GetContext(_session.LocalParty).OutputContext.NonConstantWires
+                .Select(evaluationResult.Value)
+                .ToArray()
+        );
     }
 
-    private static async Task<BitArray> ReceiveOutputRemoteSharesAsync(ITwoPartyNetworkSession twoPartySession, SessionCompiledSecureProgram sessionCompiledProgram)
+    private async Task<BitArray> ReceiveOutputRemoteSharesAsync(ITwoPartyNetworkSession twoPartySession, SessionCompiledSecureProgram sessionCompiledProgram)
     {
         var message = await twoPartySession.Channel.ReadMessageAsync();
-        return BitArray.FromBytes(message.ToBuffer(), sessionCompiledProgram.OutputContext.TotalNumberOfNonConstantBits);
+        return BitArray.FromBytes(message.ToBuffer(), sessionCompiledProgram.GetContext(_session.LocalParty).OutputContext.TotalNumberOfNonConstantBits);
     }
 
     private SecureProgramOutput CreateSecureProgramOutput(BitArray[] perPartyOutputShares, SessionCompiledSecureProgram sessionCompiledProgram)
@@ -113,7 +126,7 @@ public class SecretSharingSecureComputation(IMultiPartyNetworkSession session, I
         var outputBits = BitArray.FromXor(perPartyOutputShares);
         var outputBitsReader = outputBits.GetReader();
         return new SecureProgramOutput(
-            sessionCompiledProgram.OutputContext.ExpressionDescriptions
+            sessionCompiledProgram.GetContext(_session.LocalParty).OutputContext.ExpressionDescriptions
                 .ToDictionary(
                     description => description.Output,
                     description => (description.Expression, description.ReadBits(outputBitsReader))
