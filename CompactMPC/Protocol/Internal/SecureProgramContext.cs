@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CompactMPC.Collections;
+using CompactMPC.Networking;
 
 namespace CompactMPC.Protocol.Internal;
 

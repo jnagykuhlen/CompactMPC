@@ -1,6 +1,4 @@
-﻿using CompactMPC.Networking;
-
-namespace CompactMPC.Protocol;
+﻿namespace CompactMPC.Networking;
 
 public class PartySlot(Role role)
 {

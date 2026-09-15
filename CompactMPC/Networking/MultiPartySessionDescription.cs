@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CompactMPC.Networking;
+using CompactMPC.Protocol;
 
-namespace CompactMPC.Protocol;
+namespace CompactMPC.Networking;
 
 public class MultiPartySessionDescription(IEnumerable<Role> partyRoles)
 {
