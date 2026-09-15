@@ -13,7 +13,7 @@ public class SecureProgramContext(MultiPartySessionDescription sessionDescriptio
     {
         var expressions = new List<TExpression>(sessionDescription.NumberOfParties);
 
-        foreach (var partySlot in sessionDescription.PartySlots)
+        foreach (var partySlot in sessionDescription.MatchingPartySlots(roleMatcher))
         {
             var expression = input.Create();
             _partyContexts[partySlot].Add(input, expression);
@@ -25,7 +25,7 @@ public class SecureProgramContext(MultiPartySessionDescription sessionDescriptio
 
     public void Reveal<TExpression>(Output<TExpression> output, TExpression expression, RoleMatcher roleMatcher) where TExpression : IExpression
     {
-        foreach (var partySlot in sessionDescription.PartySlots)
+        foreach (var partySlot in sessionDescription.MatchingPartySlots(roleMatcher))
             _partyContexts[partySlot].Add(output, expression);
     }
     

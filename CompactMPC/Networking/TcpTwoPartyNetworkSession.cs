@@ -118,13 +118,15 @@ public class TcpTwoPartyNetworkSession : ITwoPartyNetworkSession
     {
         await stream.WriteGuidAsync(party.Guid);
         await stream.WriteStringAsync(party.Name);
+        await stream.WriteStringAsync(party.Role.Name);
     }
 
     private static async Task<Party> ReadPartyInfoAsync(Stream stream)
     {
         var guid = await stream.ReadGuidAsync();
         var name = await stream.ReadStringAsync();
-        return new Party(guid, name);
+        var role = await stream.ReadStringAsync();
+        return new Party(guid, name, new Role(role));
     }
 
     public void Dispose() => _client.Dispose();

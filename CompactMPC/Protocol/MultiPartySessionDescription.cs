@@ -15,5 +15,8 @@ public class MultiPartySessionDescription(IEnumerable<Role> partyRoles)
     public IReadOnlyList<PartySlot> PartySlots { get; } =
         partyRoles.Select(role => new PartySlot(role)).ToList();
     
+    public IEnumerable<PartySlot> MatchingPartySlots(RoleMatcher roleMatcher) =>
+        PartySlots.Where(partySlot => roleMatcher(partySlot.Role));
+    
     public int NumberOfParties => PartySlots.Count;
 }
