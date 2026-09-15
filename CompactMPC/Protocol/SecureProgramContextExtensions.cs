@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using CompactMPC.Networking;
 
 namespace CompactMPC.Protocol;
@@ -16,6 +17,16 @@ public static class SecureProgramContextExtensions
 
     public static IReadOnlyList<TExpression> Share<TExpression>(this ISecureProgramContext context, Input<TExpression> input, params Role[] roles) where TExpression : IExpression =>
         context.Share(input, MatchAnyRole(roles));
+
+    public static TExpression ShareSingle<TExpression>(this ISecureProgramContext context, Input<TExpression> input, Role role) where TExpression : IExpression
+    {
+        var expressions = context.Share(input, MatchSingleRole(role));
+        
+        if (expressions.Count != 1)
+            throw new InvalidOperationException($"Expected exactly one party with role {role}, but found {expressions.Count}.");
+        
+        return expressions.Single();
+    }
 
     public static void Reveal<TExpression>(this ISecureProgramContext context, Output<TExpression> output, TExpression expression) where TExpression : IExpression =>
         context.Reveal(output, expression, MatchAllRoles);

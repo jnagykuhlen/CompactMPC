@@ -3,4 +3,6 @@
 public record Role(string Name)
 {
     public static readonly Role Default = new(nameof(Default));
+    
+    public override string ToString() => Name;
 }
