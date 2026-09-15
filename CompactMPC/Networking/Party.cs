@@ -7,6 +7,11 @@ public record Party(Guid Guid, string Name, Role Role) : IComparable<Party>
     public Party(Guid guid, string name) : this(guid, name, Role.Default) { }
     public Party(Guid guid) : this(guid, $"Party {guid}") { }
     public Party() : this(Guid.NewGuid()) { }
+    
+    public Party(Role role) : this()
+    {
+        Role = role;
+    }
 
     public static bool operator >(Party first, Party second) => first.CompareTo(second) > 0;
     public static bool operator <(Party first, Party second) => second > first;

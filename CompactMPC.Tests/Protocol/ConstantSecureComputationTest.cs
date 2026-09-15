@@ -11,17 +11,18 @@ public class ConstantSecureComputationTest
 {
     [TestMethod]
     public Task TestConstantSecureProgram() =>
-        TestSecureProgramRunner.RunAsync(
-            [BitArray.FromBinaryString("1010"), BitArray.FromBinaryString("1101")],
-            async (input, secureComputation) =>
-            {
-                var output = await secureComputation.Run<ConstantSecureProgram>()
-                    .WithInput(program => program.Input, input)
-                    .EvaluateOutputAsync(program => program.Output);
+        TestSecureProgramRunner
+            .WithParty(BitArray.FromBinaryString("1010"))
+            .WithParty(BitArray.FromBinaryString("1101"))
+            .RunAsync(async (input, secureComputation) =>
+                {
+                    var output = await secureComputation.Run<ConstantSecureProgram>()
+                        .WithInput(program => program.Input, input)
+                        .EvaluateOutputAsync(program => program.Output);
 
-                output.ToBinaryString().Should().Be("0000");
-            }
-        );
+                    output.ToBinaryString().Should().Be("0000");
+                }
+            );
 
     private class ConstantSecureProgram : SecureProgram
     {

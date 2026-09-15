@@ -15,15 +15,17 @@ public class SumSecureComputationTest
     [DataRow(new[] { 1, 2, 3, 4, 5 }, 15)]
     [TestMethod]
     public Task TestSumSecureProgram(int[] inputs, int expectedOutput) =>
-        TestSecureProgramRunner.RunAsync(inputs, async (input, secureComputation) =>
-            {
-                var output = await secureComputation.Run<SumSecureProgram>()
-                    .WithInput(program => program.Input, input)
-                    .EvaluateOutputAsync(program => program.Output);
+        TestSecureProgramRunner
+            .WithParties(inputs)
+            .RunAsync(async (input, secureComputation) =>
+                {
+                    var output = await secureComputation.Run<SumSecureProgram>()
+                        .WithInput(program => program.Input, input)
+                        .EvaluateOutputAsync(program => program.Output);
 
-                output.Should().Be(expectedOutput);
-            }
-        );
+                    output.Should().Be(expectedOutput);
+                }
+            );
 
     [TestMethod]
     public void TestSumSecureProgramStatistics()
