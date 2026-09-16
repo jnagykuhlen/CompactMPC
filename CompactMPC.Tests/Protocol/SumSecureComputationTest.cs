@@ -18,14 +18,13 @@ public class SumSecureComputationTest
     public Task TestSumSecureProgram(int[] inputs, int expectedOutput) =>
         TestSecureProgramRunner
             .WithParties(inputs)
-            .RunAsync(async (input, secureComputation) =>
-                {
-                    var output = await secureComputation.Run<SumSecureProgram>()
-                        .WithInput(program => program.Input, input)
-                        .EvaluateOutputAsync(program => program.Output);
-
-                    output.Should().Be(expectedOutput);
-                }
+            .RunAsync((input, secureComputation) =>
+                secureComputation.Run<SumSecureProgram>()
+                    .WithInput(program => program.Input, input)
+                    .EvaluateOutputAsync(program => program.Output)
+            )
+            .AndThen(outputs =>
+                outputs.Should().AllBeEquivalentTo(expectedOutput)
             );
 
     [TestMethod]

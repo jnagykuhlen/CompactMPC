@@ -6,47 +6,55 @@ using CompactMPC.ObliviousTransfer;
 
 namespace CompactMPC.Protocol.Internal;
 
-public class TestSecureProgramRunner<T>
+public class TestSecureProgramRunner<TInput>
 {
     private readonly List<Role> _partyRoles = new();
-    private readonly List<T> _partyInputs = new();
+    private readonly List<TInput> _partyInputs = new();
 
-    public TestSecureProgramRunner<T> WithParty(T input, Role role)
+    public TestSecureProgramRunner<TInput> WithParty(TInput input, Role role)
     {
         _partyInputs.Add(input);
         _partyRoles.Add(role);
         return this;
     }
 
-    public TestSecureProgramRunner<T> WithParty(T input) => WithParty(input, Role.Default);
+    public TestSecureProgramRunner<TInput> WithParty(TInput input) => WithParty(input, Role.Default);
 
-    public Task RunAsync(Func<T, SecretSharingSecureComputation, Task> action) =>
-        LocalNetworkRunner.RunMultiPartyNetworkAsync(
-            new MultiPartySessionDescription(_partyRoles),
-            sessionInfo => action(
-                _partyInputs[sessionInfo.LocalPartyIndex],
-                new SecretSharingSecureComputation(
-                    sessionInfo.Session,
-                    new SecurityParameters(47, 23, 4, 1, 1)
+    public async Task<TOutput[]> RunAsync<TOutput>(Func<TInput, SecretSharingSecureComputation, Task<TOutput>> action)
+    {
+        var sessionDescription = new MultiPartySessionDescription(_partyRoles);
+        var tasks = new Task<TOutput>[sessionDescription.NumberOfParties];
+
+        await LocalNetworkRunner.RunMultiPartyNetworkAsync(
+            sessionDescription,
+            sessionInfo =>
+                tasks[sessionInfo.LocalPartyIndex] = action(
+                    _partyInputs[sessionInfo.LocalPartyIndex],
+                    CreateSecureComputation(sessionInfo.Session)
                 )
-            )
         );
+
+        return await Task.WhenAll(tasks);
+    }
+
+    private static SecretSharingSecureComputation CreateSecureComputation(IMultiPartyNetworkSession session) =>
+        new(session, new SecurityParameters(47, 23, 4, 1, 1));
 }
 
 public static class TestSecureProgramRunner
 {
-    public static TestSecureProgramRunner<T> WithParties<T>(params T[] inputs)
+    public static TestSecureProgramRunner<TInput> WithParties<TInput>(params TInput[] inputs)
     {
-        var runner = new TestSecureProgramRunner<T>();
+        var runner = new TestSecureProgramRunner<TInput>();
 
         foreach (var input in inputs)
             runner.WithParty(input);
 
         return runner;
     }
-    
-    public static TestSecureProgramRunner<T> WithParty<T>(T input, Role role) =>
-        new TestSecureProgramRunner<T>().WithParty(input, role);
 
-    public static TestSecureProgramRunner<T> WithParty<T>(T input) => WithParty(input, Role.Default);
+    public static TestSecureProgramRunner<TInput> WithParty<TInput>(TInput input, Role role) =>
+        new TestSecureProgramRunner<TInput>().WithParty(input, role);
+
+    public static TestSecureProgramRunner<TInput> WithParty<TInput>(TInput input) => WithParty(input, Role.Default);
 }

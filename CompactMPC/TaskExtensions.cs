@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,5 +11,12 @@ public static class TaskExtensions
     {
         await task;
         return await Task.WhenAll(otherTasks.Prepend(task));
+    }
+    
+    public static async Task<T> AndThen<T>(this Task<T> task, Action<T> action)
+    {
+        var result = await task;
+        action(result);
+        return result;
     }
 }

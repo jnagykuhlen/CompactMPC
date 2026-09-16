@@ -15,21 +15,20 @@ public class RolesSecureComputationTest
         TestSecureProgramRunner
             .WithParty(8, RolesSecureProgram.RoleAlice)
             .WithParty(7, RolesSecureProgram.RoleBob)
-            .RunAsync(async (input, secureComputation) =>
-            {
-                var output = await secureComputation.Run<RolesSecureProgram>()
+            .RunAsync((input, secureComputation) =>
+                secureComputation.Run<RolesSecureProgram>()
                     .WithInput(program => program.Input, input)
-                    .EvaluateOutputAsync(program => program.Output);
-
-                output.Should().Be(input == 8);
-            }
-        );
+                    .EvaluateOutputAsync(program => program.Output)
+            )
+            .AndThen(outputs =>
+                outputs.Should().Equal(true, false)
+            );
 
     private class RolesSecureProgram : SecureProgram
     {
         public static readonly Role RoleAlice = new("Alice");
         public static readonly Role RoleBob = new("Bob");
-        
+
         public Input<SecureInteger> Input { get; } = SecureInteger.Input(10);
         public Output<SecureBoolean> Output { get; } = SecureBoolean.Output();
 

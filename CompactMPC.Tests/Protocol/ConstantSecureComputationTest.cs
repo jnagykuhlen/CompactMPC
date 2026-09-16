@@ -14,14 +14,13 @@ public class ConstantSecureComputationTest
         TestSecureProgramRunner
             .WithParty(BitArray.FromBinaryString("1010"))
             .WithParty(BitArray.FromBinaryString("1101"))
-            .RunAsync(async (input, secureComputation) =>
-                {
-                    var output = await secureComputation.Run<ConstantSecureProgram>()
-                        .WithInput(program => program.Input, input)
-                        .EvaluateOutputAsync(program => program.Output);
-
-                    output.ToBinaryString().Should().Be("0000");
-                }
+            .RunAsync((input, secureComputation) =>
+                secureComputation.Run<ConstantSecureProgram>()
+                    .WithInput(program => program.Input, input)
+                    .EvaluateOutputAsync(program => program.Output)
+            )
+            .AndThen(outputs =>
+                outputs.Should().AllBeEquivalentTo(BitArray.FromBinaryString("0000"))
             );
 
     private class ConstantSecureProgram : SecureProgram
