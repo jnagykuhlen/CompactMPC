@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using CompactMPC.Networking;
 using CompactMPC.Protocol.Expressions;
@@ -23,6 +24,21 @@ public class RolesSecureComputationTest
             .AndThen(outputs =>
                 outputs.Should().Equal(true, false)
             );
+
+    [TestMethod]
+    public async Task TestRolesSecureProgramWithNonUniqueRole()
+    {
+        var runActionAsync = () => TestSecureProgramRunner
+            .WithParty(8, RolesSecureProgram.RoleAlice)
+            .WithParty(7, RolesSecureProgram.RoleAlice)
+            .RunAsync((input, secureComputation) =>
+                secureComputation.Run<RolesSecureProgram>()
+                    .WithInput(program => program.Input, input)
+                    .EvaluateOutputsAsync()
+            );
+
+        await runActionAsync.Should().ThrowAsync<InvalidOperationException>();
+    }
 
     private class RolesSecureProgram : SecureProgram
     {
