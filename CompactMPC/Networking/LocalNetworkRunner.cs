@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using CompactMPC.Collections;
-using CompactMPC.Protocol;
 
 namespace CompactMPC.Networking;
 
