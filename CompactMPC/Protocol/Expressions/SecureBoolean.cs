@@ -4,7 +4,8 @@ using CompactMPC.Collections;
 
 namespace CompactMPC.Protocol.Expressions;
 
-public class SecureBoolean(Wire wire) : Expression([wire]), IInputExpression<bool>, IOutputExpression<bool>
+public class SecureBoolean(Wire wire) : Expression([wire]),
+    IInputExpression<bool>, IOutputExpression<bool>, IMultiplexable<SecureBoolean>
 {
     public static readonly SecureBoolean False = new(Wire.Zero);
     public static readonly SecureBoolean True = new(Wire.One);
@@ -26,6 +27,9 @@ public class SecureBoolean(Wire wire) : Expression([wire]), IInputExpression<boo
 
     public static bool operator false(SecureBoolean right) => right.Wire == Wire.Zero;
     public static bool operator true(SecureBoolean right) => right.Wire == Wire.One;
+
+    public static SecureBoolean Multiplex(SecureBoolean condition, SecureBoolean ifTrue, SecureBoolean ifFalse) =>
+        new(IMultiplexable<SecureBoolean>.Multiplex(condition.Wire, ifTrue.Wire, ifFalse.Wire));
 
     public static Input<SecureBoolean> Input() => new(Assignable);
     public static Output<SecureBoolean> Output() => new();

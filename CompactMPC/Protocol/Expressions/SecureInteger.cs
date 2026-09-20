@@ -7,7 +7,7 @@ using CompactMPC.Collections;
 namespace CompactMPC.Protocol.Expressions;
 
 public class SecureInteger(IReadOnlyList<Wire> wires, int maxValue) : Expression(wires),
-    IInputExpression<int>, IOutputExpression<int>
+    IInputExpression<int>, IOutputExpression<int>, IMultiplexable<SecureInteger>
 {
     public static readonly SecureInteger Zero = new([], 0);
     public static readonly SecureInteger One = new([Wire.One], 1);
@@ -42,6 +42,12 @@ public class SecureInteger(IReadOnlyList<Wire> wires, int maxValue) : Expression
 
     public static SecureInteger Sum(IReadOnlyList<SecureInteger> values) =>
         values.AggregateDepthEfficient((x, y) => x + y);
+
+    public static SecureInteger Max(SecureInteger left, SecureInteger right) =>
+        Multiplex(left > right, left, right, Math.Max(left.MaxValue, right.MaxValue));
+    
+    public static SecureInteger Min(SecureInteger left, SecureInteger right) =>
+        Multiplex(left < right, left, right, Math.Min(left.MaxValue, right.MaxValue));
 
     public static SecureInteger FromBoolean(SecureBoolean expression) => new(expression.Wires, 1);
 
@@ -127,6 +133,35 @@ public class SecureInteger(IReadOnlyList<Wire> wires, int maxValue) : Expression
     public static SecureBoolean operator <(SecureInteger left, SecureInteger right) => right > left;
     public static SecureBoolean operator >=(SecureInteger left, SecureInteger right) => !(right > left);
     public static SecureBoolean operator <=(SecureInteger left, SecureInteger right) => !(left > right);
+
+    public static SecureInteger Multiplex(SecureBoolean condition, SecureInteger ifTrue, SecureInteger ifFalse) =>
+        Multiplex(condition, ifTrue, ifFalse, Math.Max(ifTrue.MaxValue, ifFalse.MaxValue));
+
+    private static SecureInteger Multiplex(SecureBoolean condition, SecureInteger ifTrue, SecureInteger ifFalse, int maxValue)
+    {
+        var maxNumberOfBits = Math.Max(ifTrue.Wires.Count, ifFalse.Wires.Count);
+        return new SecureInteger(
+            IMultiplexable<SecureInteger>.Multiplex(
+                condition.Wire,
+                ifTrue.WithNumberOfBits(maxNumberOfBits).Wires,
+                ifFalse.WithNumberOfBits(maxNumberOfBits).Wires
+            ),
+            maxValue
+        );
+    }
+
+    private SecureInteger WithNumberOfBits(int numberOfBits)
+    {
+        if (Wires.Count >= numberOfBits)
+            return this;
+
+        return new SecureInteger(
+            Wires
+                .Concat(Enumerable.Repeat(Wire.Zero, numberOfBits))
+                .ToArray(),
+            MaxValue
+        );
+    }
 
     public static Input<SecureInteger> Input(int maxValue) => new(() => AssignableUpTo(maxValue));
     public static Output<SecureInteger> Output() => new();

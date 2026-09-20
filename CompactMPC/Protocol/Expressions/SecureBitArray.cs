@@ -6,8 +6,11 @@ using CompactMPC.Collections;
 namespace CompactMPC.Protocol.Expressions;
 
 public class SecureBitArray(IReadOnlyList<Wire> wires) : Expression(wires),
-    IInputExpression<IReadOnlyList<Bit>>, IOutputExpression<BitArray>
+    IInputExpression<IReadOnlyList<Bit>>, IOutputExpression<BitArray>, IMultiplexable<SecureBitArray>
 {
+    public SecureBitArray(Wire wire, int numberOfBits) :
+        this(Enumerable.Repeat(wire, numberOfBits).ToArray()) { }
+
     public void WriteTo(IReadOnlyList<Bit> value, IWriteOnlyList<Bit> destination)
     {
         for (var i = 0; i < value.Count; ++i)
@@ -28,16 +31,19 @@ public class SecureBitArray(IReadOnlyList<Wire> wires) : Expression(wires),
     public SecureBoolean IsBitSet(int index) => new(Wires[index]);
 
     public static SecureBitArray AllZeroes(int numberOfBits) =>
-        new(Enumerable.Repeat(Wire.Zero, numberOfBits).ToArray());
+        new(Wire.Zero, numberOfBits);
 
     public static SecureBitArray AllOnes(int numberOfBits) =>
-        new(Enumerable.Repeat(Wire.One, numberOfBits).ToArray());
+        new(Wire.One, numberOfBits);
 
     public static SecureBitArray Xor(IReadOnlyList<SecureBitArray> values) =>
         values.AggregateDepthEfficient((x, y) => x.Xor(y));
 
     public static SecureBitArray And(IReadOnlyList<SecureBitArray> values) =>
         values.AggregateDepthEfficient((x, y) => x.And(y));
+
+    public static SecureBitArray Multiplex(SecureBoolean condition, SecureBitArray ifTrue, SecureBitArray ifFalse) =>
+        new(IMultiplexable<SecureBitArray>.Multiplex(condition.Wire, ifTrue.Wires, ifFalse.Wires));
 
     public static Input<SecureBitArray> Input(int numberOfBits) => new(() => Assignable(numberOfBits));
     public static Output<SecureBitArray> Output() => new();
